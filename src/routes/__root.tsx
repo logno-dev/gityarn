@@ -86,7 +86,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){if(!('serviceWorker' in navigator)) return; navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}); if('caches' in window){caches.keys().then(function(keys){keys.forEach(function(k){caches.delete(k);});});}})();",
+              "(function(){var isLocal=location.hostname==='localhost'||location.hostname==='127.0.0.1';if(!isLocal) return;if(!('serviceWorker' in navigator)) return;navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});});if('caches' in window){caches.keys().then(function(keys){keys.forEach(function(k){caches.delete(k);});});}})();",
           }}
         />
         <script
