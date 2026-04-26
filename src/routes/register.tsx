@@ -14,6 +14,15 @@ function RegisterPage() {
     setStatus('Creating account...')
 
     const formData = new FormData(event.currentTarget)
+    const password = String(formData.get('password') ?? '')
+    const confirmPassword = String(formData.get('confirmPassword') ?? '')
+
+    if (password !== confirmPassword) {
+      setStatus('Passwords do not match.')
+      return
+    }
+
+    formData.delete('confirmPassword')
     const payload = Object.fromEntries(formData.entries())
 
     const response = await fetch('/api/auth/sign-up', {
@@ -50,6 +59,10 @@ function RegisterPage() {
           <label>
             Password
             <input minLength={8} name="password" required type="password" />
+          </label>
+          <label>
+            Confirm password
+            <input minLength={8} name="confirmPassword" required type="password" />
           </label>
           <button className="button button-primary" type="submit">
             <UserPlus size={16} /> Create Account

@@ -239,6 +239,7 @@ p {
 
 .app-layout {
   --sidebar-width: 260px;
+  position: relative;
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   height: 100vh;
@@ -259,14 +260,15 @@ p {
   overflow-y: auto;
   overflow-x: visible;
   position: relative;
+  z-index: 2;
   transition: width 220ms ease, transform 220ms ease;
 }
 
-.sidebar-tab-toggle {
+.sidebar-edge-toggle {
   position: absolute;
   top: 1.35rem;
-  right: 0;
-  transform: translateX(100%);
+  left: var(--sidebar-width);
+  transform: translateX(-1px);
   height: 42px;
   width: 28px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -282,7 +284,7 @@ p {
   box-shadow: 2px 4px 10px rgba(24, 14, 29, 0.2);
 }
 
-html[data-theme='dark'] .sidebar-tab-toggle {
+html[data-theme='dark'] .sidebar-edge-toggle {
   border-color: rgba(255, 255, 255, 0.16);
 }
 
@@ -398,6 +400,8 @@ html[data-theme='dark'] .sidebar-tab-toggle {
   height: 100vh;
   overflow: hidden;
   display: block;
+  position: relative;
+  z-index: 1;
 }
 
 .workspace-content {
@@ -1509,6 +1513,13 @@ textarea {
     justify-content: flex-start;
     padding-inline: 0.65rem;
     width: 100%;
+  }
+
+  .sidebar[data-collapsed='true'] .sidebar-footer .icon-button,
+  .sidebar[data-collapsed='true'] .profile-button {
+    width: 100%;
+    justify-content: flex-start;
+    padding-inline: 0.6rem;
   }
 
   .mobile-only {

@@ -48,6 +48,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
   const [selectedAssociation, setSelectedAssociation] = useState<{ lineId: string; colorwayId: string | null } | null>(null)
   const [newColorwayName, setNewColorwayName] = useState('')
   const [newColorwayCode, setNewColorwayCode] = useState('')
+  const [inventoryQuantity, setInventoryQuantity] = useState(1)
 
   const associationOptions = useMemo(() => {
     const options: Array<{
@@ -163,6 +164,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
     setSelectedAssociation(null)
     setNewColorwayName('')
     setNewColorwayCode('')
+    setInventoryQuantity(1)
     setShowAssociationEditor(false)
     setStatus('Open scanner to detect a barcode.')
     await startCamera()
@@ -342,6 +344,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
       body: JSON.stringify({
         lineId: resolveData.association.lineId,
         colorwayId: resolveData.association.colorwayId,
+        quantity: inventoryQuantity,
       }),
     })
     const payload = (await response.json()) as { message?: string }
@@ -417,6 +420,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
       body: JSON.stringify({
         lineId: selectedAssociation.lineId,
         colorwayId: newColorwayName.trim() ? null : selectedAssociation.colorwayId,
+        quantity: inventoryQuantity,
       }),
     })
 
@@ -452,6 +456,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
     if (associateResponse.ok) {
       setNewColorwayName('')
       setNewColorwayCode('')
+      setInventoryQuantity(1)
       setShowAssociationEditor(false)
       await resolveBarcode(barcode)
     }
@@ -519,6 +524,15 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
             Matched: {resolveData.association.manufacturerName} · {resolveData.association.lineName}
             {resolveData.association.colorwayName ? ` · ${resolveData.association.colorwayName}` : ''}
           </strong>
+          <label>
+            Quantity
+            <input
+              min={1}
+              onChange={(event) => setInventoryQuantity(Math.max(1, Number(event.target.value) || 1))}
+              type="number"
+              value={inventoryQuantity}
+            />
+          </label>
           <div className="hero-actions">
             <button className="button button-primary" onClick={() => void addResolvedToInventory()} type="button">
               Add to inventory
@@ -585,6 +599,15 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
 
           {selectedAssociation?.lineId ? (
             <div className="stack-form">
+              <label>
+                Quantity
+                <input
+                  min={1}
+                  onChange={(event) => setInventoryQuantity(Math.max(1, Number(event.target.value) || 1))}
+                  type="number"
+                  value={inventoryQuantity}
+                />
+              </label>
               <label>
                 Add missing colorway (optional)
                 <input

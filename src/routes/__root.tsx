@@ -4,7 +4,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import {
   Barcode,
   BookOpenCheck,
-  ChartColumnIncreasing,
+  Newspaper,
   X,
   Menu,
   LogOut,
@@ -218,15 +218,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <button
-          aria-label={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
-          className="sidebar-tab-toggle desktop-only"
-          onClick={() => setSidebarCollapsed((current) => !current)}
-          type="button"
-        >
-          {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-        </button>
-
         <nav className="sidebar-nav">
           <Link
             activeProps={{ className: 'active' }}
@@ -234,7 +225,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setMobileSidebarOpen(false)}
             to="/dashboard"
           >
-            <ChartColumnIncreasing aria-hidden="true" size={18} />
+            <Newspaper aria-hidden="true" size={18} />
             <span className="nav-label">Discover</span>
           </Link>
           <Link
@@ -297,6 +288,15 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <ThemeToggle />
         </div>
       </aside>
+
+      <button
+        aria-label={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+        className="sidebar-edge-toggle desktop-only"
+        onClick={() => setSidebarCollapsed((current) => !current)}
+        type="button"
+      >
+        {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+      </button>
 
       <div className="workspace">
         <main className="workspace-content">
