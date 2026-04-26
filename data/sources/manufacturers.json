@@ -1,0 +1,340 @@
+[
+  {
+    "manufacturer": "Premier Yarns",
+    "websiteUrl": "https://www.premieryarns.com",
+    "pages": [
+      "https://www.premieryarns.com/collections/all"
+    ],
+    "productFeed": {
+      "urlTemplate": "https://www.premieryarns.com/collections/all/products.json?page={page}&limit=250",
+      "start": 1,
+      "end": 8,
+      "step": 1,
+      "includeProductTypes": [
+        "Yarn"
+      ],
+      "excludeProductTypes": [
+        "Pattern Archive",
+        "Book"
+      ]
+    },
+    "pagination": {
+      "template": "https://www.premieryarns.com/collections/all?page={page}",
+      "start": 1,
+      "end": 7,
+      "step": 1
+    },
+    "selectors": {
+      "card": ".product-card",
+      "lineName": ".product-title",
+      "productUrl": "a|attr:href"
+    },
+    "productJson": {
+      "template": "https://www.premieryarns.com/products/{handle}.js",
+      "colorOptionNames": [
+        "color",
+        "colour"
+      ],
+      "skuAsColorCode": true
+    },
+    "detailSelectors": {
+      "fiberContent": ".product-fiber",
+      "weightClass": ".product-weight",
+      "yardageMeters": ".product-yardage",
+      "needleOrHookRange": ".hook-range",
+      "barcode": ".upc"
+    },
+    "splitColorsBy": [
+      ",",
+      "/",
+      "|"
+    ],
+    "requestDelayMs": 150,
+    "disabled": false
+  },
+  {
+    "manufacturer": "Lion Brand",
+    "websiteUrl": "https://www.lionbrand.com",
+    "pages": [
+      "https://www.lionbrand.com/collections/all"
+    ],
+    "productFeed": {
+      "urlTemplate": "https://www.lionbrand.com/collections/all/products.json?page={page}&limit=250",
+      "start": 1,
+      "end": 30,
+      "step": 1,
+      "includeProductTypes": [
+        "Yarn"
+      ],
+      "excludeProductTypes": [
+        "Pattern",
+        "Marketplace Pattern",
+        "Paid Pattern",
+        "Tools"
+      ]
+    },
+    "selectors": {
+      "card": ".product-card",
+      "lineName": ".product-title",
+      "productUrl": "a|attr:href"
+    },
+    "productJson": {
+      "template": "https://www.lionbrand.com/products/{handle}.js",
+      "colorOptionNames": [
+        "color",
+        "colour"
+      ],
+      "skuAsColorCode": true
+    },
+    "requestDelayMs": 200,
+    "disabled": false
+  },
+  {
+    "manufacturer": "Hobbii",
+    "websiteUrl": "https://hobbii.com",
+    "pages": [
+      "https://hobbii.com/yarn"
+    ],
+    "productFeed": {
+      "urlTemplate": "https://hobbii.com/collections/yarn/products.json?page={page}&limit=250",
+      "start": 1,
+      "end": 40,
+      "step": 1,
+      "includeProductTypes": [
+        "yarn"
+      ],
+      "excludeProductTypes": []
+    },
+    "selectors": {
+      "card": ".product-card",
+      "lineName": ".product-title",
+      "productUrl": "a|attr:href"
+    },
+    "productJson": {
+      "template": "https://hobbii.com/products/{handle}.js",
+      "colorOptionNames": [
+        "color",
+        "colour"
+      ],
+      "skuAsColorCode": true
+    },
+    "requestDelayMs": 180,
+    "disabled": false
+  },
+  {
+    "manufacturer": "Yarnspirations",
+    "websiteUrl": "https://www.yarnspirations.com",
+    "pages": [
+      "https://www.yarnspirations.com/collections/yarn"
+    ],
+    "productFeed": {
+      "urlTemplate": "https://www.yarnspirations.com/collections/yarn/products.json?page={page}&limit=250",
+      "start": 1,
+      "end": 25,
+      "step": 1,
+      "includeProductTypes": [
+        "Yarn"
+      ],
+      "excludeProductTypes": []
+    },
+    "selectors": {
+      "card": ".product-card",
+      "lineName": ".product-title",
+      "productUrl": "a|attr:href"
+    },
+    "productJson": {
+      "template": "https://www.yarnspirations.com/products/{handle}.js",
+      "colorOptionNames": [
+        "color",
+        "colour"
+      ],
+      "skuAsColorCode": true
+    },
+    "requestDelayMs": 180,
+    "disabled": false
+  },
+  {
+    "manufacturer": "Darn Good Yarn",
+    "websiteUrl": "https://www.darngoodyarn.com",
+    "pages": [
+      "https://www.darngoodyarn.com/collections/all"
+    ],
+    "productFeed": {
+      "urlTemplate": "https://www.darngoodyarn.com/collections/all/products.json?page={page}&limit=250",
+      "start": 1,
+      "end": 30,
+      "step": 1,
+      "includeProductTypes": [
+        "Yarn"
+      ],
+      "excludeProductTypes": [
+        "Patterns",
+        "Kits",
+        "Gift Cards",
+        "Notions and Tools"
+      ]
+    },
+    "selectors": {
+      "card": ".product-card",
+      "lineName": ".product-title",
+      "productUrl": "a|attr:href"
+    },
+    "productJson": {
+      "template": "https://www.darngoodyarn.com/products/{handle}.js",
+      "colorOptionNames": [
+        "color",
+        "colour"
+      ],
+      "skuAsColorCode": true
+    },
+    "requestDelayMs": 220,
+    "disabled": false
+  },
+  {
+    "manufacturer": "Gorgeous Alpacas",
+    "websiteUrl": "https://gorgeousalpacas.co.uk",
+    "pages": [
+      "https://gorgeousalpacas.co.uk/collections/all"
+    ],
+    "productFeed": {
+      "urlTemplate": "https://gorgeousalpacas.co.uk/collections/all/products.json?page={page}&limit=250",
+      "start": 1,
+      "end": 15,
+      "step": 1,
+      "includeProductTypes": [
+        "Yarn"
+      ],
+      "excludeProductTypes": [
+        "Pattern",
+        "Digital Pattern",
+        "Knit Kit",
+        "Crochet Kit",
+        "Craft Tools",
+        "Kit"
+      ]
+    },
+    "selectors": {
+      "card": ".product-card",
+      "lineName": ".product-title",
+      "productUrl": "a|attr:href"
+    },
+    "productJson": {
+      "template": "https://gorgeousalpacas.co.uk/products/{handle}.js",
+      "colorOptionNames": [
+        "color",
+        "colour"
+      ],
+      "skuAsColorCode": true
+    },
+    "requestDelayMs": 200,
+    "disabled": false
+  },
+  {
+    "manufacturer": "Red Heart",
+    "websiteUrl": "https://getredheart.com",
+    "pages": [
+      "https://getredheart.com"
+    ],
+    "selectors": {
+      "card": "article",
+      "lineName": "h2",
+      "productUrl": "a|attr:href"
+    },
+    "requestDelayMs": 240,
+    "disabled": true
+  },
+  {
+    "manufacturer": "Knit Picks",
+    "websiteUrl": "https://www.knitpicks.com",
+    "pages": [
+      "https://www.knitpicks.com/yarn"
+    ],
+    "selectors": {
+      "card": ".product-card",
+      "lineName": ".product-title",
+      "productUrl": "a|attr:href"
+    },
+    "requestDelayMs": 260,
+    "disabled": true
+  },
+  {
+    "manufacturer": "Berroco",
+    "websiteUrl": "https://berroco.com",
+    "pages": [
+      "https://berroco.com/yarns"
+    ],
+    "selectors": {
+      "card": "article",
+      "lineName": "h2",
+      "productUrl": "a|attr:href"
+    },
+    "requestDelayMs": 260,
+    "disabled": true
+  },
+  {
+    "manufacturer": "James C. Brett",
+    "websiteUrl": "https://www.jamescbrett.co.uk",
+    "pages": [
+      "https://www.jamescbrett.co.uk"
+    ],
+    "selectors": {
+      "card": "article",
+      "lineName": "h2",
+      "productUrl": "a|attr:href"
+    },
+    "requestDelayMs": 260,
+    "disabled": true
+  },
+  {
+    "manufacturer": "Malabrigo Yarn",
+    "websiteUrl": "https://malabrigoyarn.com",
+    "pages": [
+      "https://malabrigoyarn.com/yarns"
+    ],
+    "selectors": {
+      "card": "article",
+      "lineName": "h2",
+      "productUrl": "a|attr:href"
+    },
+    "requestDelayMs": 260,
+    "disabled": true
+  },
+  {
+    "manufacturer": "Scheepjes",
+    "websiteUrl": "https://www.scheepjes.com",
+    "pages": [
+      "https://www.scheepjes.com/en/yarn/"
+    ],
+    "selectors": {
+      "card": "article",
+      "lineName": "h2",
+      "productUrl": "a|attr:href"
+    },
+    "requestDelayMs": 260,
+    "disabled": true
+  },
+  {
+    "manufacturer": "Premier Yarns",
+    "websiteUrl": "https://www.premieryarns.com",
+    "pages": [
+      "https://www.premieryarns.com/collections/yarn"
+    ],
+    "selectors": {
+      "card": ".card-product",
+      "lineName": ".card__heading",
+      "productUrl": "a|attr:href"
+    },
+    "detailSelectors": {
+      "fiberContent": ".product__description",
+      "weightClass": ".product__description"
+    },
+    "detailRecordSelectors": {
+      "card": "[data-variant-id]",
+      "colorName": ".swatch__label",
+      "colorCode": ":self|attr:data-color-code",
+      "barcode": ":self|attr:data-barcode"
+    },
+    "requestDelayMs": 200,
+    "disabled": true
+  }
+]

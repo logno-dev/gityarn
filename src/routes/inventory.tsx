@@ -1,0 +1,1169 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { BookOpenCheck, Download, ImagePlus, Lock, Minus, Package, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
+
+export const Route = createFileRoute('/inventory')({ component: InventoryPage })
+
+type InventoryKind = 'yarn' | 'hooks' | 'patterns' | 'creations'
+
+type YarnItem = {
+  id: string
+  yarnLineId: string | null
+  yarnColorwayId: string | null
+  nickname: string | null
+  quantity: number
+  isLowStock: boolean
+  isProjectReserved: boolean
+  storageLocation: string | null
+  notes: string | null
+  updatedAt: number
+  lineName: string | null
+  manufacturerName: string | null
+  colorwayName: string | null
+  colorCode: string | null
+}
+
+type HookItem = {
+  id: string
+  sizeLabel: string
+  metricSizeMm: string | null
+  material: string | null
+  quantity: number
+}
+
+type PatternItem = {
+  id: string
+  title: string
+  description: string | null
+  sourceUrl: string | null
+  difficulty: string | null
+  isPublic: boolean
+  publicShareConfirmed: boolean
+  hasPdf: boolean
+  hasCover: boolean
+  pdfFileName: string | null
+  notes: string | null
+  updatedAt: number
+}
+
+type CreationItem = {
+  id: string
+  name: string
+  status: string
+  isPublic: boolean
+  notes: string | null
+  patternId: string | null
+  patternTitle: string | null
+  yarnCount: number
+  hookCount: number
+  imageCount: number
+}
+
+type SearchPayload = {
+  lines: Array<{
+    id: string
+    name: string
+    manufacturerName: string
+    colorways: Array<{ id: string; name: string; colorCode: string | null }>
+  }>
+}
+
+type InventoryResponse = {
+  kind: InventoryKind
+  summary: Record<string, number>
+  items: Array<YarnItem | HookItem | PatternItem | CreationItem>
+}
+
+type PublicPatternsResponse = {
+  patterns: Array<{
+    id: string
+    title: string
+    description: string | null
+    difficulty: string | null
+    sourceUrl: string | null
+    hasPdf: boolean
+    hasCover: boolean
+    ownerDisplayName: string
+    updatedAt: number
+  }>
+}
+
+const tabs: Array<{ key: InventoryKind; label: string; icon: typeof Package }> = [
+  { key: 'yarn', label: 'Yarn', icon: Package },
+  { key: 'hooks', label: 'Hooks', icon: Shapes },
+  { key: 'patterns', label: 'Patterns', icon: BookOpenCheck },
+  { key: 'creations', label: 'Creations', icon: Scissors },
+]
+
+function InventoryPage() {
+  const [activeTab, setActiveTab] = useState<InventoryKind>('yarn')
+  const [queryInput, setQueryInput] = useState('')
+  const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [status, setStatus] = useState('')
+  const [data, setData] = useState<InventoryResponse | null>(null)
+  const [drafts, setDrafts] = useState<Record<string, Record<string, string | number | boolean | null>>>({})
+
+  const [catalogQuery, setCatalogQuery] = useState('')
+  const [catalogLoading, setCatalogLoading] = useState(false)
+  const [catalogResults, setCatalogResults] = useState<SearchPayload['lines']>([])
+  const [selectedLineId, setSelectedLineId] = useState('')
+  const [selectedColorwayId, setSelectedColorwayId] = useState('')
+  const [newYarnQuantity, setNewYarnQuantity] = useState(1)
+  const [newYarnLocation, setNewYarnLocation] = useState('')
+  const [newYarnNickname, setNewYarnNickname] = useState('')
+  const [newYarnNotes, setNewYarnNotes] = useState('')
+  const [newYarnLowStock, setNewYarnLowStock] = useState(false)
+  const [newYarnReserved, setNewYarnReserved] = useState(false)
+
+  const [newHook, setNewHook] = useState({ sizeLabel: '', metricSizeMm: '', material: '', quantity: 1 })
+  const [newPattern, setNewPattern] = useState({
+    title: '',
+    description: '',
+    sourceUrl: '',
+    difficulty: '',
+    notes: '',
+    isPublic: false,
+    publicShareConfirmed: false,
+  })
+  const [newPatternPdfFile, setNewPatternPdfFile] = useState<File | null>(null)
+  const [newPatternCoverFile, setNewPatternCoverFile] = useState<File | null>(null)
+  const [publicPatterns, setPublicPatterns] = useState<PublicPatternsResponse['patterns']>([])
+  const [newCreation, setNewCreation] = useState({ name: '', status: 'active', patternId: '', notes: '', isPublic: false })
+  const [newCreationImages, setNewCreationImages] = useState<File[]>([])
+  const [creationYarnOptions, setCreationYarnOptions] = useState<Array<{ id: string; label: string }>>([])
+  const [creationHookOptions, setCreationHookOptions] = useState<Array<{ id: string; label: string }>>([])
+  const [newCreationYarnIds, setNewCreationYarnIds] = useState<string[]>([])
+  const [newCreationHookIds, setNewCreationHookIds] = useState<string[]>([])
+  const [patternChoices, setPatternChoices] = useState<Array<{ id: string; title: string }>>([])
+
+  const selectedLine = useMemo(
+    () => catalogResults.find((line) => line.id === selectedLineId) ?? null,
+    [catalogResults, selectedLineId],
+  )
+
+  const loadInventory = async (kind = activeTab, searchValue = query) => {
+    setLoading(true)
+    setError(null)
+    const response = await fetch(`/api/scan/inventory?kind=${kind}&query=${encodeURIComponent(searchValue.trim())}`)
+    const payload = (await response.json()) as InventoryResponse & { message?: string }
+
+    if (!response.ok) {
+      setError(payload.message ?? 'Could not load inventory data.')
+      setData(null)
+      setLoading(false)
+      return
+    }
+
+    setData(payload)
+    setDrafts(
+      Object.fromEntries(
+        payload.items.map((item) => {
+          if (payload.kind === 'yarn') {
+            const yarn = item as YarnItem
+            return [
+              yarn.id,
+              {
+                quantity: yarn.quantity,
+                storageLocation: yarn.storageLocation ?? '',
+                nickname: yarn.nickname ?? '',
+                notes: yarn.notes ?? '',
+                isLowStock: yarn.isLowStock,
+                isProjectReserved: yarn.isProjectReserved,
+              },
+            ]
+          }
+          if (payload.kind === 'hooks') {
+            const hook = item as HookItem
+            return [hook.id, { sizeLabel: hook.sizeLabel, metricSizeMm: hook.metricSizeMm ?? '', material: hook.material ?? '', quantity: hook.quantity }]
+          }
+          if (payload.kind === 'patterns') {
+            const pattern = item as PatternItem
+            return [
+              pattern.id,
+              {
+                title: pattern.title,
+                description: pattern.description ?? '',
+                sourceUrl: pattern.sourceUrl ?? '',
+                difficulty: pattern.difficulty ?? '',
+                isPublic: pattern.isPublic,
+                publicShareConfirmed: pattern.publicShareConfirmed,
+                notes: pattern.notes ?? '',
+              },
+            ]
+          }
+          const creation = item as CreationItem
+          return [
+            creation.id,
+            {
+              name: creation.name,
+              status: creation.status,
+              patternId: creation.patternId ?? '',
+              isPublic: creation.isPublic,
+              notes: creation.notes ?? '',
+            },
+          ]
+        }),
+      ),
+    )
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    void loadInventory(activeTab, query)
+  }, [activeTab, query])
+
+  useEffect(() => {
+    if (activeTab !== 'creations') {
+      return
+    }
+    Promise.all([
+      fetch('/api/scan/inventory?kind=patterns').then((response) => response.json() as Promise<InventoryResponse>),
+      fetch('/api/scan/inventory?kind=yarn').then((response) => response.json() as Promise<InventoryResponse>),
+      fetch('/api/scan/inventory?kind=hooks').then((response) => response.json() as Promise<InventoryResponse>),
+    ])
+      .then(([patternsPayload, yarnPayload, hooksPayload]) => {
+        setPatternChoices(
+          patternsPayload.items.map((item) => {
+            const pattern = item as PatternItem
+            return { id: pattern.id, title: pattern.title }
+          }),
+        )
+        setCreationYarnOptions(
+          (yarnPayload.items as YarnItem[]).map((item) => ({
+            id: item.id,
+            label: `${item.manufacturerName ?? 'Unknown'} · ${item.lineName ?? 'Unknown'}${item.colorwayName ? ` · ${item.colorwayName}` : ''}`,
+          })),
+        )
+        setCreationHookOptions(
+          (hooksPayload.items as HookItem[]).map((item) => ({
+            id: item.id,
+            label: `${item.sizeLabel}${item.metricSizeMm ? ` (${item.metricSizeMm}mm)` : ''}${item.material ? ` · ${item.material}` : ''}`,
+          })),
+        )
+      })
+      .catch(() => {
+        setPatternChoices([])
+        setCreationYarnOptions([])
+        setCreationHookOptions([])
+      })
+  }, [activeTab])
+
+  useEffect(() => {
+    if (activeTab !== 'patterns') {
+      return
+    }
+    fetch('/api/patterns/public')
+      .then((response) => response.json() as Promise<PublicPatternsResponse>)
+      .then((payload) => setPublicPatterns(payload.patterns ?? []))
+      .catch(() => setPublicPatterns([]))
+  }, [activeTab])
+
+  const searchCatalog = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const cleaned = catalogQuery.trim()
+    if (cleaned.length < 2) {
+      setStatus('Type at least 2 characters to search catalog lines.')
+      return
+    }
+
+    setCatalogLoading(true)
+    const response = await fetch(`/api/scan/search?query=${encodeURIComponent(cleaned)}`)
+    const payload = (await response.json()) as SearchPayload
+    setCatalogResults(payload.lines)
+    setSelectedLineId(payload.lines[0]?.id ?? '')
+    setSelectedColorwayId('')
+    setCatalogLoading(false)
+  }
+
+  const patchItem = async (itemId: string, values: Record<string, string | number | boolean | null>) => {
+    const response = await fetch('/api/scan/inventory', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: activeTab, itemId, ...values }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setStatus(payload.message ?? (response.ok ? 'Saved.' : 'Could not save.'))
+    return response.ok
+  }
+
+  const uploadPatternAsset = async (patternId: string, kind: 'pdf' | 'cover', file: File) => {
+    const form = new FormData()
+    form.append('kind', kind)
+    form.append('file', file)
+    const response = await fetch(`/api/patterns/${patternId}/upload`, {
+      method: 'POST',
+      body: form,
+    })
+    const payload = (await response.json()) as { message?: string }
+    if (!response.ok) {
+      setStatus(payload.message ?? `Could not upload ${kind}.`)
+      return false
+    }
+    return true
+  }
+
+  const uploadCreationImages = async (creationId: string, files: File[]) => {
+    if (!files.length) {
+      return true
+    }
+    const form = new FormData()
+    files.forEach((file) => form.append('files', file))
+    const response = await fetch(`/api/creations/${creationId}/images`, {
+      method: 'POST',
+      body: form,
+    })
+    const payload = (await response.json()) as { message?: string }
+    if (!response.ok) {
+      setStatus(payload.message ?? 'Could not upload creation images.')
+      return false
+    }
+    return true
+  }
+
+  const adjustYarnQuantity = async (itemId: string, delta: number) => {
+    if (!data || data.kind !== 'yarn') {
+      return
+    }
+
+    const currentItems = data.items as YarnItem[]
+    const target = currentItems.find((item) => item.id === itemId)
+    if (!target) {
+      return
+    }
+
+    const nextQuantity = Math.max(1, target.quantity + delta)
+    const previous = currentItems
+    const updated = previous.map((item) => (item.id === itemId ? { ...item, quantity: nextQuantity } : item))
+    setData({ ...data, items: updated })
+
+    const ok = await patchItem(itemId, { quantity: nextQuantity })
+    if (!ok) {
+      setData({ ...data, items: previous })
+    }
+  }
+
+  const addCurrentItem = async () => {
+    if (activeTab === 'yarn') {
+      if (!selectedLineId) {
+        setStatus('Select a yarn line first.')
+        return
+      }
+      await fetch('/api/scan/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'yarn',
+          lineId: selectedLineId,
+          colorwayId: selectedColorwayId || null,
+          quantity: newYarnQuantity,
+          storageLocation: newYarnLocation,
+          nickname: newYarnNickname,
+          notes: newYarnNotes,
+          isLowStock: newYarnLowStock,
+          isProjectReserved: newYarnReserved,
+        }),
+      })
+      setNewYarnQuantity(1)
+      setNewYarnLocation('')
+      setNewYarnNickname('')
+      setNewYarnNotes('')
+      setNewYarnLowStock(false)
+      setNewYarnReserved(false)
+      await loadInventory()
+      setStatus('Yarn item added.')
+      return
+    }
+
+    if (activeTab === 'hooks') {
+      await fetch('/api/scan/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'hooks', ...newHook }),
+      })
+      setNewHook({ sizeLabel: '', metricSizeMm: '', material: '', quantity: 1 })
+      await loadInventory()
+      setStatus('Hook added.')
+      return
+    }
+
+    if (activeTab === 'patterns') {
+      const response = await fetch('/api/scan/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'patterns', ...newPattern }),
+      })
+      const payload = (await response.json()) as { message?: string; patternId?: string }
+      if (!response.ok) {
+        setStatus(payload.message ?? 'Could not add pattern.')
+        return
+      }
+
+      if (payload.patternId && newPatternPdfFile) {
+        const ok = await uploadPatternAsset(payload.patternId, 'pdf', newPatternPdfFile)
+        if (!ok) {
+          return
+        }
+      }
+      if (payload.patternId && newPatternCoverFile) {
+        const ok = await uploadPatternAsset(payload.patternId, 'cover', newPatternCoverFile)
+        if (!ok) {
+          return
+        }
+      }
+
+      setNewPattern({
+        title: '',
+        description: '',
+        sourceUrl: '',
+        difficulty: '',
+        notes: '',
+        isPublic: false,
+        publicShareConfirmed: false,
+      })
+      setNewPatternPdfFile(null)
+      setNewPatternCoverFile(null)
+      await loadInventory()
+      const publicResponse = await fetch('/api/patterns/public')
+      if (publicResponse.ok) {
+        const publicPayload = (await publicResponse.json()) as PublicPatternsResponse
+        setPublicPatterns(publicPayload.patterns ?? [])
+      }
+      setStatus('Pattern added.')
+      return
+    }
+
+    const creationResponse = await fetch('/api/scan/inventory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'creations',
+        ...newCreation,
+        patternId: newCreation.patternId || null,
+        yarnInventoryIds: newCreationYarnIds,
+        hookIds: newCreationHookIds,
+      }),
+    })
+    const creationPayload = (await creationResponse.json()) as { message?: string; creationId?: string }
+    if (!creationResponse.ok) {
+      setStatus(creationPayload.message ?? 'Could not add creation.')
+      return
+    }
+
+    if (creationPayload.creationId && newCreationImages.length) {
+      const ok = await uploadCreationImages(creationPayload.creationId, newCreationImages)
+      if (!ok) {
+        return
+      }
+    }
+
+    setNewCreation({ name: '', status: 'active', patternId: '', notes: '', isPublic: false })
+    setNewCreationYarnIds([])
+    setNewCreationHookIds([])
+    setNewCreationImages([])
+    await loadInventory()
+    setStatus('Creation added.')
+  }
+
+  const removeItem = async (itemId: string) => {
+    const response = await fetch('/api/scan/inventory', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: activeTab, itemId }),
+    })
+    if (response.ok) {
+      await loadInventory()
+      setStatus('Item removed.')
+    }
+  }
+
+  const statEntries = Object.entries(data?.summary ?? {}).slice(0, 4)
+
+  return (
+    <section className="page-stack">
+      <header className="page-header">
+        <h1>Inventory</h1>
+        <p>Manage stash, tools, patterns, and creations with fast edits and planning flags.</p>
+      </header>
+
+      <div className="inventory-tab-row">
+        {tabs.map((tab) => (
+          <button
+            className={`inventory-tab ${activeTab === tab.key ? 'active' : ''}`}
+            key={tab.key}
+            onClick={() => {
+              setActiveTab(tab.key)
+              setStatus('')
+            }}
+            type="button"
+          >
+            <tab.icon size={15} /> {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="catalog-stat-grid">
+        {statEntries.map(([label, value]) => (
+          <article className="catalog-stat" key={label}>
+            <strong>{value}</strong>
+            <span>{label.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase())}</span>
+          </article>
+        ))}
+      </div>
+
+      <article className="soft-panel inventory-add-shell">
+        <h2>Add {tabs.find((tab) => tab.key === activeTab)?.label}</h2>
+        {activeTab === 'yarn' ? (
+          <>
+            <form className="catalog-search" onSubmit={searchCatalog}>
+              <label>
+                Search catalog line
+                <input onChange={(event) => setCatalogQuery(event.target.value)} type="text" value={catalogQuery} />
+              </label>
+              <button className="button" type="submit">
+                <Search size={15} /> Find line
+              </button>
+            </form>
+            {catalogLoading ? <p>Searching catalog...</p> : null}
+            {catalogResults.length ? (
+              <div className="inventory-add-grid">
+                <label>
+                  Yarn line
+                  <select
+                    onChange={(event) => {
+                      setSelectedLineId(event.target.value)
+                      setSelectedColorwayId('')
+                    }}
+                    value={selectedLineId}
+                  >
+                    {catalogResults.map((line) => (
+                      <option key={line.id} value={line.id}>
+                        {line.manufacturerName} · {line.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Colorway
+                  <select onChange={(event) => setSelectedColorwayId(event.target.value)} value={selectedColorwayId}>
+                    <option value="">Line-level only</option>
+                    {(selectedLine?.colorways ?? []).map((colorway) => (
+                      <option key={colorway.id} value={colorway.id}>
+                        {colorway.name}
+                        {colorway.colorCode ? ` (${colorway.colorCode})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Quantity
+                  <input
+                    min={1}
+                    onChange={(event) => setNewYarnQuantity(Math.max(1, Number(event.target.value) || 1))}
+                    type="number"
+                    value={newYarnQuantity}
+                  />
+                </label>
+                <label>
+                  Storage
+                  <input onChange={(event) => setNewYarnLocation(event.target.value)} type="text" value={newYarnLocation} />
+                </label>
+                <label>
+                  Nickname
+                  <input onChange={(event) => setNewYarnNickname(event.target.value)} type="text" value={newYarnNickname} />
+                </label>
+                <label>
+                  Notes
+                  <input onChange={(event) => setNewYarnNotes(event.target.value)} type="text" value={newYarnNotes} />
+                </label>
+                <label className="inventory-toggle-label">
+                  <input checked={newYarnLowStock} onChange={(event) => setNewYarnLowStock(event.target.checked)} type="checkbox" />
+                  Low stock
+                </label>
+                <label className="inventory-toggle-label">
+                  <input checked={newYarnReserved} onChange={(event) => setNewYarnReserved(event.target.checked)} type="checkbox" />
+                  Reserved for project
+                </label>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
+        {activeTab === 'hooks' ? (
+          <div className="inventory-add-grid">
+            <label>
+              Size label
+              <input onChange={(event) => setNewHook((current) => ({ ...current, sizeLabel: event.target.value }))} type="text" value={newHook.sizeLabel} />
+            </label>
+            <label>
+              Metric mm
+              <input onChange={(event) => setNewHook((current) => ({ ...current, metricSizeMm: event.target.value }))} type="text" value={newHook.metricSizeMm} />
+            </label>
+            <label>
+              Material
+              <input onChange={(event) => setNewHook((current) => ({ ...current, material: event.target.value }))} type="text" value={newHook.material} />
+            </label>
+            <label>
+              Quantity
+              <input min={1} onChange={(event) => setNewHook((current) => ({ ...current, quantity: Math.max(1, Number(event.target.value) || 1) }))} type="number" value={newHook.quantity} />
+            </label>
+          </div>
+        ) : null}
+
+        {activeTab === 'patterns' ? (
+          <div className="inventory-add-grid">
+            <label>
+              Title
+              <input onChange={(event) => setNewPattern((current) => ({ ...current, title: event.target.value }))} type="text" value={newPattern.title} />
+            </label>
+            <label>
+              Description
+              <textarea onChange={(event) => setNewPattern((current) => ({ ...current, description: event.target.value }))} rows={4} value={newPattern.description} />
+            </label>
+            <label>
+              Source URL
+              <input onChange={(event) => setNewPattern((current) => ({ ...current, sourceUrl: event.target.value }))} type="text" value={newPattern.sourceUrl} />
+            </label>
+            <label>
+              Difficulty
+              <input onChange={(event) => setNewPattern((current) => ({ ...current, difficulty: event.target.value }))} type="text" value={newPattern.difficulty} />
+            </label>
+            <label>
+              Notes
+              <input onChange={(event) => setNewPattern((current) => ({ ...current, notes: event.target.value }))} type="text" value={newPattern.notes} />
+            </label>
+            <label>
+              Pattern PDF (optional)
+              <input accept="application/pdf" onChange={(event) => setNewPatternPdfFile(event.target.files?.[0] ?? null)} type="file" />
+            </label>
+            <label>
+              Cover image (optional)
+              <input
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={(event) => setNewPatternCoverFile(event.target.files?.[0] ?? null)}
+                type="file"
+              />
+            </label>
+            <label className="inventory-toggle-label">
+              <input
+                checked={newPattern.isPublic}
+                onChange={(event) => setNewPattern((current) => ({ ...current, isPublic: event.target.checked }))}
+                type="checkbox"
+              />
+              Make pattern public (free download)
+            </label>
+            {newPattern.isPublic ? (
+              <label className="inventory-toggle-label">
+                <input
+                  checked={newPattern.publicShareConfirmed}
+                  onChange={(event) =>
+                    setNewPattern((current) => ({
+                      ...current,
+                      publicShareConfirmed: event.target.checked,
+                    }))
+                  }
+                  type="checkbox"
+                />
+                I am the creator or I have express permission to share this pattern publicly.
+              </label>
+            ) : null}
+          </div>
+        ) : null}
+
+        {activeTab === 'creations' ? (
+          <div className="inventory-add-grid">
+            <label>
+              Name
+              <input onChange={(event) => setNewCreation((current) => ({ ...current, name: event.target.value }))} type="text" value={newCreation.name} />
+            </label>
+            <label>
+              Status
+              <select onChange={(event) => setNewCreation((current) => ({ ...current, status: event.target.value }))} value={newCreation.status}>
+                <option value="active">active</option>
+                <option value="paused">paused</option>
+                <option value="finished">finished</option>
+              </select>
+            </label>
+            <label>
+              Pattern
+              <select onChange={(event) => setNewCreation((current) => ({ ...current, patternId: event.target.value }))} value={newCreation.patternId}>
+                <option value="">No pattern</option>
+                {patternChoices.map((pattern) => (
+                  <option key={pattern.id} value={pattern.id}>
+                    {pattern.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Notes
+              <textarea onChange={(event) => setNewCreation((current) => ({ ...current, notes: event.target.value }))} rows={5} value={newCreation.notes} />
+            </label>
+            <label>
+              Creation images (up to 8)
+              <input
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                onChange={(event) => setNewCreationImages(Array.from(event.target.files ?? []))}
+                type="file"
+              />
+            </label>
+            <label className="inventory-toggle-label">
+              <input
+                checked={newCreation.isPublic}
+                onChange={(event) => setNewCreation((current) => ({ ...current, isPublic: event.target.checked }))}
+                type="checkbox"
+              />
+              Make creation public in Discover
+            </label>
+            <label>
+              Yarn from inventory
+              <select
+                multiple
+                onChange={(event) =>
+                  setNewCreationYarnIds(Array.from(event.target.selectedOptions).map((option) => option.value))
+                }
+                value={newCreationYarnIds}
+              >
+                {creationYarnOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Hooks from inventory
+              <select
+                multiple
+                onChange={(event) =>
+                  setNewCreationHookIds(Array.from(event.target.selectedOptions).map((option) => option.value))
+                }
+                value={newCreationHookIds}
+              >
+                {creationHookOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
+
+        <button className="button button-primary" onClick={() => void addCurrentItem()} type="button">
+          <Plus size={15} /> Add item
+        </button>
+      </article>
+
+      <section className="catalog-list-shell" aria-label="Inventory list">
+        <form
+          className="catalog-search inventory-search"
+          onSubmit={(event) => {
+            event.preventDefault()
+            setQuery(queryInput.trim())
+          }}
+        >
+          <label>
+            Search {activeTab}
+            <input onChange={(event) => setQueryInput(event.target.value)} type="text" value={queryInput} />
+          </label>
+          <button className="button" type="submit">
+            <Search size={15} /> Filter
+          </button>
+        </form>
+
+        {loading ? <p className="inventory-message">Loading...</p> : null}
+        {error ? <p className="inventory-message">{error}</p> : null}
+        {status ? <p className="inventory-message">{status}</p> : null}
+
+        {!loading && !error && data && data.items.length === 0 ? <p className="inventory-message">No items yet.</p> : null}
+
+        {!loading && !error && data?.kind === 'yarn'
+          ? (data.items as YarnItem[]).map((item) => (
+              <article className="inventory-row" key={item.id}>
+                <div className="inventory-row-title">
+                  <strong>
+                    {item.manufacturerName ?? 'Unknown manufacturer'} · {item.lineName ?? 'Unknown line'}
+                  </strong>
+                  <span>
+                    {item.colorwayName ?? 'No colorway'}
+                    {item.colorCode ? ` (${item.colorCode})` : ''}
+                    {item.isLowStock ? ' · Low stock' : ''}
+                    {item.isProjectReserved ? ' · Reserved' : ''}
+                  </span>
+                </div>
+
+                <div className="inventory-qty-control">
+                  <button className="button" onClick={() => void adjustYarnQuantity(item.id, -1)} type="button">
+                    <Minus size={14} />
+                  </button>
+                  <input readOnly type="number" value={item.quantity} />
+                  <button className="button" onClick={() => void adjustYarnQuantity(item.id, 1)} type="button">
+                    <Plus size={14} />
+                  </button>
+                </div>
+
+                <label>
+                  Storage
+                  <input
+                    onChange={(event) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [item.id]: { ...current[item.id], storageLocation: event.target.value },
+                      }))
+                    }
+                    type="text"
+                    value={String((drafts[item.id]?.storageLocation as string | undefined) ?? item.storageLocation ?? '')}
+                  />
+                </label>
+
+                <label>
+                  Nickname
+                  <input
+                    onChange={(event) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [item.id]: { ...current[item.id], nickname: event.target.value },
+                      }))
+                    }
+                    type="text"
+                    value={String((drafts[item.id]?.nickname as string | undefined) ?? item.nickname ?? '')}
+                  />
+                </label>
+
+                <label>
+                  Notes
+                  <input
+                    onChange={(event) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [item.id]: { ...current[item.id], notes: event.target.value },
+                      }))
+                    }
+                    type="text"
+                    value={String((drafts[item.id]?.notes as string | undefined) ?? item.notes ?? '')}
+                  />
+                </label>
+
+                <div className="inventory-flag-group">
+                  <label className="inventory-toggle-label">
+                    <input
+                      checked={Boolean((drafts[item.id]?.isLowStock as boolean | undefined) ?? item.isLowStock)}
+                      onChange={(event) =>
+                        setDrafts((current) => ({
+                          ...current,
+                          [item.id]: { ...current[item.id], isLowStock: event.target.checked },
+                        }))
+                      }
+                      type="checkbox"
+                    />
+                    Low stock
+                  </label>
+                  <label className="inventory-toggle-label">
+                    <input
+                      checked={Boolean((drafts[item.id]?.isProjectReserved as boolean | undefined) ?? item.isProjectReserved)}
+                      onChange={(event) =>
+                        setDrafts((current) => ({
+                          ...current,
+                          [item.id]: { ...current[item.id], isProjectReserved: event.target.checked },
+                        }))
+                      }
+                      type="checkbox"
+                    />
+                    Reserved
+                  </label>
+                </div>
+
+                <div className="hero-actions">
+                  <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button">
+                    <Save size={14} /> Save
+                  </button>
+                  <button className="button" onClick={() => void removeItem(item.id)} type="button">
+                    <Trash2 size={14} /> Remove
+                  </button>
+                </div>
+              </article>
+            ))
+          : null}
+
+        {!loading && !error && data?.kind === 'hooks'
+          ? (data.items as HookItem[]).map((item) => (
+              <article className="inventory-simple-row" key={item.id}>
+                <label>
+                  Size
+                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], sizeLabel: event.target.value } }))} type="text" value={String((drafts[item.id]?.sizeLabel as string | undefined) ?? item.sizeLabel)} />
+                </label>
+                <label>
+                  Metric
+                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], metricSizeMm: event.target.value } }))} type="text" value={String((drafts[item.id]?.metricSizeMm as string | undefined) ?? item.metricSizeMm ?? '')} />
+                </label>
+                <label>
+                  Material
+                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], material: event.target.value } }))} type="text" value={String((drafts[item.id]?.material as string | undefined) ?? item.material ?? '')} />
+                </label>
+                <label>
+                  Qty
+                  <input min={1} onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], quantity: Math.max(1, Number(event.target.value) || 1) } }))} type="number" value={Number((drafts[item.id]?.quantity as number | undefined) ?? item.quantity)} />
+                </label>
+                <div className="hero-actions">
+                  <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button">
+                    <Save size={14} /> Save
+                  </button>
+                  <button className="button" onClick={() => void removeItem(item.id)} type="button">
+                    <Trash2 size={14} /> Remove
+                  </button>
+                </div>
+              </article>
+            ))
+          : null}
+
+        {!loading && !error && data?.kind === 'patterns'
+          ? (data.items as PatternItem[]).map((item) => (
+              <article className="pattern-row" key={item.id}>
+                <div className="pattern-row-head">
+                  <strong>{item.title}</strong>
+                  <span>
+                    {item.isPublic ? 'Public' : 'Private'}
+                    {item.hasPdf ? ' · PDF ready' : ' · No PDF'}
+                    {item.hasCover ? ' · Cover ready' : ''}
+                  </span>
+                </div>
+                <label>
+                  Title
+                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], title: event.target.value } }))} type="text" value={String((drafts[item.id]?.title as string | undefined) ?? item.title)} />
+                </label>
+                <label>
+                  Description
+                  <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], description: event.target.value } }))} rows={4} value={String((drafts[item.id]?.description as string | undefined) ?? item.description ?? '')} />
+                </label>
+                <label>
+                  Source URL
+                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], sourceUrl: event.target.value } }))} type="text" value={String((drafts[item.id]?.sourceUrl as string | undefined) ?? item.sourceUrl ?? '')} />
+                </label>
+                <label>
+                  Difficulty
+                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], difficulty: event.target.value } }))} type="text" value={String((drafts[item.id]?.difficulty as string | undefined) ?? item.difficulty ?? '')} />
+                </label>
+                <label>
+                  Notes
+                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], notes: event.target.value } }))} type="text" value={String((drafts[item.id]?.notes as string | undefined) ?? item.notes ?? '')} />
+                </label>
+                <label className="inventory-toggle-label">
+                  <input
+                    checked={Boolean((drafts[item.id]?.isPublic as boolean | undefined) ?? item.isPublic)}
+                    onChange={(event) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [item.id]: { ...current[item.id], isPublic: event.target.checked },
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  Make public (free download)
+                </label>
+                <label className="inventory-toggle-label">
+                  <input
+                    checked={Boolean((drafts[item.id]?.publicShareConfirmed as boolean | undefined) ?? item.publicShareConfirmed)}
+                    onChange={(event) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [item.id]: { ...current[item.id], publicShareConfirmed: event.target.checked },
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  I am creator / have permission
+                </label>
+                <div className="pattern-assets-row">
+                  <label>
+                    Upload PDF
+                    <input
+                      accept="application/pdf"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0]
+                        if (!file) return
+                        const ok = await uploadPatternAsset(item.id, 'pdf', file)
+                        if (ok) {
+                          await loadInventory()
+                        }
+                      }}
+                      type="file"
+                    />
+                  </label>
+                  <label>
+                    Upload cover
+                    <input
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0]
+                        if (!file) return
+                        const ok = await uploadPatternAsset(item.id, 'cover', file)
+                        if (ok) {
+                          await loadInventory()
+                        }
+                      }}
+                      type="file"
+                    />
+                  </label>
+                  <div className="hero-actions">
+                    {item.hasPdf ? (
+                      <a className="button" href={`/api/patterns/${item.id}/file`}>
+                        <Download size={14} /> Download PDF
+                      </a>
+                    ) : null}
+                    {item.hasCover ? (
+                      <a className="button" href={`/api/patterns/${item.id}/cover`} target="_blank" rel="noreferrer">
+                        <ImagePlus size={14} /> View cover
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="hero-actions">
+                  <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button">
+                    <Save size={14} /> Save
+                  </button>
+                  <button className="button" onClick={() => void removeItem(item.id)} type="button">
+                    <Trash2 size={14} /> Remove
+                  </button>
+                </div>
+              </article>
+            ))
+          : null}
+
+        {!loading && !error && activeTab === 'patterns' ? (
+          <article className="soft-panel public-patterns-shell">
+            <h3>Public Pattern Library</h3>
+            <p>Any public pattern listed here is downloadable for free by all signed-in members.</p>
+            <div className="catalog-sublist">
+              {publicPatterns.length ? (
+                publicPatterns.map((pattern) => (
+                  <div className="catalog-subrow" key={pattern.id}>
+                    <div>
+                      <strong>{pattern.title}</strong>
+                      <span>
+                        by {pattern.ownerDisplayName}
+                        {pattern.difficulty ? ` · ${pattern.difficulty}` : ''}
+                        {pattern.description ? ` · ${pattern.description}` : ''}
+                      </span>
+                    </div>
+                    <div className="hero-actions">
+                      {pattern.hasPdf ? (
+                        <a className="button" href={`/api/patterns/${pattern.id}/file`}>
+                          <Download size={14} /> Free download
+                        </a>
+                      ) : null}
+                      <button
+                        className="button"
+                        onClick={async () => {
+                          const details = window.prompt('Optional: explain why this public pattern may not be authorized.') ?? ''
+                          const response = await fetch(`/api/patterns/${pattern.id}/claim`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ details: details.trim() || null }),
+                          })
+                          const payload = (await response.json()) as { message?: string }
+                          setStatus(payload.message ?? (response.ok ? 'Claim filed.' : 'Could not file claim.'))
+                        }}
+                        type="button"
+                      >
+                        <Lock size={14} /> File claim
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No public patterns published yet.</p>
+              )}
+            </div>
+          </article>
+        ) : null}
+
+        {!loading && !error && data?.kind === 'creations'
+          ? (data.items as CreationItem[]).map((item) => (
+              <article className="pattern-row" key={item.id}>
+                <div className="pattern-row-head">
+                  <strong>{item.name}</strong>
+                  <span>
+                    {item.status} · {item.isPublic ? 'Public' : 'Private'} · {item.yarnCount} yarn · {item.hookCount} hooks · {item.imageCount} images
+                  </span>
+                </div>
+                <label>
+                  Name
+                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], name: event.target.value } }))} type="text" value={String((drafts[item.id]?.name as string | undefined) ?? item.name)} />
+                </label>
+                <label>
+                  Status
+                  <select onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], status: event.target.value } }))} value={String((drafts[item.id]?.status as string | undefined) ?? item.status)}>
+                    <option value="active">active</option>
+                    <option value="paused">paused</option>
+                    <option value="finished">finished</option>
+                  </select>
+                </label>
+                <label>
+                  Pattern
+                  <select onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], patternId: event.target.value } }))} value={String((drafts[item.id]?.patternId as string | undefined) ?? item.patternId ?? '')}>
+                    <option value="">No pattern</option>
+                    {patternChoices.map((pattern) => (
+                      <option key={pattern.id} value={pattern.id}>
+                        {pattern.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Notes
+                  <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], notes: event.target.value } }))} rows={5} value={String((drafts[item.id]?.notes as string | undefined) ?? item.notes ?? '')} />
+                </label>
+                <label className="inventory-toggle-label">
+                  <input
+                    checked={Boolean((drafts[item.id]?.isPublic as boolean | undefined) ?? item.isPublic)}
+                    onChange={(event) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [item.id]: { ...current[item.id], isPublic: event.target.checked },
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  Public in Discover
+                </label>
+                <label>
+                  Add images
+                  <input
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    multiple
+                    onChange={async (event) => {
+                      const files = Array.from(event.target.files ?? [])
+                      if (!files.length) {
+                        return
+                      }
+                      const ok = await uploadCreationImages(item.id, files)
+                      if (ok) {
+                        await loadInventory()
+                        setStatus('Creation images uploaded.')
+                      }
+                    }}
+                    type="file"
+                  />
+                </label>
+                <div className="hero-actions">
+                  {item.imageCount ? <a className="button" href={`/api/creations/${item.id}/images`} target="_blank" rel="noreferrer">View images</a> : null}
+                </div>
+                <div className="hero-actions">
+                  <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button">
+                    <Save size={14} /> Save
+                  </button>
+                  <button className="button" onClick={() => void removeItem(item.id)} type="button">
+                    <Trash2 size={14} /> Remove
+                  </button>
+                </div>
+              </article>
+            ))
+          : null}
+      </section>
+    </section>
+  )
+}
