@@ -9,6 +9,7 @@
     "dev": "vite dev --port 3000",
     "dev:fresh": "vite dev --port 3100",
     "build": "vite build",
+    "start": "vite preview",
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
