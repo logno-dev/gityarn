@@ -2,8 +2,8 @@ import { HeadContent, Link, Outlet, Scripts, createRootRoute, useNavigate, useRo
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import {
-  Barcode,
-  BookOpenCheck,
+  Backpack,
+  BookOpen,
   Newspaper,
   LogOut,
   Settings,
@@ -133,7 +133,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname })
   const navigate = useNavigate()
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+    try {
+      return window.localStorage.getItem('gityarn-sidebar-collapsed') === '1'
+    } catch {
+      return false
+    }
+  })
   const [profileOpen, setProfileOpen] = useState(false)
   const [authUser, setAuthUser] = useState<{
     id: string
@@ -167,6 +176,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
       document.documentElement.dataset.theme = nextTheme
     }
   }, [pathname])
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('gityarn-sidebar-collapsed', sidebarCollapsed ? '1' : '0')
+    } catch {
+      // Keep fail-silent in restricted storage environments.
+    }
+  }, [sidebarCollapsed])
 
   const isAuthenticated = Boolean(authUser)
 
@@ -244,7 +261,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             className="nav-item"
             to="/inventory"
           >
-            <BookOpenCheck aria-hidden="true" size={18} />
+            <Backpack aria-hidden="true" size={18} />
             <span className="nav-label">Inventory</span>
           </Link>
           <Link
@@ -252,7 +269,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             className="nav-item"
             to="/catalog"
           >
-            <Barcode aria-hidden="true" size={18} />
+            <BookOpen aria-hidden="true" size={18} />
             <span className="nav-label">Yarn Catalog</span>
           </Link>
           <Link
@@ -328,11 +345,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <span>Discover</span>
           </Link>
           <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/inventory">
-            <BookOpenCheck size={17} />
+            <Backpack size={17} />
             <span>Inventory</span>
           </Link>
           <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/catalog">
-            <Barcode size={17} />
+            <BookOpen size={17} />
             <span>Catalog</span>
           </Link>
           <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/scan">
