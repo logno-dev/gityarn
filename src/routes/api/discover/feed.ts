@@ -26,6 +26,7 @@ export const Route = createFileRoute('/api/discover/feed')({
             title: patterns.title,
             description: patterns.description,
             updatedAt: patterns.updatedAt,
+            ownerId: users.id,
             ownerDisplayName: users.displayName,
             hasCover: patterns.coverR2Key,
           })
@@ -41,6 +42,7 @@ export const Route = createFileRoute('/api/discover/feed')({
             name: creations.name,
             notes: creations.notes,
             updatedAt: creations.updatedAt,
+            ownerId: users.id,
             ownerDisplayName: users.displayName,
           })
           .from(creations)
@@ -74,6 +76,7 @@ export const Route = createFileRoute('/api/discover/feed')({
             title: posts.title,
             body: posts.body,
             updatedAt: posts.updatedAt,
+            ownerId: users.id,
             ownerDisplayName: users.displayName,
           })
           .from(posts)
@@ -132,6 +135,7 @@ export const Route = createFileRoute('/api/discover/feed')({
             entityId: item.id,
             title: item.title,
             body: item.description,
+            ownerId: item.ownerId,
             ownerDisplayName: item.ownerDisplayName,
             previewImage: item.hasCover ? `/api/patterns/${item.id}/cover` : null,
             downloadUrl: `/api/patterns/${item.id}/file`,
@@ -143,6 +147,7 @@ export const Route = createFileRoute('/api/discover/feed')({
             entityId: item.id,
             title: item.name,
             body: item.notes,
+            ownerId: item.ownerId,
             ownerDisplayName: item.ownerDisplayName,
             previewImage: firstCreationImageMap.get(item.id)
               ? `/api/creations/${item.id}/images?imageId=${firstCreationImageMap.get(item.id)}`
@@ -156,6 +161,7 @@ export const Route = createFileRoute('/api/discover/feed')({
             entityId: item.id,
             title: item.title,
             body: item.body,
+            ownerId: item.ownerId,
             ownerDisplayName: item.ownerDisplayName,
             previewImage: firstPostImageMap.get(item.id)
               ? `/api/posts/${item.id}/images?imageId=${firstPostImageMap.get(item.id)}`

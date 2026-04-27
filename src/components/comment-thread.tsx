@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { MessageCircle, Reply, Send } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
@@ -163,7 +164,9 @@ function CommentBranch({
     <div className="comment-node" style={{ '--comment-depth': String(comment.depth) } as React.CSSProperties}>
       <div className="comment-node-body">
         <div className="comment-node-head">
-          <strong>{comment.author.displayName}</strong>
+          <Link params={{ userId: comment.author.id }} to="/profile/$userId">
+            <strong>{comment.author.displayName}</strong>
+          </Link>
           <span>{new Date(comment.createdAt).toLocaleString()}</span>
         </div>
         <p>{comment.body}</p>

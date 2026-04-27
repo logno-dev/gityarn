@@ -1,9 +1,7 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { ImagePlus, KeyRound, Save, Shield, UserRound } from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router'
+import { ImagePlus, KeyRound, Save, UserRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-
-import { ThemeToggle } from '#/components/theme-toggle'
 
 export const Route = createFileRoute('/account-settings')({ component: AccountSettingsPage })
 
@@ -144,18 +142,6 @@ function AccountSettingsPage() {
 
       {!loading && !error && data ? (
         <div className="settings-grid">
-          <article className="soft-panel">
-            <h2>App controls</h2>
-            <div className="hero-actions">
-              <ThemeToggle />
-              {data.profile.role === 'admin' ? (
-                <Link className="button" to="/admin">
-                  <Shield size={14} /> Admin panel
-                </Link>
-              ) : null}
-            </div>
-          </article>
-
           <article className="soft-panel">
             <h2>
               <ImagePlus size={16} /> Profile photo

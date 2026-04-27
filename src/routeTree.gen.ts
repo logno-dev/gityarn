@@ -23,6 +23,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountSettingsRouteImport } from './routes/account-settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ScanCreateItemRouteImport } from './routes/scan.create-item'
+import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as CatalogLineIdRouteImport } from './routes/catalog.$lineId'
 import { Route as ApiPostsRouteImport } from './routes/api/posts'
@@ -34,6 +35,7 @@ import { Route as ApiScanResolveRouteImport } from './routes/api/scan/resolve'
 import { Route as ApiScanInventoryRouteImport } from './routes/api/scan/inventory'
 import { Route as ApiScanCreateItemRouteImport } from './routes/api/scan/create-item'
 import { Route as ApiScanAssociateRouteImport } from './routes/api/scan/associate'
+import { Route as ApiProfilesUserIdRouteImport } from './routes/api/profiles/$userId'
 import { Route as ApiPostsPostIdRouteImport } from './routes/api/posts/$postId'
 import { Route as ApiPatternsPublicRouteImport } from './routes/api/patterns/public'
 import { Route as ApiDiscoverFeedRouteImport } from './routes/api/discover/feed'
@@ -49,6 +51,7 @@ import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/for
 import { Route as ApiAdminOverviewRouteImport } from './routes/api/admin/overview'
 import { Route as ApiAccountSettingsPasswordRouteImport } from './routes/api/account-settings/password'
 import { Route as ApiAccountSettingsAvatarRouteImport } from './routes/api/account-settings/avatar'
+import { Route as ApiProfilesUserIdAvatarRouteImport } from './routes/api/profiles/$userId/avatar'
 import { Route as ApiPostsPostIdImagesRouteImport } from './routes/api/posts/$postId/images'
 import { Route as ApiPostsPostIdHeartsRouteImport } from './routes/api/posts/$postId/hearts'
 import { Route as ApiPatternsPatternIdUploadRouteImport } from './routes/api/patterns/$patternId/upload'
@@ -131,6 +134,11 @@ const ScanCreateItemRoute = ScanCreateItemRouteImport.update({
   path: '/create-item',
   getParentRoute: () => ScanRoute,
 } as any)
+const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
+  id: '/profile/$userId',
+  path: '/profile/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PostPostIdRoute = PostPostIdRouteImport.update({
   id: '/post/$postId',
   path: '/post/$postId',
@@ -184,6 +192,11 @@ const ApiScanCreateItemRoute = ApiScanCreateItemRouteImport.update({
 const ApiScanAssociateRoute = ApiScanAssociateRouteImport.update({
   id: '/api/scan/associate',
   path: '/api/scan/associate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProfilesUserIdRoute = ApiProfilesUserIdRouteImport.update({
+  id: '/api/profiles/$userId',
+  path: '/api/profiles/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPostsPostIdRoute = ApiPostsPostIdRouteImport.update({
@@ -263,6 +276,11 @@ const ApiAccountSettingsAvatarRoute =
     path: '/avatar',
     getParentRoute: () => ApiAccountSettingsRoute,
   } as any)
+const ApiProfilesUserIdAvatarRoute = ApiProfilesUserIdAvatarRouteImport.update({
+  id: '/avatar',
+  path: '/avatar',
+  getParentRoute: () => ApiProfilesUserIdRoute,
+} as any)
 const ApiPostsPostIdImagesRoute = ApiPostsPostIdImagesRouteImport.update({
   id: '/images',
   path: '/images',
@@ -346,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
@@ -362,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
+  '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
@@ -377,6 +397,7 @@ export interface FileRoutesByFullPath {
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
+  '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
 }
@@ -399,6 +420,7 @@ export interface FileRoutesByTo {
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
@@ -415,6 +437,7 @@ export interface FileRoutesByTo {
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
+  '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
@@ -430,6 +453,7 @@ export interface FileRoutesByTo {
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
+  '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
 }
@@ -453,6 +477,7 @@ export interface FileRoutesById {
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
@@ -469,6 +494,7 @@ export interface FileRoutesById {
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
+  '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
@@ -484,6 +510,7 @@ export interface FileRoutesById {
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
+  '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
 }
@@ -508,6 +535,7 @@ export interface FileRouteTypes {
     | '/api/posts'
     | '/catalog/$lineId'
     | '/post/$postId'
+    | '/profile/$userId'
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
@@ -524,6 +552,7 @@ export interface FileRouteTypes {
     | '/api/discover/feed'
     | '/api/patterns/public'
     | '/api/posts/$postId'
+    | '/api/profiles/$userId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
@@ -539,6 +568,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/upload'
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
+    | '/api/profiles/$userId/avatar'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
   fileRoutesByTo: FileRoutesByTo
@@ -561,6 +591,7 @@ export interface FileRouteTypes {
     | '/api/posts'
     | '/catalog/$lineId'
     | '/post/$postId'
+    | '/profile/$userId'
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
@@ -577,6 +608,7 @@ export interface FileRouteTypes {
     | '/api/discover/feed'
     | '/api/patterns/public'
     | '/api/posts/$postId'
+    | '/api/profiles/$userId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
@@ -592,6 +624,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/upload'
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
+    | '/api/profiles/$userId/avatar'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
   id:
@@ -614,6 +647,7 @@ export interface FileRouteTypes {
     | '/api/posts'
     | '/catalog/$lineId'
     | '/post/$postId'
+    | '/profile/$userId'
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
@@ -630,6 +664,7 @@ export interface FileRouteTypes {
     | '/api/discover/feed'
     | '/api/patterns/public'
     | '/api/posts/$postId'
+    | '/api/profiles/$userId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
@@ -645,6 +680,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/upload'
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
+    | '/api/profiles/$userId/avatar'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
   fileRoutesById: FileRoutesById
@@ -667,6 +703,7 @@ export interface RootRouteChildren {
   ApiCommentsRoute: typeof ApiCommentsRoute
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
   PostPostIdRoute: typeof PostPostIdRoute
+  ProfileUserIdRoute: typeof ProfileUserIdRoute
   ApiAdminOverviewRoute: typeof ApiAdminOverviewRoute
   ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
@@ -679,6 +716,7 @@ export interface RootRouteChildren {
   ApiCommunityFlagsRoute: typeof ApiCommunityFlagsRoute
   ApiDiscoverFeedRoute: typeof ApiDiscoverFeedRoute
   ApiPatternsPublicRoute: typeof ApiPatternsPublicRoute
+  ApiProfilesUserIdRoute: typeof ApiProfilesUserIdRouteWithChildren
   ApiScanAssociateRoute: typeof ApiScanAssociateRoute
   ApiScanCreateItemRoute: typeof ApiScanCreateItemRoute
   ApiScanInventoryRoute: typeof ApiScanInventoryRoute
@@ -794,6 +832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScanCreateItemRouteImport
       parentRoute: typeof ScanRoute
     }
+    '/profile/$userId': {
+      id: '/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/profile/$userId'
+      preLoaderRoute: typeof ProfileUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/post/$postId': {
       id: '/post/$postId'
       path: '/post/$postId'
@@ -869,6 +914,13 @@ declare module '@tanstack/react-router' {
       path: '/api/scan/associate'
       fullPath: '/api/scan/associate'
       preLoaderRoute: typeof ApiScanAssociateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/profiles/$userId': {
+      id: '/api/profiles/$userId'
+      path: '/api/profiles/$userId'
+      fullPath: '/api/profiles/$userId'
+      preLoaderRoute: typeof ApiProfilesUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/posts/$postId': {
@@ -975,6 +1027,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/account-settings/avatar'
       preLoaderRoute: typeof ApiAccountSettingsAvatarRouteImport
       parentRoute: typeof ApiAccountSettingsRoute
+    }
+    '/api/profiles/$userId/avatar': {
+      id: '/api/profiles/$userId/avatar'
+      path: '/avatar'
+      fullPath: '/api/profiles/$userId/avatar'
+      preLoaderRoute: typeof ApiProfilesUserIdAvatarRouteImport
+      parentRoute: typeof ApiProfilesUserIdRoute
     }
     '/api/posts/$postId/images': {
       id: '/api/posts/$postId/images'
@@ -1138,6 +1197,17 @@ const ApiCommunityClaimsRouteChildren: ApiCommunityClaimsRouteChildren = {
 const ApiCommunityClaimsRouteWithChildren =
   ApiCommunityClaimsRoute._addFileChildren(ApiCommunityClaimsRouteChildren)
 
+interface ApiProfilesUserIdRouteChildren {
+  ApiProfilesUserIdAvatarRoute: typeof ApiProfilesUserIdAvatarRoute
+}
+
+const ApiProfilesUserIdRouteChildren: ApiProfilesUserIdRouteChildren = {
+  ApiProfilesUserIdAvatarRoute: ApiProfilesUserIdAvatarRoute,
+}
+
+const ApiProfilesUserIdRouteWithChildren =
+  ApiProfilesUserIdRoute._addFileChildren(ApiProfilesUserIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountSettingsRoute: AccountSettingsRoute,
@@ -1156,6 +1226,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCommentsRoute: ApiCommentsRoute,
   ApiPostsRoute: ApiPostsRouteWithChildren,
   PostPostIdRoute: PostPostIdRoute,
+  ProfileUserIdRoute: ProfileUserIdRoute,
   ApiAdminOverviewRoute: ApiAdminOverviewRoute,
   ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
@@ -1168,6 +1239,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCommunityFlagsRoute: ApiCommunityFlagsRoute,
   ApiDiscoverFeedRoute: ApiDiscoverFeedRoute,
   ApiPatternsPublicRoute: ApiPatternsPublicRoute,
+  ApiProfilesUserIdRoute: ApiProfilesUserIdRouteWithChildren,
   ApiScanAssociateRoute: ApiScanAssociateRoute,
   ApiScanCreateItemRoute: ApiScanCreateItemRoute,
   ApiScanInventoryRoute: ApiScanInventoryRoute,

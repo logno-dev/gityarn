@@ -12,6 +12,7 @@ type PostPayload = {
     title: string | null
     body: string
     ownerDisplayName: string
+    ownerId: string
     moderationStatus: string
     moderationReason: string | null
     updatedAt: number
@@ -80,7 +81,10 @@ function PostDetailPage() {
           <div className="discover-card-head">
             {data.title ? <strong>{data.title}</strong> : null}
             <span>
-              {data.ownerDisplayName} · {new Date(data.updatedAt).toLocaleString()}
+              <Link params={{ userId: data.ownerId }} to="/profile/$userId">
+                {data.ownerDisplayName}
+              </Link>{' '}
+              · {new Date(data.updatedAt).toLocaleString()}
             </span>
           </div>
           {data.images.length ? (

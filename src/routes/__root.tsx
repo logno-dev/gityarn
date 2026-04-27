@@ -246,6 +246,16 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
             {profileOpen ? (
               <div className="profile-menu">
+                {authUser ? (
+                  <Link
+                    className="profile-menu-item"
+                    onClick={() => setProfileOpen(false)}
+                    params={{ userId: authUser.id }}
+                    to="/profile/$userId"
+                  >
+                    <UserRound size={14} /> My Profile
+                  </Link>
+                ) : null}
                 <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/account-settings">
                   <Settings size={14} /> Account Settings
                 </Link>
@@ -254,13 +264,15 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     <Shield size={14} /> Admin Panel
                   </Link>
                 ) : null}
+                <div className="profile-menu-item profile-menu-theme-item">
+                  <ThemeToggle />
+                </div>
                 <button className="profile-menu-item danger" onClick={signOut} type="button">
                   <LogOut size={14} /> Sign Out
                 </button>
               </div>
             ) : null}
           </div>
-          <ThemeToggle />
         </div>
       </aside>
 
@@ -294,11 +306,46 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <ScanLine size={17} />
             <span>Scan</span>
           </Link>
-          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/account-settings">
+          <button
+            className={`mobile-bottom-item ${pathname === '/account-settings' || pathname.startsWith('/profile/') ? 'active' : ''}`}
+            onClick={() => setProfileOpen((current) => !current)}
+            type="button"
+          >
             <UserRound size={17} />
             <span>Profile</span>
-          </Link>
+          </button>
         </nav>
+        {profileOpen ? (
+          <div className="mobile-profile-menu-shell" role="presentation">
+            <button aria-label="Close profile menu" className="mobile-profile-backdrop" onClick={() => setProfileOpen(false)} type="button" />
+            <div className="profile-menu mobile-profile-menu" role="dialog" aria-modal="true" aria-label="Profile menu">
+              {authUser ? (
+                <Link
+                  className="profile-menu-item"
+                  onClick={() => setProfileOpen(false)}
+                  params={{ userId: authUser.id }}
+                  to="/profile/$userId"
+                >
+                  <UserRound size={14} /> My Profile
+                </Link>
+              ) : null}
+              <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/account-settings">
+                <Settings size={14} /> Account Settings
+              </Link>
+              {authUser?.role === 'admin' ? (
+                <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/admin">
+                  <Shield size={14} /> Admin Panel
+                </Link>
+              ) : null}
+              <div className="profile-menu-item profile-menu-theme-item">
+                <ThemeToggle />
+              </div>
+              <button className="profile-menu-item danger" onClick={signOut} type="button">
+                <LogOut size={14} /> Sign Out
+              </button>
+            </div>
+          </div>
+        ) : null}
         <ScanUtility showFab={false} />
       </div>
     </div>

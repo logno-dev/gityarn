@@ -68,6 +68,7 @@ export const Route = createFileRoute('/api/posts/$postId')({
               id: item.id,
               title: item.title,
               body: item.body,
+              ownerId: item.ownerId,
               ownerDisplayName: item.ownerDisplayName,
               moderationStatus: item.moderationStatus,
               moderationReason: item.moderationReason,

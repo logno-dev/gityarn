@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Download, Heart, ImagePlus, MessageCircle, Send, XCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
@@ -11,6 +11,7 @@ type FeedItem = {
   entityId: string
   title: string | null
   body: string | null
+  ownerId: string
   ownerDisplayName: string
   previewImage: string | null
   downloadUrl: string | null
@@ -231,7 +232,11 @@ function DiscoverPage() {
             <div className="discover-card-head">
               {item.title ? <strong>{item.title}</strong> : null}
               <span>
-                {item.kind} · {item.ownerDisplayName} · {new Date(item.createdAt).toLocaleString()}
+                {item.kind} ·{' '}
+                <Link params={{ userId: item.ownerId }} to="/profile/$userId">
+                  {item.ownerDisplayName}
+                </Link>{' '}
+                · {new Date(item.createdAt).toLocaleString()}
               </span>
             </div>
             {item.previewImage ? <img alt={item.title || 'Post image'} className="discover-preview" src={item.previewImage} /> : null}
