@@ -18,7 +18,6 @@ import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 
 import { PwaRegistration } from '../components/pwa-registration'
-import { ScanUtility } from '../components/scan-utility'
 import { ThemeToggle } from '../components/theme-toggle'
 import '../styles.css'
 
@@ -346,7 +345,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         ) : null}
-        <ScanUtility showFab={false} />
       </div>
     </div>
   )
