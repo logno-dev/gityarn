@@ -852,6 +852,52 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   width: 100%;
 }
 
+.searchable-multiselect {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.searchable-selected-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.searchable-selected-chip {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: color-mix(in hsl, var(--bg-surface) 86%, #efe3ff 14%);
+}
+
+.searchable-options-list {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  max-height: 220px;
+  overflow: auto;
+  background: var(--bg-surface);
+}
+
+.searchable-option-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.55rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+}
+
+.searchable-option-item:last-child {
+  border-bottom: 0;
+}
+
+.searchable-option-item input {
+  width: auto;
+}
+
 .pattern-row {
   display: grid;
   gap: 0.65rem;
@@ -1437,12 +1483,51 @@ label {
   font-weight: 700;
 }
 
-input {
+input:not([type='checkbox']) {
   border: 1px solid var(--line-strong);
   padding: 0.52rem 0.6rem;
   border-radius: 10px;
   color: var(--text-primary);
   background: color-mix(in hsl, var(--bg-surface) 90%, #efe4ff 10%);
+}
+
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.02rem;
+  height: 1.02rem;
+  margin: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.3rem;
+  background: color-mix(in hsl, var(--bg-surface) 92%, #efe4ff 8%);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+input[type='checkbox']::before {
+  content: '';
+  width: 0.58rem;
+  height: 0.58rem;
+  transform: scale(0);
+  transition: transform 120ms ease;
+  clip-path: polygon(14% 44%, 0 59%, 42% 100%, 100% 20%, 84% 6%, 40% 66%);
+  background: #fff;
+}
+
+input[type='checkbox']:checked {
+  border-color: color-mix(in hsl, var(--accent-violet) 70%, var(--accent-rose) 30%);
+  background: linear-gradient(135deg, var(--accent-rose), var(--accent-violet));
+}
+
+input[type='checkbox']:checked::before {
+  transform: scale(1);
+}
+
+input[type='checkbox']:focus-visible {
+  outline: 2px solid color-mix(in hsl, var(--accent-violet) 55%, transparent 45%);
+  outline-offset: 2px;
 }
 
 select {

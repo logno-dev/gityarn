@@ -717,38 +717,20 @@ function InventoryPage() {
               />
               Make creation public in Discover
             </label>
-            <label>
-              Yarn from inventory
-              <select
-                multiple
-                onChange={(event) =>
-                  setNewCreationYarnIds(Array.from(event.target.selectedOptions).map((option) => option.value))
-                }
-                value={newCreationYarnIds}
-              >
-                {creationYarnOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Hooks from inventory
-              <select
-                multiple
-                onChange={(event) =>
-                  setNewCreationHookIds(Array.from(event.target.selectedOptions).map((option) => option.value))
-                }
-                value={newCreationHookIds}
-              >
-                {creationHookOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SearchableMultiSelect
+              label="Yarn from inventory"
+              onChange={setNewCreationYarnIds}
+              options={creationYarnOptions}
+              placeholder="Search yarn in stash"
+              selectedIds={newCreationYarnIds}
+            />
+            <SearchableMultiSelect
+              label="Hooks from inventory"
+              onChange={setNewCreationHookIds}
+              options={creationHookOptions}
+              placeholder="Search hooks"
+              selectedIds={newCreationHookIds}
+            />
           </div>
         ) : null}
 
@@ -1166,5 +1148,69 @@ function InventoryPage() {
           : null}
       </section>
     </section>
+  )
+}
+
+function SearchableMultiSelect({
+  label,
+  options,
+  selectedIds,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  options: Array<{ id: string; label: string }>
+  selectedIds: string[]
+  onChange: (ids: string[]) => void
+  placeholder: string
+}) {
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) {
+      return options
+    }
+    return options.filter((option) => option.label.toLowerCase().includes(q))
+  }, [options, query])
+
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds])
+  const selectedLabels = options.filter((option) => selectedSet.has(option.id)).map((option) => option.label)
+
+  const toggle = (id: string) => {
+    if (selectedSet.has(id)) {
+      onChange(selectedIds.filter((value) => value !== id))
+      return
+    }
+    onChange([...selectedIds, id])
+  }
+
+  return (
+    <div className="searchable-multiselect">
+      <label>{label}</label>
+      <input onChange={(event) => setQuery(event.target.value)} placeholder={placeholder} type="text" value={query} />
+      {selectedLabels.length ? (
+        <div className="searchable-selected-list">
+          {selectedLabels.slice(0, 3).map((value) => (
+            <span className="searchable-selected-chip" key={value}>
+              {value}
+            </span>
+          ))}
+          {selectedLabels.length > 3 ? <span className="searchable-selected-chip">+{selectedLabels.length - 3} more</span> : null}
+        </div>
+      ) : null}
+      <div className="searchable-options-list" role="listbox" aria-label={label}>
+        {filtered.length ? (
+          filtered.slice(0, 80).map((option) => (
+            <label className="searchable-option-item" key={option.id}>
+              <input checked={selectedSet.has(option.id)} onChange={() => toggle(option.id)} type="checkbox" />
+              <span>{option.label}</span>
+            </label>
+          ))
+        ) : (
+          <p className="inventory-message">No matches.</p>
+        )}
+      </div>
+    </div>
   )
 }
