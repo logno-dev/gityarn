@@ -46,7 +46,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/file')({
           status: 200,
           headers: {
             'Content-Type': pattern.pdfMimeType ?? 'application/pdf',
-            'Content-Disposition': `attachment; filename="${sanitizeFileName(pattern.pdfFileName ?? `${pattern.title}.pdf`)}"`,
+            'Content-Disposition': `inline; filename="${sanitizeFileName(pattern.pdfFileName ?? `${pattern.title}.pdf`)}"`,
           },
         })
       },
