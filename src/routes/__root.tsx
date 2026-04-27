@@ -77,7 +77,7 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html data-theme="light" lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
         <script
@@ -89,7 +89,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){var t=localStorage.getItem('gityarn-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.dataset.theme=t;})();",
+              "(function(){var t='light';try{t=localStorage.getItem('gityarn-theme')||'';}catch(_){}if(t!=='dark'&&t!=='light'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.dataset.theme=t;})();",
           }}
         />
       </head>
@@ -133,6 +133,25 @@ function AppShell({ children }: { children: React.ReactNode }) {
       .then((data: { user: typeof authUser }) => setAuthUser(data.user))
       .catch(() => setAuthUser(null))
   }, [])
+
+  useEffect(() => {
+    const current = document.documentElement.dataset.theme
+    let nextTheme: 'light' | 'dark' = current === 'dark' ? 'dark' : 'light'
+    try {
+      const stored = window.localStorage.getItem('gityarn-theme')
+      if (stored === 'dark' || stored === 'light') {
+        nextTheme = stored
+      } else {
+        nextTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      }
+    } catch {
+      nextTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+
+    if (document.documentElement.dataset.theme !== nextTheme) {
+      document.documentElement.dataset.theme = nextTheme
+    }
+  }, [pathname])
 
   const isAuthenticated = Boolean(authUser)
 

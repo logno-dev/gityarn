@@ -138,14 +138,14 @@ function AccountSettingsPage() {
   const avatarSrc = avatarVersion ? `/api/account-settings/avatar?v=${avatarVersion}` : ''
 
   return (
-    <section className="page-stack page-narrow">
+    <section className="page-stack settings-page">
       {loading ? <p>Loading account settings...</p> : null}
       {error ? <p>{error}</p> : null}
       {status ? <p>{status}</p> : null}
 
       {!loading && !error && data ? (
         <div className="settings-grid">
-          <article className="soft-panel">
+          <article className="soft-panel settings-card settings-card-photo">
             <h2>
               <ImagePlus size={16} /> Profile photo
             </h2>
@@ -163,7 +163,7 @@ function AccountSettingsPage() {
             </form>
           </article>
 
-          <article className="soft-panel">
+          <article className="soft-panel settings-card settings-card-profile">
             <h2>
               <UserRound size={16} /> Profile
             </h2>
@@ -256,7 +256,7 @@ function AccountSettingsPage() {
             </form>
           </article>
 
-          <article className="soft-panel">
+          <article className="soft-panel settings-card settings-card-password">
             <h2>
               <KeyRound size={16} /> Password
             </h2>

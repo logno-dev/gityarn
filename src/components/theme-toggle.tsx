@@ -16,20 +16,37 @@ function resolveTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+function applyTheme(theme: Theme) {
+  document.documentElement.dataset.theme = theme
+  window.localStorage.setItem('gityarn-theme', theme)
+}
+
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>('light')
+  const [theme, setTheme] = useState<Theme>(() => resolveTheme())
 
   useEffect(() => {
     const initialTheme = resolveTheme()
     setTheme(initialTheme)
-    document.documentElement.dataset.theme = initialTheme
+    applyTheme(initialTheme)
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== 'gityarn-theme') {
+        return
+      }
+      const nextTheme = resolveTheme()
+      setTheme(nextTheme)
+      document.documentElement.dataset.theme = nextTheme
+    }
+
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
   }, [])
 
   const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light'
+    const currentTheme = (document.documentElement.dataset.theme as Theme | undefined) ?? resolveTheme()
+    const nextTheme = currentTheme === 'light' ? 'dark' : 'light'
     setTheme(nextTheme)
-    document.documentElement.dataset.theme = nextTheme
-    window.localStorage.setItem('gityarn-theme', nextTheme)
+    applyTheme(nextTheme)
   }
 
   return (

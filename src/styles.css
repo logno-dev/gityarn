@@ -431,17 +431,17 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   background: var(--bg-tint);
   padding-left: 14px;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: block;
   position: relative;
   z-index: 1;
 }
 
 .workspace-content {
+  width: min(1220px, 100%);
+  margin-inline: auto;
   padding: 1rem 1.2rem 2rem;
-  max-width: 1220px;
-  overflow-y: auto;
-  height: 100vh;
 }
 
 .workspace-menu-button {
@@ -483,6 +483,12 @@ html[data-theme='dark'] .sidebar-edge-toggle {
 
 .page-narrow {
   width: min(760px, 100%);
+  margin-inline: auto;
+}
+
+.settings-page {
+  width: min(1160px, 100%);
+  margin-inline: auto;
 }
 
 .page-header {
@@ -930,14 +936,62 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   gap: 0.65rem;
 }
 
+.post-author-dot {
+  position: absolute;
+  top: 0.62rem;
+  left: 0.62rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  background: color-mix(in hsl, var(--bg-surface) 82%, #eddfff 18%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-author-dot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.post-author-dot-fallback {
+  display: none;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
 .discover-card-head {
   display: grid;
   gap: 0.2rem;
+  padding-left: 2.05rem;
 }
 
 .discover-card-head span {
   color: var(--text-muted);
   font-size: 0.86rem;
+}
+
+.discover-card-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.discover-card-kind {
+  text-transform: capitalize;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .discover-preview {
@@ -956,7 +1010,35 @@ html[data-theme='dark'] .sidebar-edge-toggle {
 .settings-grid {
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
+}
+
+.settings-card .stack-form > .button {
+  justify-self: start;
+}
+
+.settings-card-profile textarea {
+  min-height: 124px;
+}
+
+@media (min-width: 1160px) {
+  .settings-grid {
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .settings-card-photo {
+    grid-column: 1;
+  }
+
+  .settings-card-password {
+    grid-column: 1;
+  }
+
+  .settings-card-profile {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
 }
 
 .settings-meta-row {

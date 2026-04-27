@@ -229,15 +229,31 @@ function DiscoverPage() {
       <div className="discover-feed">
         {items.map((item) => (
           <article className="soft-panel discover-card" key={item.id}>
+            {item.kind === 'post' ? (
+              <Link className="post-author-dot" params={{ userId: item.ownerId }} to="/profile/$userId">
+                <img
+                  alt={item.ownerDisplayName}
+                  onError={(event) => {
+                    event.currentTarget.style.display = 'none'
+                    const fallback = event.currentTarget.nextElementSibling as HTMLElement | null
+                    if (fallback) fallback.style.display = 'inline-flex'
+                  }}
+                  src={`/api/profiles/${item.ownerId}/avatar`}
+                />
+                <span className="post-author-dot-fallback">{item.ownerDisplayName.slice(0, 1).toUpperCase()}</span>
+              </Link>
+            ) : null}
             <div className="discover-card-head">
               {item.title ? <strong>{item.title}</strong> : null}
-              <span>
-                {item.kind} ·{' '}
-                <Link params={{ userId: item.ownerId }} to="/profile/$userId">
-                  {item.ownerDisplayName}
-                </Link>{' '}
-                · {new Date(item.createdAt).toLocaleString()}
-              </span>
+              <div className="discover-card-meta-row">
+                <span>
+                  <Link params={{ userId: item.ownerId }} to="/profile/$userId">
+                    {item.ownerDisplayName}
+                  </Link>{' '}
+                  · {new Date(item.createdAt).toLocaleString()}
+                </span>
+                <span className="discover-card-kind">{item.kind}</span>
+              </div>
             </div>
             {item.previewImage ? <img alt={item.title || 'Post image'} className="discover-preview" src={item.previewImage} /> : null}
             {item.body ? <p>{item.body}</p> : null}

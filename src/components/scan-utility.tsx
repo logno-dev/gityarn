@@ -34,6 +34,8 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
   const frameRef = useRef<number | null>(null)
   const zxingControlsRef = useRef<{ stop: () => void } | null>(null)
   const scanTipTimerRef = useRef<number | null>(null)
+  const isMountedRef = useRef(true)
+  const activeRunRef = useRef(0)
 
   const [open, setOpen] = useState(!showFab)
   const [cameraActive, setCameraActive] = useState(false)
@@ -92,7 +94,11 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
   }, [open])
 
   useEffect(() => {
-    return () => stopCamera()
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+      stopCamera()
+    }
   }, [])
 
   useEffect(() => {
@@ -115,6 +121,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
   }, [searchQuery, barcode, resolveData?.isAssociated])
 
   const stopCamera = () => {
+    activeRunRef.current += 1
     zxingControlsRef.current?.stop()
     zxingControlsRef.current = null
 
@@ -134,6 +141,8 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
       scanTipTimerRef.current = null
     }
   }
+
+  const isRunActive = (runId: number) => isMountedRef.current && activeRunRef.current === runId
 
   const startScanTips = () => {
     const tips = [
@@ -172,6 +181,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
 
   const startCamera = async () => {
     stopCamera()
+    const runId = activeRunRef.current
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setStatus('Camera access is not available in this browser.')
@@ -181,6 +191,9 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
     try {
       const zxingReady = await startZxingScanner()
       if (zxingReady) {
+        return
+      }
+      if (!isRunActive(runId)) {
         return
       }
 
@@ -193,6 +206,10 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
       })
+      if (!isRunActive(runId)) {
+        stream.getTracks().forEach((track) => track.stop())
+        return
+      }
 
       if (!videoRef.current) {
         return
@@ -212,7 +229,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
       })
 
       const tick = async () => {
-        if (!videoRef.current) {
+        if (!videoRef.current || !isRunActive(runId)) {
           return
         }
         try {
@@ -243,6 +260,8 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
       return false
     }
 
+    const runId = activeRunRef.current
+
     try {
       const { BrowserMultiFormatReader } = await import('@zxing/browser')
       const reader = new BrowserMultiFormatReader()
@@ -265,6 +284,10 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
         error: unknown,
         activeControls: { stop: () => void },
       ) => {
+        if (!isRunActive(runId)) {
+          activeControls.stop()
+          return
+        }
         if (result) {
           const rawValue =
             typeof (result as { getText?: () => string }).getText === 'function'
@@ -300,6 +323,11 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
       }
 
       zxingControlsRef.current = controls as { stop: () => void }
+      if (!isRunActive(runId)) {
+        controls.stop()
+        zxingControlsRef.current = null
+        return false
+      }
       setCameraActive(true)
       startScanTips()
       return true
