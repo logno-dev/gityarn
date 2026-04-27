@@ -1,9 +1,9 @@
-import { desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
-import { creationImages, creations, patterns, postImages, posts, users } from '#/lib/db/schema'
+import { comments, creationImages, creations, patterns, postHearts, postImages, posts, users } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/discover/feed')({
   server: {
@@ -31,7 +31,7 @@ export const Route = createFileRoute('/api/discover/feed')({
           })
           .from(patterns)
           .innerJoin(users, eq(patterns.userId, users.id))
-          .where(eq(patterns.isPublic, true))
+          .where(and(eq(patterns.isPublic, true), eq(patterns.moderationStatus, 'active')))
           .orderBy(desc(patterns.updatedAt))
           .limit(300)
 
@@ -45,7 +45,7 @@ export const Route = createFileRoute('/api/discover/feed')({
           })
           .from(creations)
           .innerJoin(users, eq(creations.userId, users.id))
-          .where(eq(creations.isPublic, true))
+          .where(and(eq(creations.isPublic, true), eq(creations.moderationStatus, 'active')))
           .orderBy(desc(creations.updatedAt))
           .limit(300)
 
@@ -78,7 +78,7 @@ export const Route = createFileRoute('/api/discover/feed')({
           })
           .from(posts)
           .innerJoin(users, eq(posts.userId, users.id))
-          .where(eq(posts.isPublic, true))
+          .where(and(eq(posts.isPublic, true), eq(posts.moderationStatus, 'active')))
           .orderBy(desc(posts.updatedAt))
           .limit(500)
 
@@ -97,6 +97,33 @@ export const Route = createFileRoute('/api/discover/feed')({
             firstPostImageMap.set(image.postId, image.imageId)
           }
         }
+
+        const postHeartCounts = postIds.length
+          ? await db
+              .select({ postId: postHearts.postId, count: sql<number>`count(*)` })
+              .from(postHearts)
+              .where(inArray(postHearts.postId, postIds))
+              .groupBy(postHearts.postId)
+          : []
+
+        const viewerHeartRows = postIds.length
+          ? await db
+              .select({ postId: postHearts.postId })
+              .from(postHearts)
+              .where(and(inArray(postHearts.postId, postIds), eq(postHearts.userId, authUser.id)))
+          : []
+
+        const postCommentCounts = postIds.length
+          ? await db
+              .select({ entityId: comments.entityId, count: sql<number>`count(*)` })
+              .from(comments)
+              .where(and(eq(comments.entityType, 'post'), inArray(comments.entityId, postIds)))
+              .groupBy(comments.entityId)
+          : []
+
+        const heartCountMap = new Map(postHeartCounts.map((row) => [row.postId, Number(row.count) || 0]))
+        const viewerHeartSet = new Set(viewerHeartRows.map((row) => row.postId))
+        const commentCountMap = new Map(postCommentCounts.map((row) => [row.entityId, Number(row.count) || 0]))
 
         const merged = [
           ...publicPatterns.map((item) => ({
@@ -127,13 +154,16 @@ export const Route = createFileRoute('/api/discover/feed')({
             id: `post:${item.id}`,
             kind: 'post' as const,
             entityId: item.id,
-            title: item.title || 'Post',
+            title: item.title,
             body: item.body,
             ownerDisplayName: item.ownerDisplayName,
             previewImage: firstPostImageMap.get(item.id)
               ? `/api/posts/${item.id}/images?imageId=${firstPostImageMap.get(item.id)}`
               : null,
             downloadUrl: null,
+            heartCount: heartCountMap.get(item.id) ?? 0,
+            viewerHasHeart: viewerHeartSet.has(item.id),
+            commentCount: commentCountMap.get(item.id) ?? 0,
             createdAt: item.updatedAt,
           })),
         ].sort((a, b) => b.createdAt - a.createdAt)

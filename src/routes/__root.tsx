@@ -5,8 +5,6 @@ import {
   Barcode,
   BookOpenCheck,
   Newspaper,
-  X,
-  Menu,
   LogOut,
   Settings,
   PanelLeftClose,
@@ -122,7 +120,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname })
   const navigate = useNavigate()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [authUser, setAuthUser] = useState<{
     id: string
@@ -144,7 +141,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
     await fetch('/api/auth/sign-out', { method: 'POST' })
     setAuthUser(null)
     setProfileOpen(false)
-    setMobileSidebarOpen(false)
     await navigate({ to: '/' })
   }
 
@@ -193,38 +189,18 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-layout" style={layoutStyle}>
-      {mobileSidebarOpen ? (
-        <button
-          aria-label="Close navigation"
-          className="sidebar-backdrop"
-          onClick={() => setMobileSidebarOpen(false)}
-          type="button"
-        />
-      ) : null}
-      <aside
-        className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${mobileSidebarOpen ? 'mobile-open' : ''}`}
-        data-collapsed={sidebarCollapsed ? 'true' : 'false'}
-      >
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`} data-collapsed={sidebarCollapsed ? 'true' : 'false'}>
         <div className="sidebar-brand">
           <Link className="brand" to="/">
             <Package2 aria-hidden="true" size={18} />
             <span>GIT Yarn</span>
           </Link>
-          <button
-            aria-label="Close navigation"
-            className="icon-button mobile-only"
-            onClick={() => setMobileSidebarOpen(false)}
-            type="button"
-          >
-            <X size={16} />
-          </button>
         </div>
 
         <nav className="sidebar-nav">
           <Link
             activeProps={{ className: 'active' }}
             className="nav-item"
-            onClick={() => setMobileSidebarOpen(false)}
             to="/dashboard"
           >
             <Newspaper aria-hidden="true" size={18} />
@@ -233,7 +209,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             activeProps={{ className: 'active' }}
             className="nav-item"
-            onClick={() => setMobileSidebarOpen(false)}
             to="/inventory"
           >
             <BookOpenCheck aria-hidden="true" size={18} />
@@ -242,7 +217,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             activeProps={{ className: 'active' }}
             className="nav-item"
-            onClick={() => setMobileSidebarOpen(false)}
             to="/catalog"
           >
             <Barcode aria-hidden="true" size={18} />
@@ -251,7 +225,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             activeProps={{ className: 'active' }}
             className="nav-item"
-            onClick={() => setMobileSidebarOpen(false)}
             to="/scan"
           >
             <ScanLine aria-hidden="true" size={18} />
@@ -302,17 +275,31 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="workspace">
         <main className="workspace-content">
-          <button
-            aria-label="Toggle navigation"
-            className="icon-button mobile-only workspace-menu-button"
-            onClick={() => setMobileSidebarOpen((current) => !current)}
-            type="button"
-          >
-            <Menu size={18} />
-          </button>
           {children}
         </main>
-        <ScanUtility showFab />
+        <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/dashboard">
+            <Newspaper size={17} />
+            <span>Discover</span>
+          </Link>
+          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/inventory">
+            <BookOpenCheck size={17} />
+            <span>Inventory</span>
+          </Link>
+          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/catalog">
+            <Barcode size={17} />
+            <span>Catalog</span>
+          </Link>
+          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/scan">
+            <ScanLine size={17} />
+            <span>Scan</span>
+          </Link>
+          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/account-settings">
+            <UserRound size={17} />
+            <span>Profile</span>
+          </Link>
+        </nav>
+        <ScanUtility showFab={false} />
       </div>
     </div>
   )

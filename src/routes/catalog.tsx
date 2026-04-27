@@ -129,11 +129,6 @@ function CatalogPage() {
 
   return (
     <section className="page-stack">
-      <header className="page-header">
-        <h1>Yarn Catalog</h1>
-        <p>Build an internal source of truth for manufacturers, yarn lines, colorways, and barcodes.</p>
-      </header>
-
       <form className="catalog-search" onSubmit={onSearch}>
         <label>
           Search lines, manufacturers, or fiber

@@ -18,17 +18,21 @@ export const Route = createFileRoute('/api/posts')({
         const authUser = await getAuthenticatedUser(request.headers.get('cookie'))
         if (!authUser) return Response.json({ message: 'Unauthorized' }, { status: 401 })
 
-        const query = (new URL(request.url).searchParams.get('query') ?? '').trim().toLowerCase()
+        const url = new URL(request.url)
+        const query = (url.searchParams.get('query') ?? '').trim().toLowerCase()
+        const mineOnly = (url.searchParams.get('mine') ?? '').trim() === '1'
         const whereClause = query
           ? and(
-              eq(posts.isPublic, true),
+              ...(mineOnly ? [eq(posts.userId, authUser.id)] : [eq(posts.isPublic, true), eq(posts.moderationStatus, 'active')]),
               sql`(
                 lower(coalesce(${posts.title}, '')) like ${`%${query}%`}
                 or lower(${posts.body}) like ${`%${query}%`}
                 or lower(${users.displayName}) like ${`%${query}%`}
               )`,
             )
-          : eq(posts.isPublic, true)
+          : mineOnly
+            ? eq(posts.userId, authUser.id)
+            : and(eq(posts.isPublic, true), eq(posts.moderationStatus, 'active'))
 
         const rows = await getDb()
           .select({
@@ -36,6 +40,9 @@ export const Route = createFileRoute('/api/posts')({
             title: posts.title,
             body: posts.body,
             ownerDisplayName: users.displayName,
+            isPublic: posts.isPublic,
+            moderationStatus: posts.moderationStatus,
+            moderationReason: posts.moderationReason,
             updatedAt: posts.updatedAt,
           })
           .from(posts)
@@ -132,6 +139,27 @@ export const Route = createFileRoute('/api/posts')({
         }
 
         return Response.json({ message: 'Post published.' }, { status: 201 })
+      },
+      DELETE: async ({ request }) => {
+        const authUser = await getAuthenticatedUser(request.headers.get('cookie'))
+        if (!authUser) return Response.json({ message: 'Unauthorized' }, { status: 401 })
+
+        const body = (await request.json()) as { postId?: string }
+        const postId = body.postId?.trim() ?? ''
+        if (!postId) {
+          return Response.json({ message: 'postId is required.' }, { status: 400 })
+        }
+
+        const existing = await getDb().query.posts.findFirst({ where: eq(posts.id, postId) })
+        if (!existing) {
+          return Response.json({ message: 'Post not found.' }, { status: 404 })
+        }
+        if (existing.userId !== authUser.id) {
+          return Response.json({ message: 'Forbidden' }, { status: 403 })
+        }
+
+        await getDb().delete(posts).where(eq(posts.id, postId))
+        return Response.json({ message: 'Post removed.' }, { status: 200 })
       },
     },
   },

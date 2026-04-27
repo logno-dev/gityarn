@@ -27,11 +27,6 @@ function ForgotPasswordPage() {
 
   return (
     <section className="page-stack page-narrow">
-      <header className="page-header">
-        <h1>Forgot Password</h1>
-        <p>Enter your account email and we will send a secure reset link.</p>
-      </header>
-
       <article className="soft-panel">
         <form className="stack-form" onSubmit={submit}>
           <label>

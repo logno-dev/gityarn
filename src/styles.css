@@ -72,7 +72,31 @@ p {
 
 .public-layout {
   min-height: 100vh;
-  background: var(--bg-tint);
+  --bg-main: #fdf9ff;
+  --bg-tint: linear-gradient(145deg, #fff8e8 0%, #f9f3ff 45%, #f8fcff 100%);
+  --bg-surface: #ffffff;
+  --line: #e7dfec;
+  --line-strong: #c8b3d6;
+  --text-primary: #2e2733;
+  --text-muted: #6b5e73;
+  --accent-rose: #ea5b9f;
+  --accent-violet: #8f67d8;
+  --accent-butter: #f6be4e;
+  --accent-mint: #56baa0;
+  --on-accent: #ffffff;
+  color: #2e2733;
+  background: linear-gradient(145deg, #fff8e8 0%, #f9f3ff 45%, #f8fcff 100%);
+}
+
+.public-layout p {
+  color: #6b5e73;
+}
+
+.public-layout h1,
+.public-layout h2,
+.public-layout h3,
+.public-layout .kicker {
+  color: #2e2733;
 }
 
 .public-header {
@@ -413,6 +437,10 @@ html[data-theme='dark'] .sidebar-edge-toggle {
 
 .workspace-menu-button {
   margin-bottom: 0.8rem;
+}
+
+.mobile-bottom-nav {
+  display: none;
 }
 
 .desktop-only {
@@ -842,7 +870,40 @@ html[data-theme='dark'] .sidebar-edge-toggle {
 }
 
 .discover-compose {
-  gap: 0.75rem;
+  gap: 0.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  padding: 0.25rem 0.1rem 0.35rem;
+  background: transparent;
+}
+
+.discover-compose .stack-form {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.discover-compose .stack-form.expanded {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.55rem 0.65rem;
+  background: color-mix(in hsl, var(--bg-surface) 95%, #f9f2ff 5%);
+  box-shadow: 0 10px 24px rgba(41, 24, 54, 0.14);
+}
+
+.discover-compose .discover-quick-input,
+.discover-compose textarea {
+  border: 1px solid var(--line);
+  background: color-mix(in hsl, var(--bg-surface) 96%, #f9f2ff 4%);
+  box-shadow: 0 6px 16px rgba(106, 73, 143, 0.16);
+}
+
+.discover-compose .stack-form.expanded textarea,
+.discover-compose .stack-form.expanded .discover-quick-input {
+  box-shadow: none;
 }
 
 .discover-quick-input {
@@ -872,10 +933,15 @@ html[data-theme='dark'] .sidebar-edge-toggle {
 
 .discover-preview {
   width: 100%;
-  max-height: 420px;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
   border-radius: 12px;
   border: 1px solid var(--line);
+}
+
+.discover-image-stack {
+  display: grid;
+  gap: 0.65rem;
 }
 
 .settings-grid {
@@ -1481,45 +1547,11 @@ textarea {
   }
 
   .sidebar {
-    position: fixed;
-    z-index: 30;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 260px;
-    border-radius: 0;
-    transform: translateX(-100%);
+    display: none;
   }
 
-  .sidebar.mobile-open {
-    transform: translateX(0);
-  }
-
-  .sidebar.collapsed {
-    width: 260px;
-  }
-
-  .sidebar[data-collapsed='true'] .brand span,
-  .sidebar[data-collapsed='true'] .nav-label,
-  .sidebar[data-collapsed='true'] .sidebar-footer .icon-button span {
-    display: inline;
-  }
-
-  .sidebar[data-collapsed='true'] .profile-button span {
-    display: inline;
-  }
-
-  .sidebar[data-collapsed='true'] .nav-item {
-    justify-content: flex-start;
-    padding-inline: 0.65rem;
-    width: 100%;
-  }
-
-  .sidebar[data-collapsed='true'] .sidebar-footer .icon-button,
-  .sidebar[data-collapsed='true'] .profile-button {
-    width: 100%;
-    justify-content: flex-start;
-    padding-inline: 0.6rem;
+  .sidebar-backdrop {
+    display: none;
   }
 
   .mobile-only {
@@ -1536,10 +1568,46 @@ textarea {
 
   .workspace-content {
     padding-inline: 0.85rem;
+    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
   }
 
   .workspace {
     padding-left: 0;
+  }
+
+  .workspace-menu-button {
+    display: none;
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 21;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.2rem;
+    padding: 0.4rem 0.55rem calc(0.48rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: color-mix(in hsl, var(--bg-surface) 95%, #f7efff 5%);
+    box-shadow: 0 -8px 18px rgba(36, 22, 45, 0.1);
+  }
+
+  .mobile-bottom-item {
+    border-radius: 10px;
+    padding: 0.38rem 0.3rem;
+    display: grid;
+    justify-items: center;
+    gap: 0.18rem;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .mobile-bottom-item.active {
+    background: color-mix(in hsl, var(--bg-surface) 78%, #eddfff 22%);
+    color: var(--text-primary);
   }
 }
 

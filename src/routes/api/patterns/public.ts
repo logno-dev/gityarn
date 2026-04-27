@@ -18,6 +18,7 @@ export const Route = createFileRoute('/api/patterns/public')({
         const whereClause = query
           ? and(
               eq(patterns.isPublic, true),
+              eq(patterns.moderationStatus, 'active'),
               sql`(
                 lower(${patterns.title}) like ${`%${query}%`}
                 or lower(coalesce(${patterns.description}, '')) like ${`%${query}%`}
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/api/patterns/public')({
                 or lower(${users.displayName}) like ${`%${query}%`}
               )`,
             )
-          : eq(patterns.isPublic, true)
+          : and(eq(patterns.isPublic, true), eq(patterns.moderationStatus, 'active'))
 
         const rows = await getDb()
           .select({

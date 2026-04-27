@@ -81,13 +81,6 @@ function ScanCreateItemPage() {
 
   return (
     <section className="page-stack page-narrow">
-      <header className="page-header">
-        <h1>Create Catalog Item</h1>
-        <p>
-          Only create a new item when search returns no matches. This helps prevent duplicate lines and colorways.
-        </p>
-      </header>
-
       <article className="soft-panel">
         <p>
           Barcode: <strong>{search.barcode || 'Not provided'}</strong>

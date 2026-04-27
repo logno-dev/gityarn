@@ -32,11 +32,6 @@ function SignInPage() {
 
   return (
     <section className="page-stack page-narrow">
-      <header className="page-header">
-        <h1>Sign In</h1>
-        <p>Access your inventory workspace with your email and password.</p>
-      </header>
-
       <article className="soft-panel">
         <form className="stack-form" onSubmit={submit}>
           <label>

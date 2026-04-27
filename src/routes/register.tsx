@@ -41,11 +41,6 @@ function RegisterPage() {
 
   return (
     <section className="page-stack page-narrow">
-      <header className="page-header">
-        <h1>Create Account</h1>
-        <p>Start a private GIT Yarn workspace for your stash and creations.</p>
-      </header>
-
       <article className="soft-panel">
         <form className="stack-form" onSubmit={submit}>
           <label>

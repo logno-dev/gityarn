@@ -50,11 +50,6 @@ function ResetPasswordPage() {
 
   return (
     <section className="page-stack page-narrow">
-      <header className="page-header">
-        <h1>Reset Password</h1>
-        <p>Create a new password for your GIT Yarn account.</p>
-      </header>
-
       <article className="soft-panel">
         <form className="stack-form" onSubmit={submit}>
           <label>

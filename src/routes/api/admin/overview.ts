@@ -1,9 +1,9 @@
-import { desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
-import { communityClaimVotes, communityClaims, communityFlags, inventoryYarn, users } from '#/lib/db/schema'
+import { communityClaimVotes, communityClaims, communityFlags, creations, inventoryYarn, patterns, posts, users } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/admin/overview')({
   server: {
@@ -80,6 +80,51 @@ export const Route = createFileRoute('/api/admin/overview')({
           .orderBy(desc(communityFlags.createdAt))
           .limit(20)
 
+        const recentPatterns = await db
+          .select({
+            id: patterns.id,
+            title: patterns.title,
+            ownerDisplayName: users.displayName,
+            isPublic: patterns.isPublic,
+            moderationStatus: patterns.moderationStatus,
+            updatedAt: patterns.updatedAt,
+          })
+          .from(patterns)
+          .innerJoin(users, eq(patterns.userId, users.id))
+          .where(and(eq(patterns.isPublic, true), eq(patterns.moderationStatus, 'active')))
+          .orderBy(desc(patterns.updatedAt))
+          .limit(20)
+
+        const recentCreations = await db
+          .select({
+            id: creations.id,
+            title: creations.name,
+            ownerDisplayName: users.displayName,
+            isPublic: creations.isPublic,
+            moderationStatus: creations.moderationStatus,
+            updatedAt: creations.updatedAt,
+          })
+          .from(creations)
+          .innerJoin(users, eq(creations.userId, users.id))
+          .where(and(eq(creations.isPublic, true), eq(creations.moderationStatus, 'active')))
+          .orderBy(desc(creations.updatedAt))
+          .limit(20)
+
+        const recentPosts = await db
+          .select({
+            id: posts.id,
+            title: posts.title,
+            ownerDisplayName: users.displayName,
+            isPublic: posts.isPublic,
+            moderationStatus: posts.moderationStatus,
+            updatedAt: posts.updatedAt,
+          })
+          .from(posts)
+          .innerJoin(users, eq(posts.userId, users.id))
+          .where(and(eq(posts.isPublic, true), eq(posts.moderationStatus, 'active')))
+          .orderBy(desc(posts.updatedAt))
+          .limit(20)
+
         return Response.json(
           {
             stats: {
@@ -95,6 +140,11 @@ export const Route = createFileRoute('/api/admin/overview')({
             })),
             openClaims: claimRows,
             openFlags: flagRows,
+            recentPublicContent: {
+              patterns: recentPatterns,
+              creations: recentCreations,
+              posts: recentPosts,
+            },
           },
           { status: 200 },
         )

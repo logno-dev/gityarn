@@ -116,6 +116,10 @@ export const patterns = sqliteTable('patterns', {
   pdfFileName: text('pdf_file_name'),
   coverR2Key: text('cover_r2_key'),
   coverMimeType: text('cover_mime_type'),
+  moderationStatus: text('moderation_status').notNull().default('active'),
+  moderationReason: text('moderation_reason'),
+  moderatedByUserId: text('moderated_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  moderatedAt: integer('moderated_at'),
   notes: text('notes'),
   ...timestamps,
 })
@@ -127,6 +131,10 @@ export const creations = sqliteTable('creations', {
   name: text('name').notNull(),
   status: text('status').notNull().default('active'),
   isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(false),
+  moderationStatus: text('moderation_status').notNull().default('active'),
+  moderationReason: text('moderation_reason'),
+  moderatedByUserId: text('moderated_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  moderatedAt: integer('moderated_at'),
   notes: text('notes'),
   finishedAt: integer('finished_at'),
   ...timestamps,
@@ -159,6 +167,10 @@ export const posts = sqliteTable('posts', {
   title: text('title'),
   body: text('body').notNull(),
   isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(true),
+  moderationStatus: text('moderation_status').notNull().default('active'),
+  moderationReason: text('moderation_reason'),
+  moderatedByUserId: text('moderated_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  moderatedAt: integer('moderated_at'),
   ...timestamps,
 })
 
@@ -171,6 +183,12 @@ export const postImages = sqliteTable('post_images', {
   byteSize: integer('byte_size'),
   ...timestamps,
 })
+
+export const postHearts = sqliteTable('post_hearts', {
+  postId: text('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at').notNull(),
+}, (table) => [primaryKey({ columns: [table.postId, table.userId] })])
 
 export const assetFiles = sqliteTable('asset_files', {
   id: text('id').primaryKey(),

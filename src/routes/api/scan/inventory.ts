@@ -457,6 +457,8 @@ async function getPatterns(userId: string, query: string) {
       hasPdf: sql<boolean>`case when ${patterns.pdfR2Key} is not null then 1 else 0 end`,
       hasCover: sql<boolean>`case when ${patterns.coverR2Key} is not null then 1 else 0 end`,
       pdfFileName: patterns.pdfFileName,
+      moderationStatus: patterns.moderationStatus,
+      moderationReason: patterns.moderationReason,
       notes: patterns.notes,
       updatedAt: patterns.updatedAt,
     })
@@ -493,6 +495,8 @@ async function getCreations(userId: string, query: string) {
       name: creations.name,
       status: creations.status,
       isPublic: creations.isPublic,
+      moderationStatus: creations.moderationStatus,
+      moderationReason: creations.moderationReason,
       notes: creations.notes,
       patternId: creations.patternId,
       patternTitle: patterns.title,

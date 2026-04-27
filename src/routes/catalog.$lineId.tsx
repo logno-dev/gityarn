@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Link2, Pencil, X } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
@@ -281,29 +281,6 @@ function CatalogLinePage() {
 
       {!loading && !error && data ? (
         <>
-          <header className="page-header">
-            <div className="headline-edit-row">
-              <h1>{getDisplayValue('name', data.line.name)}</h1>
-              <button className="icon-button" onClick={() => void openLineFieldModal('name')} type="button">
-                <Pencil size={14} />
-              </button>
-            </div>
-            <p>
-              {data.line.manufacturerName} · {getDisplayValue('weightClass', data.line.weightClass)} ·{' '}
-              {getDisplayValue('fiberContent', data.line.fiberContent)}
-            </p>
-            {getDisplayValue('productUrl', data.line.productUrl) !== 'Unknown' ? (
-              <div className="link-edit-row">
-                <a href={getDisplayValue('productUrl', data.line.productUrl)} rel="noreferrer" target="_blank">
-                  <Link2 size={14} /> Open manufacturer page
-                </a>
-                <button className="icon-button" onClick={() => void openLineFieldModal('productUrl')} type="button">
-                  <Pencil size={14} />
-                </button>
-              </div>
-            ) : null}
-          </header>
-
           {communityMessage ? <p>{communityMessage}</p> : null}
 
           <section className="catalog-detail-grid">

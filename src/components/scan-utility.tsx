@@ -528,6 +528,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
             Quantity
             <input
               min={1}
+              onFocus={(event) => event.currentTarget.select()}
               onChange={(event) => setInventoryQuantity(Math.max(1, Number(event.target.value) || 1))}
               type="number"
               value={inventoryQuantity}
@@ -603,6 +604,7 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
                 Quantity
                 <input
                   min={1}
+                  onFocus={(event) => event.currentTarget.select()}
                   onChange={(event) => setInventoryQuantity(Math.max(1, Number(event.target.value) || 1))}
                   type="number"
                   value={inventoryQuantity}

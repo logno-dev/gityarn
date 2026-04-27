@@ -23,6 +23,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountSettingsRouteImport } from './routes/account-settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ScanCreateItemRouteImport } from './routes/scan.create-item'
+import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as CatalogLineIdRouteImport } from './routes/catalog.$lineId'
 import { Route as ApiPostsRouteImport } from './routes/api/posts'
 import { Route as ApiCommentsRouteImport } from './routes/api/comments'
@@ -33,6 +34,7 @@ import { Route as ApiScanResolveRouteImport } from './routes/api/scan/resolve'
 import { Route as ApiScanInventoryRouteImport } from './routes/api/scan/inventory'
 import { Route as ApiScanCreateItemRouteImport } from './routes/api/scan/create-item'
 import { Route as ApiScanAssociateRouteImport } from './routes/api/scan/associate'
+import { Route as ApiPostsPostIdRouteImport } from './routes/api/posts/$postId'
 import { Route as ApiPatternsPublicRouteImport } from './routes/api/patterns/public'
 import { Route as ApiDiscoverFeedRouteImport } from './routes/api/discover/feed'
 import { Route as ApiCommunityFlagsRouteImport } from './routes/api/community/flags'
@@ -48,12 +50,14 @@ import { Route as ApiAdminOverviewRouteImport } from './routes/api/admin/overvie
 import { Route as ApiAccountSettingsPasswordRouteImport } from './routes/api/account-settings/password'
 import { Route as ApiAccountSettingsAvatarRouteImport } from './routes/api/account-settings/avatar'
 import { Route as ApiPostsPostIdImagesRouteImport } from './routes/api/posts/$postId/images'
+import { Route as ApiPostsPostIdHeartsRouteImport } from './routes/api/posts/$postId/hearts'
 import { Route as ApiPatternsPatternIdUploadRouteImport } from './routes/api/patterns/$patternId/upload'
 import { Route as ApiPatternsPatternIdFileRouteImport } from './routes/api/patterns/$patternId/file'
 import { Route as ApiPatternsPatternIdCoverRouteImport } from './routes/api/patterns/$patternId/cover'
 import { Route as ApiPatternsPatternIdClaimRouteImport } from './routes/api/patterns/$patternId/claim'
 import { Route as ApiCreationsCreationIdImagesRouteImport } from './routes/api/creations/$creationId/images'
 import { Route as ApiCatalogLineIdBarcodesRouteImport } from './routes/api/catalog/$lineId/barcodes'
+import { Route as ApiAdminModerationRemoveRouteImport } from './routes/api/admin/moderation/remove'
 import { Route as ApiCommunityClaimsClaimIdVoteRouteImport } from './routes/api/community/claims/$claimId/vote'
 import { Route as ApiAdminUsersUserIdRoleRouteImport } from './routes/api/admin/users/$userId/role'
 
@@ -127,6 +131,11 @@ const ScanCreateItemRoute = ScanCreateItemRouteImport.update({
   path: '/create-item',
   getParentRoute: () => ScanRoute,
 } as any)
+const PostPostIdRoute = PostPostIdRouteImport.update({
+  id: '/post/$postId',
+  path: '/post/$postId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CatalogLineIdRoute = CatalogLineIdRouteImport.update({
   id: '/$lineId',
   path: '/$lineId',
@@ -176,6 +185,11 @@ const ApiScanAssociateRoute = ApiScanAssociateRouteImport.update({
   id: '/api/scan/associate',
   path: '/api/scan/associate',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPostsPostIdRoute = ApiPostsPostIdRouteImport.update({
+  id: '/$postId',
+  path: '/$postId',
+  getParentRoute: () => ApiPostsRoute,
 } as any)
 const ApiPatternsPublicRoute = ApiPatternsPublicRouteImport.update({
   id: '/api/patterns/public',
@@ -250,9 +264,14 @@ const ApiAccountSettingsAvatarRoute =
     getParentRoute: () => ApiAccountSettingsRoute,
   } as any)
 const ApiPostsPostIdImagesRoute = ApiPostsPostIdImagesRouteImport.update({
-  id: '/$postId/images',
-  path: '/$postId/images',
-  getParentRoute: () => ApiPostsRoute,
+  id: '/images',
+  path: '/images',
+  getParentRoute: () => ApiPostsPostIdRoute,
+} as any)
+const ApiPostsPostIdHeartsRoute = ApiPostsPostIdHeartsRouteImport.update({
+  id: '/hearts',
+  path: '/hearts',
+  getParentRoute: () => ApiPostsPostIdRoute,
 } as any)
 const ApiPatternsPatternIdUploadRoute =
   ApiPatternsPatternIdUploadRouteImport.update({
@@ -290,6 +309,12 @@ const ApiCatalogLineIdBarcodesRoute =
     path: '/barcodes',
     getParentRoute: () => ApiCatalogLineIdRoute,
   } as any)
+const ApiAdminModerationRemoveRoute =
+  ApiAdminModerationRemoveRouteImport.update({
+    id: '/api/admin/moderation/remove',
+    path: '/api/admin/moderation/remove',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCommunityClaimsClaimIdVoteRoute =
   ApiCommunityClaimsClaimIdVoteRouteImport.update({
     id: '/$claimId/vote',
@@ -320,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/api/comments': typeof ApiCommentsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
+  '/post/$postId': typeof PostPostIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
@@ -335,18 +361,21 @@ export interface FileRoutesByFullPath {
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
+  '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
   '/api/scan/resolve': typeof ApiScanResolveRoute
   '/api/scan/search': typeof ApiScanSearchRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
+  '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
+  '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
@@ -369,6 +398,7 @@ export interface FileRoutesByTo {
   '/api/comments': typeof ApiCommentsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
+  '/post/$postId': typeof PostPostIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
@@ -384,18 +414,21 @@ export interface FileRoutesByTo {
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
+  '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
   '/api/scan/resolve': typeof ApiScanResolveRoute
   '/api/scan/search': typeof ApiScanSearchRoute
   '/api/catalog': typeof ApiCatalogIndexRoute
+  '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
+  '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
@@ -419,6 +452,7 @@ export interface FileRoutesById {
   '/api/comments': typeof ApiCommentsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
+  '/post/$postId': typeof PostPostIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
@@ -434,18 +468,21 @@ export interface FileRoutesById {
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
+  '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
   '/api/scan/resolve': typeof ApiScanResolveRoute
   '/api/scan/search': typeof ApiScanSearchRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
+  '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
+  '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
@@ -470,6 +507,7 @@ export interface FileRouteTypes {
     | '/api/comments'
     | '/api/posts'
     | '/catalog/$lineId'
+    | '/post/$postId'
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
@@ -485,18 +523,21 @@ export interface FileRouteTypes {
     | '/api/community/flags'
     | '/api/discover/feed'
     | '/api/patterns/public'
+    | '/api/posts/$postId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
     | '/api/scan/resolve'
     | '/api/scan/search'
     | '/api/catalog/'
+    | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/upload'
+    | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
@@ -519,6 +560,7 @@ export interface FileRouteTypes {
     | '/api/comments'
     | '/api/posts'
     | '/catalog/$lineId'
+    | '/post/$postId'
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
@@ -534,18 +576,21 @@ export interface FileRouteTypes {
     | '/api/community/flags'
     | '/api/discover/feed'
     | '/api/patterns/public'
+    | '/api/posts/$postId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
     | '/api/scan/resolve'
     | '/api/scan/search'
     | '/api/catalog'
+    | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/upload'
+    | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
@@ -568,6 +613,7 @@ export interface FileRouteTypes {
     | '/api/comments'
     | '/api/posts'
     | '/catalog/$lineId'
+    | '/post/$postId'
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
@@ -583,18 +629,21 @@ export interface FileRouteTypes {
     | '/api/community/flags'
     | '/api/discover/feed'
     | '/api/patterns/public'
+    | '/api/posts/$postId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
     | '/api/scan/resolve'
     | '/api/scan/search'
     | '/api/catalog/'
+    | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/upload'
+    | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
@@ -617,6 +666,7 @@ export interface RootRouteChildren {
   ApiAccountSettingsRoute: typeof ApiAccountSettingsRouteWithChildren
   ApiCommentsRoute: typeof ApiCommentsRoute
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
+  PostPostIdRoute: typeof PostPostIdRoute
   ApiAdminOverviewRoute: typeof ApiAdminOverviewRoute
   ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
@@ -635,6 +685,7 @@ export interface RootRouteChildren {
   ApiScanResolveRoute: typeof ApiScanResolveRoute
   ApiScanSearchRoute: typeof ApiScanSearchRoute
   ApiCatalogIndexRoute: typeof ApiCatalogIndexRoute
+  ApiAdminModerationRemoveRoute: typeof ApiAdminModerationRemoveRoute
   ApiCreationsCreationIdImagesRoute: typeof ApiCreationsCreationIdImagesRoute
   ApiPatternsPatternIdClaimRoute: typeof ApiPatternsPatternIdClaimRoute
   ApiPatternsPatternIdCoverRoute: typeof ApiPatternsPatternIdCoverRoute
@@ -743,6 +794,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScanCreateItemRouteImport
       parentRoute: typeof ScanRoute
     }
+    '/post/$postId': {
+      id: '/post/$postId'
+      path: '/post/$postId'
+      fullPath: '/post/$postId'
+      preLoaderRoute: typeof PostPostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalog/$lineId': {
       id: '/catalog/$lineId'
       path: '/$lineId'
@@ -812,6 +870,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/scan/associate'
       preLoaderRoute: typeof ApiScanAssociateRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/posts/$postId': {
+      id: '/api/posts/$postId'
+      path: '/$postId'
+      fullPath: '/api/posts/$postId'
+      preLoaderRoute: typeof ApiPostsPostIdRouteImport
+      parentRoute: typeof ApiPostsRoute
     }
     '/api/patterns/public': {
       id: '/api/patterns/public'
@@ -913,10 +978,17 @@ declare module '@tanstack/react-router' {
     }
     '/api/posts/$postId/images': {
       id: '/api/posts/$postId/images'
-      path: '/$postId/images'
+      path: '/images'
       fullPath: '/api/posts/$postId/images'
       preLoaderRoute: typeof ApiPostsPostIdImagesRouteImport
-      parentRoute: typeof ApiPostsRoute
+      parentRoute: typeof ApiPostsPostIdRoute
+    }
+    '/api/posts/$postId/hearts': {
+      id: '/api/posts/$postId/hearts'
+      path: '/hearts'
+      fullPath: '/api/posts/$postId/hearts'
+      preLoaderRoute: typeof ApiPostsPostIdHeartsRouteImport
+      parentRoute: typeof ApiPostsPostIdRoute
     }
     '/api/patterns/$patternId/upload': {
       id: '/api/patterns/$patternId/upload'
@@ -959,6 +1031,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/catalog/$lineId/barcodes'
       preLoaderRoute: typeof ApiCatalogLineIdBarcodesRouteImport
       parentRoute: typeof ApiCatalogLineIdRoute
+    }
+    '/api/admin/moderation/remove': {
+      id: '/api/admin/moderation/remove'
+      path: '/api/admin/moderation/remove'
+      fullPath: '/api/admin/moderation/remove'
+      preLoaderRoute: typeof ApiAdminModerationRemoveRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/community/claims/$claimId/vote': {
       id: '/api/community/claims/$claimId/vote'
@@ -1011,12 +1090,26 @@ const ApiAccountSettingsRouteChildren: ApiAccountSettingsRouteChildren = {
 const ApiAccountSettingsRouteWithChildren =
   ApiAccountSettingsRoute._addFileChildren(ApiAccountSettingsRouteChildren)
 
-interface ApiPostsRouteChildren {
+interface ApiPostsPostIdRouteChildren {
+  ApiPostsPostIdHeartsRoute: typeof ApiPostsPostIdHeartsRoute
   ApiPostsPostIdImagesRoute: typeof ApiPostsPostIdImagesRoute
 }
 
-const ApiPostsRouteChildren: ApiPostsRouteChildren = {
+const ApiPostsPostIdRouteChildren: ApiPostsPostIdRouteChildren = {
+  ApiPostsPostIdHeartsRoute: ApiPostsPostIdHeartsRoute,
   ApiPostsPostIdImagesRoute: ApiPostsPostIdImagesRoute,
+}
+
+const ApiPostsPostIdRouteWithChildren = ApiPostsPostIdRoute._addFileChildren(
+  ApiPostsPostIdRouteChildren,
+)
+
+interface ApiPostsRouteChildren {
+  ApiPostsPostIdRoute: typeof ApiPostsPostIdRouteWithChildren
+}
+
+const ApiPostsRouteChildren: ApiPostsRouteChildren = {
+  ApiPostsPostIdRoute: ApiPostsPostIdRouteWithChildren,
 }
 
 const ApiPostsRouteWithChildren = ApiPostsRoute._addFileChildren(
@@ -1062,6 +1155,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAccountSettingsRoute: ApiAccountSettingsRouteWithChildren,
   ApiCommentsRoute: ApiCommentsRoute,
   ApiPostsRoute: ApiPostsRouteWithChildren,
+  PostPostIdRoute: PostPostIdRoute,
   ApiAdminOverviewRoute: ApiAdminOverviewRoute,
   ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
@@ -1080,6 +1174,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiScanResolveRoute: ApiScanResolveRoute,
   ApiScanSearchRoute: ApiScanSearchRoute,
   ApiCatalogIndexRoute: ApiCatalogIndexRoute,
+  ApiAdminModerationRemoveRoute: ApiAdminModerationRemoveRoute,
   ApiCreationsCreationIdImagesRoute: ApiCreationsCreationIdImagesRoute,
   ApiPatternsPatternIdClaimRoute: ApiPatternsPatternIdClaimRoute,
   ApiPatternsPatternIdCoverRoute: ApiPatternsPatternIdCoverRoute,

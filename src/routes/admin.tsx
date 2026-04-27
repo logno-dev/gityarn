@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { AlertTriangle, Save, ShieldCheck, Users } from 'lucide-react'
+import { AlertTriangle, Save, ShieldCheck, Users, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 export const Route = createFileRoute('/admin')({ component: AdminPage })
@@ -35,6 +35,32 @@ type AdminPayload = {
     details: string | null
     createdByName: string
   }>
+  recentPublicContent: {
+    patterns: Array<{
+      id: string
+      title: string
+      ownerDisplayName: string
+      isPublic: boolean
+      moderationStatus: string
+      updatedAt: number
+    }>
+    creations: Array<{
+      id: string
+      title: string
+      ownerDisplayName: string
+      isPublic: boolean
+      moderationStatus: string
+      updatedAt: number
+    }>
+    posts: Array<{
+      id: string
+      title: string | null
+      ownerDisplayName: string
+      isPublic: boolean
+      moderationStatus: string
+      updatedAt: number
+    }>
+  }
 }
 
 function AdminPage() {
@@ -86,13 +112,22 @@ function AdminPage() {
     }
   }
 
+  const removeContent = async (entityType: 'pattern' | 'creation' | 'post', entityId: string) => {
+    const reason = window.prompt('Optional removal reason shown to the owner:') ?? ''
+    const response = await fetch('/api/admin/moderation/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entityType, entityId, reason: reason.trim() || null }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setStatus(payload.message ?? (response.ok ? 'Content removed.' : 'Could not remove content.'))
+    if (response.ok) {
+      await load()
+    }
+  }
+
   return (
     <section className="page-stack">
-      <header className="page-header">
-        <h1>Admin Panel</h1>
-        <p>Manage member access and monitor community moderation activity.</p>
-      </header>
-
       {loading ? <p>Loading admin data...</p> : null}
       {error ? <p>{error}</p> : null}
       {status ? <p>{status}</p> : null}
@@ -188,6 +223,50 @@ function AdminPage() {
             ) : (
               <p>No open flags.</p>
             )}
+          </article>
+
+          <article className="soft-panel">
+            <h2>
+              <XCircle size={16} /> Moderate public content
+            </h2>
+            <div className="catalog-sublist">
+              {data.recentPublicContent.patterns.map((item) => (
+                <div className="catalog-subrow" key={`pattern-${item.id}`}>
+                  <div>
+                    <strong>Pattern · {item.title}</strong>
+                    <span>{item.ownerDisplayName} · {new Date(item.updatedAt).toLocaleString()}</span>
+                  </div>
+                  <button className="button" onClick={() => void removeContent('pattern', item.id)} type="button">
+                    Remove
+                  </button>
+                </div>
+              ))}
+              {data.recentPublicContent.creations.map((item) => (
+                <div className="catalog-subrow" key={`creation-${item.id}`}>
+                  <div>
+                    <strong>Creation · {item.title}</strong>
+                    <span>{item.ownerDisplayName} · {new Date(item.updatedAt).toLocaleString()}</span>
+                  </div>
+                  <button className="button" onClick={() => void removeContent('creation', item.id)} type="button">
+                    Remove
+                  </button>
+                </div>
+              ))}
+              {data.recentPublicContent.posts.map((item) => (
+                <div className="catalog-subrow" key={`post-${item.id}`}>
+                  <div>
+                    <strong>Post · {item.title || 'Untitled'}</strong>
+                    <span>{item.ownerDisplayName} · {new Date(item.updatedAt).toLocaleString()}</span>
+                  </div>
+                  <button className="button" onClick={() => void removeContent('post', item.id)} type="button">
+                    Remove
+                  </button>
+                </div>
+              ))}
+              {!data.recentPublicContent.patterns.length && !data.recentPublicContent.creations.length && !data.recentPublicContent.posts.length ? (
+                <p>No public content to moderate.</p>
+              ) : null}
+            </div>
           </article>
         </>
       ) : null}

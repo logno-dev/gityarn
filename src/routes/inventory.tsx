@@ -43,6 +43,8 @@ type PatternItem = {
   hasPdf: boolean
   hasCover: boolean
   pdfFileName: string | null
+  moderationStatus: string
+  moderationReason: string | null
   notes: string | null
   updatedAt: number
 }
@@ -52,6 +54,8 @@ type CreationItem = {
   name: string
   status: string
   isPublic: boolean
+  moderationStatus: string
+  moderationReason: string | null
   notes: string | null
   patternId: string | null
   patternTitle: string | null
@@ -483,11 +487,6 @@ function InventoryPage() {
 
   return (
     <section className="page-stack">
-      <header className="page-header">
-        <h1>Inventory</h1>
-        <p>Manage stash, tools, patterns, and creations with fast edits and planning flags.</p>
-      </header>
-
       <div className="inventory-tab-row">
         {tabs.map((tab) => (
           <button
@@ -929,6 +928,7 @@ function InventoryPage() {
                     {item.isPublic ? 'Public' : 'Private'}
                     {item.hasPdf ? ' · PDF ready' : ' · No PDF'}
                     {item.hasCover ? ' · Cover ready' : ''}
+                    {item.moderationStatus !== 'active' ? ` · Removed by admin${item.moderationReason ? ` (${item.moderationReason})` : ''}` : ''}
                   </span>
                 </div>
                 <label>
@@ -1088,6 +1088,7 @@ function InventoryPage() {
                   <strong>{item.name}</strong>
                   <span>
                     {item.status} · {item.isPublic ? 'Public' : 'Private'} · {item.yarnCount} yarn · {item.hookCount} hooks · {item.imageCount} images
+                    {item.moderationStatus !== 'active' ? ` · Removed by admin${item.moderationReason ? ` (${item.moderationReason})` : ''}` : ''}
                   </span>
                 </div>
                 <label>
