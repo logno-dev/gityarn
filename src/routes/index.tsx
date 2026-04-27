@@ -2,6 +2,8 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowRight, BookOpenText, Images, Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import gityarnLogo from '../../assets/gityarnlogo.svg'
+
 export const Route = createFileRoute('/')({ component: LandingPage })
 
 type AuthState = {
@@ -22,7 +24,7 @@ function LandingPage() {
   return (
     <section className="showcase-flow">
       <section className="showcase-hero">
-        <p className="kicker">Get It Together for Makers</p>
+        <img alt="GIT Yarn" className="landing-wordmark" src={gityarnLogo} />
         <h1>One hub for every skein, stitch, and finished piece.</h1>
         <p>
           GIT Yarn gives crocheters and knitters a clean home for stash inventory, tools, patterns, and barcode-linked

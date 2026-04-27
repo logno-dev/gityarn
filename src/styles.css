@@ -319,7 +319,7 @@ html[data-theme='dark'] .sidebar-edge-toggle {
 .sidebar-brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.4rem;
   padding: 0.25rem;
 }
@@ -327,9 +327,33 @@ html[data-theme='dark'] .sidebar-edge-toggle {
 .brand {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+}
+
+.brand-logo-full {
+  display: block;
+  height: 42px;
+  width: auto;
+}
+
+.brand-logo-heart {
+  display: none;
+  width: 24px;
+  height: 24px;
+}
+
+.public-header .brand-logo-full {
+  height: clamp(30px, 3.1vw, 38px);
+}
+
+.landing-wordmark {
+  width: clamp(440px, 60vw, 860px);
+  height: auto;
+  display: block;
+  margin-inline: auto;
 }
 
 .sidebar-nav {
@@ -388,6 +412,7 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   left: 0;
   right: 0;
   bottom: calc(100% + 0.4rem);
+  min-width: 220px;
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: #39253d;
   border-radius: 10px;
@@ -1059,7 +1084,7 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   grid-template-columns: 1fr;
 }
 
-.settings-card .stack-form > .button {
+.settings-card .stack-form>.button {
   justify-self: start;
 }
 
@@ -1564,10 +1589,14 @@ textarea {
   display: block;
 }
 
-.sidebar[data-collapsed='true'] .brand span,
+.sidebar[data-collapsed='true'] .brand-logo-full,
 .sidebar[data-collapsed='true'] .nav-label,
 .sidebar[data-collapsed='true'] .sidebar-footer .icon-button span {
   display: none;
+}
+
+.sidebar[data-collapsed='true'] .brand-logo-heart {
+  display: block;
 }
 
 .sidebar[data-collapsed='true'] .profile-button span {
@@ -1586,6 +1615,12 @@ textarea {
 .sidebar[data-collapsed='true'] .brand {
   width: 100%;
   justify-content: center;
+}
+
+.heart-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .sidebar[data-collapsed='true'] .sidebar-nav {
@@ -1615,6 +1650,15 @@ textarea {
   justify-content: center;
   width: 44px;
   padding-inline: 0;
+}
+
+.sidebar[data-collapsed='true'] .profile-menu {
+  position: fixed;
+  left: calc(var(--sidebar-width) + 0.55rem);
+  right: auto;
+  bottom: 0.85rem;
+  transform: none;
+  width: min(260px, calc(100vw - var(--sidebar-width) - 1.2rem));
 }
 
 .sidebar-backdrop {
@@ -1839,6 +1883,7 @@ textarea {
 }
 
 @media (max-width: 720px) {
+
   .hero-card,
   .stat-card,
   .feature-card,

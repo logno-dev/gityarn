@@ -5,11 +5,12 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { getServerEnv } from '#/lib/env'
+import { processUploadedImage } from '#/lib/image/resize'
 import { getR2Client } from '#/lib/r2/client'
 import { patterns } from '#/lib/db/schema'
 
 const MAX_PDF_BYTES = 40 * 1024 * 1024
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
 
 export const Route = createFileRoute('/api/patterns/$patternId/upload')({
@@ -58,9 +59,11 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
           }
         }
 
-        const ext = isPdf ? 'pdf' : mimeToImageExt(file.type)
+        const processedImage = isCover ? await processUploadedImage(file, { maxWidth: 1200 }) : null
+        const ext = isPdf ? 'pdf' : (processedImage?.extension ?? 'jpg')
+        const mimeType = isPdf ? file.type : (processedImage?.mimeType ?? file.type)
+        const bytes = isPdf ? new Uint8Array(await file.arrayBuffer()) : (processedImage?.bytes ?? new Uint8Array())
         const r2Key = `users/${authUser.id}/patterns/${pattern.id}/${isPdf ? 'file' : 'cover'}-${crypto.randomUUID()}.${ext}`
-        const bytes = new Uint8Array(await file.arrayBuffer())
         const env = getServerEnv()
 
         await getR2Client().send(
@@ -68,7 +71,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
             Bucket: env.R2_BUCKET,
             Key: r2Key,
             Body: bytes,
-            ContentType: file.type,
+            ContentType: mimeType,
           }),
         )
 
@@ -91,7 +94,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
           }
         } else {
           updatePayload.coverR2Key = r2Key
-          updatePayload.coverMimeType = file.type
+          updatePayload.coverMimeType = mimeType
           if (pattern.coverR2Key) {
             await safeDeleteObject(pattern.coverR2Key)
           }
@@ -112,11 +115,4 @@ async function safeDeleteObject(key: string) {
       Key: key,
     }),
   )
-}
-
-function mimeToImageExt(mimeType: string) {
-  if (mimeType === 'image/png') return 'png'
-  if (mimeType === 'image/gif') return 'gif'
-  if (mimeType === 'image/webp') return 'webp'
-  return 'jpg'
 }

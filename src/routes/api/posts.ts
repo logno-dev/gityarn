@@ -5,10 +5,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { getServerEnv } from '#/lib/env'
+import { processUploadedImage } from '#/lib/image/resize'
 import { getR2Client } from '#/lib/r2/client'
 import { postImages, posts, users } from '#/lib/db/schema'
 
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
 
 export const Route = createFileRoute('/api/posts')({
@@ -112,14 +113,14 @@ export const Route = createFileRoute('/api/posts')({
           if (file.size > MAX_IMAGE_BYTES) {
             return Response.json({ message: 'Each post image must be 8MB or smaller.' }, { status: 400 })
           }
-          const ext = mimeToImageExt(file.type)
-          const key = `users/${authUser.id}/posts/${postId}/${crypto.randomUUID()}.${ext}`
+          const processed = await processUploadedImage(file, { maxWidth: 1200 })
+          const key = `users/${authUser.id}/posts/${postId}/${crypto.randomUUID()}.${processed.extension}`
           await getR2Client().send(
             new PutObjectCommand({
               Bucket: env.R2_BUCKET,
               Key: key,
-              Body: new Uint8Array(await file.arrayBuffer()),
-              ContentType: file.type,
+              Body: processed.bytes,
+              ContentType: processed.mimeType,
             }),
           )
           imageRows.push({
@@ -127,8 +128,8 @@ export const Route = createFileRoute('/api/posts')({
             postId,
             userId: authUser.id,
             r2Key: key,
-            mimeType: file.type,
-            byteSize: file.size,
+            mimeType: processed.mimeType,
+            byteSize: processed.bytes.byteLength,
             createdAt: now,
             updatedAt: now,
           })
@@ -164,10 +165,3 @@ export const Route = createFileRoute('/api/posts')({
     },
   },
 })
-
-function mimeToImageExt(mimeType: string) {
-  if (mimeType === 'image/png') return 'png'
-  if (mimeType === 'image/gif') return 'gif'
-  if (mimeType === 'image/webp') return 'webp'
-  return 'jpg'
-}

@@ -9,13 +9,15 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
-  Package2,
   Shield,
   ScanLine,
   UserRound,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
+
+import gityarnLogo from '../../assets/gityarnlogo.svg'
+import heartFull from '../../assets/heart_full.svg'
 
 import { PwaRegistration } from '../components/pwa-registration'
 import { ThemeToggle } from '../components/theme-toggle'
@@ -54,8 +56,21 @@ export const Route = createRootRoute({
         href: '/favicon.ico',
       },
       {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        href: '/favicon-32x32.png',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '16x16',
+        href: '/favicon-16x16.png',
+      },
+      {
         rel: 'apple-touch-icon',
-        href: '/logo192.png',
+        sizes: '180x180',
+        href: '/apple-touch-icon.png',
       },
       {
         rel: 'preconnect',
@@ -176,8 +191,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <div className="public-layout">
         <header className="public-header">
           <Link className="brand" to="/">
-            <Package2 aria-hidden="true" size={18} />
-            <span>GIT Yarn</span>
+            <img alt="GIT Yarn" className="brand-logo-full" src={gityarnLogo} />
+            <img alt="GIT Yarn" className="brand-logo-heart" src={heartFull} />
           </Link>
           <div className="hero-actions">
             {isAuthenticated ? (
@@ -210,8 +225,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`} data-collapsed={sidebarCollapsed ? 'true' : 'false'}>
         <div className="sidebar-brand">
           <Link className="brand" to="/">
-            <Package2 aria-hidden="true" size={18} />
-            <span>GIT Yarn</span>
+            <img alt="GIT Yarn" className="brand-logo-full" src={gityarnLogo} />
+            <img alt="GIT Yarn" className="brand-logo-heart" src={heartFull} />
           </Link>
         </div>
 

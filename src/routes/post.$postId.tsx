@@ -1,6 +1,9 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowLeft, Heart } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
+
+import heartEmpty from '../../assets/heart_empty.svg'
+import heartFull from '../../assets/heart_full.svg'
 
 import { CommentThread } from '#/components/comment-thread'
 
@@ -97,7 +100,13 @@ function PostDetailPage() {
           <p>{data.body}</p>
           <div className="hero-actions">
             <button className="button" onClick={() => void toggleHeart()} type="button">
-              <Heart fill={data.viewerHasHeart ? 'currentColor' : 'none'} size={14} /> {data.heartCount}
+              <img
+                alt=""
+                aria-hidden="true"
+                className="heart-icon"
+                src={data.viewerHasHeart ? heartFull : heartEmpty}
+              />
+              {data.heartCount}
             </button>
             <span>{data.commentCount} comments</span>
           </div>

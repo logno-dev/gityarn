@@ -1,7 +1,10 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Download, Heart, ImagePlus, MessageCircle, Send, XCircle } from 'lucide-react'
+import { Download, ImagePlus, MessageCircle, Send, XCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+
+import heartEmpty from '../../assets/heart_empty.svg'
+import heartFull from '../../assets/heart_full.svg'
 
 export const Route = createFileRoute('/dashboard')({ component: DiscoverPage })
 
@@ -265,7 +268,13 @@ function DiscoverPage() {
               ) : null}
               {item.kind === 'post' ? (
                 <button className="button" onClick={() => void togglePostHeart(item)} type="button">
-                  <Heart fill={item.viewerHasHeart ? 'currentColor' : 'none'} size={14} /> {item.heartCount ?? 0}
+                  <img
+                    alt=""
+                    aria-hidden="true"
+                    className="heart-icon"
+                    src={item.viewerHasHeart ? heartFull : heartEmpty}
+                  />
+                  {item.heartCount ?? 0}
                 </button>
               ) : null}
               {item.kind === 'post' ? (

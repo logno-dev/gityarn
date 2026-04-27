@@ -6,10 +6,11 @@ import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { assetFiles } from '#/lib/db/schema'
 import { getServerEnv } from '#/lib/env'
+import { processUploadedImage } from '#/lib/image/resize'
 import { getR2Client } from '#/lib/r2/client'
 
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
-const MAX_BYTES = 5 * 1024 * 1024
+const MAX_BYTES = 10 * 1024 * 1024
 
 export const Route = createFileRoute('/api/account-settings/avatar')({
   server: {
@@ -72,9 +73,8 @@ export const Route = createFileRoute('/api/account-settings/avatar')({
           return Response.json({ message: 'File must be 5MB or smaller.' }, { status: 400 })
         }
 
-        const extension = mimeToExtension(file.type)
-        const key = `users/${authUser.id}/avatar/${crypto.randomUUID()}.${extension}`
-        const body = new Uint8Array(await file.arrayBuffer())
+        const processed = await processUploadedImage(file, { maxWidth: 600 })
+        const key = `users/${authUser.id}/avatar/${crypto.randomUUID()}.${processed.extension}`
         const env = getServerEnv()
         const db = getDb()
 
@@ -87,8 +87,8 @@ export const Route = createFileRoute('/api/account-settings/avatar')({
           new PutObjectCommand({
             Bucket: env.R2_BUCKET,
             Key: key,
-            Body: body,
-            ContentType: file.type,
+            Body: processed.bytes,
+            ContentType: processed.mimeType,
           }),
         )
 
@@ -111,8 +111,8 @@ export const Route = createFileRoute('/api/account-settings/avatar')({
           userId: authUser.id,
           kind: 'profile-avatar',
           r2Key: key,
-          mimeType: file.type,
-          byteSize: file.size,
+          mimeType: processed.mimeType,
+          byteSize: processed.bytes.byteLength,
           createdAt: now,
           updatedAt: now,
         })
@@ -122,10 +122,3 @@ export const Route = createFileRoute('/api/account-settings/avatar')({
     },
   },
 })
-
-function mimeToExtension(mimeType: string) {
-  if (mimeType === 'image/jpeg') return 'jpg'
-  if (mimeType === 'image/png') return 'png'
-  if (mimeType === 'image/gif') return 'gif'
-  return 'webp'
-}
