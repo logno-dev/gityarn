@@ -81,7 +81,7 @@ function LandingPage() {
         <div className="hero-actions">
           {!checking && auth.user ? (
             <Link className="button button-primary" to="/dashboard">
-              Go to Dashboard <ArrowRight size={16} />
+              Go to Discover <ArrowRight size={16} />
             </Link>
           ) : (
             <>
