@@ -164,7 +164,19 @@ function CommentBranch({
     <div className="comment-node" style={{ '--comment-depth': String(comment.depth) } as React.CSSProperties}>
       <div className="comment-node-body">
         <div className="comment-node-head">
-          <Link params={{ userId: comment.author.id }} to="/profile/$userId">
+          <Link className="comment-author-link" params={{ userId: comment.author.id }} to="/profile/$userId">
+            <span className="comment-author-dot">
+              <img
+                alt={comment.author.displayName}
+                onError={(event) => {
+                  event.currentTarget.style.display = 'none'
+                  const fallback = event.currentTarget.nextElementSibling as HTMLElement | null
+                  if (fallback) fallback.style.display = 'inline-flex'
+                }}
+                src={`/api/profiles/${comment.author.id}/avatar`}
+              />
+              <span className="comment-author-dot-fallback">{comment.author.displayName.slice(0, 1).toUpperCase()}</span>
+            </span>
             <strong>{comment.author.displayName}</strong>
           </Link>
           <span>{new Date(comment.createdAt).toLocaleString()}</span>

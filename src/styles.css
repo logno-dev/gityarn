@@ -1424,6 +1424,44 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   gap: 0.5rem;
 }
 
+.comment-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: var(--text-primary);
+}
+
+.comment-author-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  background: color-mix(in hsl, var(--bg-surface) 82%, #eddfff 18%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.comment-author-dot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.comment-author-dot-fallback {
+  display: none;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
 .comment-node-head span {
   color: var(--text-muted);
   font-size: 0.82rem;
