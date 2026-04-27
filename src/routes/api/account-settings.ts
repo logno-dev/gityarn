@@ -40,6 +40,7 @@ export const Route = createFileRoute('/api/account-settings')({
               bio: user.bio,
               websiteUrl: user.websiteUrl,
               instagramUrl: user.instagramUrl,
+              etsyUrl: user.etsyUrl,
               ravelryUrl: user.ravelryUrl,
               tiktokUrl: user.tiktokUrl,
               youtubeUrl: user.youtubeUrl,
@@ -67,6 +68,7 @@ export const Route = createFileRoute('/api/account-settings')({
           bio?: string | null
           websiteUrl?: string | null
           instagramUrl?: string | null
+          etsyUrl?: string | null
           ravelryUrl?: string | null
           tiktokUrl?: string | null
           youtubeUrl?: string | null
@@ -92,6 +94,7 @@ export const Route = createFileRoute('/api/account-settings')({
             bio: normalizeOptionalText(body.bio),
             websiteUrl: normalizeOptionalUrl(body.websiteUrl),
             instagramUrl: normalizeOptionalUrl(body.instagramUrl),
+            etsyUrl: normalizeOptionalUrl(body.etsyUrl),
             ravelryUrl: normalizeOptionalUrl(body.ravelryUrl),
             tiktokUrl: normalizeOptionalUrl(body.tiktokUrl),
             youtubeUrl: normalizeOptionalUrl(body.youtubeUrl),

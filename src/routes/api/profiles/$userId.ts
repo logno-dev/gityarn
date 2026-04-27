@@ -106,6 +106,7 @@ export const Route = createFileRoute('/api/profiles/$userId')({
               avatarUpdatedAt: avatar?.updatedAt ?? null,
               websiteUrl: user.websiteUrl,
               instagramUrl: user.instagramUrl,
+              etsyUrl: user.etsyUrl,
               ravelryUrl: user.ravelryUrl,
               tiktokUrl: user.tiktokUrl,
               youtubeUrl: user.youtubeUrl,

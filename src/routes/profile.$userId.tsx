@@ -12,6 +12,7 @@ type ProfilePayload = {
     avatarUpdatedAt: number | null
     websiteUrl: string | null
     instagramUrl: string | null
+    etsyUrl: string | null
     ravelryUrl: string | null
     tiktokUrl: string | null
     youtubeUrl: string | null
@@ -84,6 +85,11 @@ function ProfilePage() {
               {data.profile.instagramUrl ? (
                 <a className="button" href={data.profile.instagramUrl} rel="noreferrer" target="_blank">
                   Instagram <ExternalLink size={14} />
+                </a>
+              ) : null}
+              {data.profile.etsyUrl ? (
+                <a className="button" href={data.profile.etsyUrl} rel="noreferrer" target="_blank">
+                  Etsy <ExternalLink size={14} />
                 </a>
               ) : null}
               {data.profile.ravelryUrl ? (

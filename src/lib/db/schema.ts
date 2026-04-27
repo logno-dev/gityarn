@@ -13,6 +13,7 @@ export const users = sqliteTable('users', {
   bio: text('bio'),
   websiteUrl: text('website_url'),
   instagramUrl: text('instagram_url'),
+  etsyUrl: text('etsy_url'),
   ravelryUrl: text('ravelry_url'),
   tiktokUrl: text('tiktok_url'),
   youtubeUrl: text('youtube_url'),

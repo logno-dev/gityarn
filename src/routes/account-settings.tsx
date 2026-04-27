@@ -13,6 +13,7 @@ type AccountPayload = {
     bio: string | null
     websiteUrl: string | null
     instagramUrl: string | null
+    etsyUrl: string | null
     ravelryUrl: string | null
     tiktokUrl: string | null
     youtubeUrl: string | null
@@ -39,6 +40,7 @@ function AccountSettingsPage() {
     bio: '',
     websiteUrl: '',
     instagramUrl: '',
+    etsyUrl: '',
     ravelryUrl: '',
     tiktokUrl: '',
     youtubeUrl: '',
@@ -64,6 +66,7 @@ function AccountSettingsPage() {
       bio: payload.profile.bio ?? '',
       websiteUrl: payload.profile.websiteUrl ?? '',
       instagramUrl: payload.profile.instagramUrl ?? '',
+      etsyUrl: payload.profile.etsyUrl ?? '',
       ravelryUrl: payload.profile.ravelryUrl ?? '',
       tiktokUrl: payload.profile.tiktokUrl ?? '',
       youtubeUrl: payload.profile.youtubeUrl ?? '',
@@ -205,6 +208,15 @@ function AccountSettingsPage() {
                   placeholder="https://instagram.com/yourname"
                   type="url"
                   value={profileForm.instagramUrl}
+                />
+              </label>
+              <label>
+                Etsy
+                <input
+                  onChange={(event) => setProfileForm((current) => ({ ...current, etsyUrl: event.target.value }))}
+                  placeholder="https://www.etsy.com/shop/yourshop"
+                  type="url"
+                  value={profileForm.etsyUrl}
                 />
               </label>
               <label>
