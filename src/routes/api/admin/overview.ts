@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
-import { communityClaimVotes, communityClaims, communityFlags, creations, inventoryYarn, patterns, posts, users } from '#/lib/db/schema'
+import { carouselItems, communityClaimVotes, communityClaims, communityFlags, creations, inventoryYarn, patterns, posts, users } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/admin/overview')({
   server: {
@@ -125,6 +125,19 @@ export const Route = createFileRoute('/api/admin/overview')({
           .orderBy(desc(posts.updatedAt))
           .limit(20)
 
+        const carouselRows = await db
+          .select({
+            id: carouselItems.id,
+            altText: carouselItems.altText,
+            linkUrl: carouselItems.linkUrl,
+            sortOrder: carouselItems.sortOrder,
+            isActive: carouselItems.isActive,
+            updatedAt: carouselItems.updatedAt,
+          })
+          .from(carouselItems)
+          .orderBy(desc(carouselItems.updatedAt))
+          .limit(80)
+
         return Response.json(
           {
             stats: {
@@ -145,6 +158,10 @@ export const Route = createFileRoute('/api/admin/overview')({
               creations: recentCreations,
               posts: recentPosts,
             },
+            carouselItems: carouselRows.map((item) => ({
+              ...item,
+              imageSrc: `/api/landing/carousel/${item.id}/image`,
+            })),
           },
           { status: 200 },
         )

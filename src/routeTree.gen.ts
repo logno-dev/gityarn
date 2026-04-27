@@ -38,6 +38,7 @@ import { Route as ApiScanAssociateRouteImport } from './routes/api/scan/associat
 import { Route as ApiProfilesUserIdRouteImport } from './routes/api/profiles/$userId'
 import { Route as ApiPostsPostIdRouteImport } from './routes/api/posts/$postId'
 import { Route as ApiPatternsPublicRouteImport } from './routes/api/patterns/public'
+import { Route as ApiLandingCarouselRouteImport } from './routes/api/landing/carousel'
 import { Route as ApiDiscoverFeedRouteImport } from './routes/api/discover/feed'
 import { Route as ApiCommunityFlagsRouteImport } from './routes/api/community/flags'
 import { Route as ApiCommunityClaimsRouteImport } from './routes/api/community/claims'
@@ -49,6 +50,7 @@ import { Route as ApiAuthResetPasswordRouteImport } from './routes/api/auth/rese
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/forgot-password'
 import { Route as ApiAdminOverviewRouteImport } from './routes/api/admin/overview'
+import { Route as ApiAdminCarouselRouteImport } from './routes/api/admin/carousel'
 import { Route as ApiAccountSettingsPasswordRouteImport } from './routes/api/account-settings/password'
 import { Route as ApiAccountSettingsAvatarRouteImport } from './routes/api/account-settings/avatar'
 import { Route as ApiProfilesUserIdAvatarRouteImport } from './routes/api/profiles/$userId/avatar'
@@ -61,6 +63,7 @@ import { Route as ApiPatternsPatternIdClaimRouteImport } from './routes/api/patt
 import { Route as ApiCreationsCreationIdImagesRouteImport } from './routes/api/creations/$creationId/images'
 import { Route as ApiCatalogLineIdBarcodesRouteImport } from './routes/api/catalog/$lineId/barcodes'
 import { Route as ApiAdminModerationRemoveRouteImport } from './routes/api/admin/moderation/remove'
+import { Route as ApiLandingCarouselItemIdImageRouteImport } from './routes/api/landing/carousel/$itemId/image'
 import { Route as ApiCommunityClaimsClaimIdVoteRouteImport } from './routes/api/community/claims/$claimId/vote'
 import { Route as ApiAdminUsersUserIdRoleRouteImport } from './routes/api/admin/users/$userId/role'
 
@@ -209,6 +212,11 @@ const ApiPatternsPublicRoute = ApiPatternsPublicRouteImport.update({
   path: '/api/patterns/public',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLandingCarouselRoute = ApiLandingCarouselRouteImport.update({
+  id: '/api/landing/carousel',
+  path: '/api/landing/carousel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDiscoverFeedRoute = ApiDiscoverFeedRouteImport.update({
   id: '/api/discover/feed',
   path: '/api/discover/feed',
@@ -262,6 +270,11 @@ const ApiAuthForgotPasswordRoute = ApiAuthForgotPasswordRouteImport.update({
 const ApiAdminOverviewRoute = ApiAdminOverviewRouteImport.update({
   id: '/api/admin/overview',
   path: '/api/admin/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminCarouselRoute = ApiAdminCarouselRouteImport.update({
+  id: '/api/admin/carousel',
+  path: '/api/admin/carousel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAccountSettingsPasswordRoute =
@@ -333,6 +346,12 @@ const ApiAdminModerationRemoveRoute =
     path: '/api/admin/moderation/remove',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiLandingCarouselItemIdImageRoute =
+  ApiLandingCarouselItemIdImageRouteImport.update({
+    id: '/$itemId/image',
+    path: '/$itemId/image',
+    getParentRoute: () => ApiLandingCarouselRoute,
+  } as any)
 const ApiCommunityClaimsClaimIdVoteRoute =
   ApiCommunityClaimsClaimIdVoteRouteImport.update({
     id: '/$claimId/vote',
@@ -368,6 +387,7 @@ export interface FileRoutesByFullPath {
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
+  '/api/admin/carousel': typeof ApiAdminCarouselRoute
   '/api/admin/overview': typeof ApiAdminOverviewRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -379,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
+  '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -400,6 +421,7 @@ export interface FileRoutesByFullPath {
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
+  '/api/landing/carousel/$itemId/image': typeof ApiLandingCarouselItemIdImageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -424,6 +446,7 @@ export interface FileRoutesByTo {
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
+  '/api/admin/carousel': typeof ApiAdminCarouselRoute
   '/api/admin/overview': typeof ApiAdminOverviewRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -435,6 +458,7 @@ export interface FileRoutesByTo {
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
+  '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -456,6 +480,7 @@ export interface FileRoutesByTo {
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
+  '/api/landing/carousel/$itemId/image': typeof ApiLandingCarouselItemIdImageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -481,6 +506,7 @@ export interface FileRoutesById {
   '/scan/create-item': typeof ScanCreateItemRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
+  '/api/admin/carousel': typeof ApiAdminCarouselRoute
   '/api/admin/overview': typeof ApiAdminOverviewRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -492,6 +518,7 @@ export interface FileRoutesById {
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
+  '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -513,6 +540,7 @@ export interface FileRoutesById {
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
+  '/api/landing/carousel/$itemId/image': typeof ApiLandingCarouselItemIdImageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -539,6 +567,7 @@ export interface FileRouteTypes {
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
+    | '/api/admin/carousel'
     | '/api/admin/overview'
     | '/api/auth/forgot-password'
     | '/api/auth/me'
@@ -550,6 +579,7 @@ export interface FileRouteTypes {
     | '/api/community/claims'
     | '/api/community/flags'
     | '/api/discover/feed'
+    | '/api/landing/carousel'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -571,6 +601,7 @@ export interface FileRouteTypes {
     | '/api/profiles/$userId/avatar'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
+    | '/api/landing/carousel/$itemId/image'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -595,6 +626,7 @@ export interface FileRouteTypes {
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
+    | '/api/admin/carousel'
     | '/api/admin/overview'
     | '/api/auth/forgot-password'
     | '/api/auth/me'
@@ -606,6 +638,7 @@ export interface FileRouteTypes {
     | '/api/community/claims'
     | '/api/community/flags'
     | '/api/discover/feed'
+    | '/api/landing/carousel'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -627,6 +660,7 @@ export interface FileRouteTypes {
     | '/api/profiles/$userId/avatar'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
+    | '/api/landing/carousel/$itemId/image'
   id:
     | '__root__'
     | '/'
@@ -651,6 +685,7 @@ export interface FileRouteTypes {
     | '/scan/create-item'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
+    | '/api/admin/carousel'
     | '/api/admin/overview'
     | '/api/auth/forgot-password'
     | '/api/auth/me'
@@ -662,6 +697,7 @@ export interface FileRouteTypes {
     | '/api/community/claims'
     | '/api/community/flags'
     | '/api/discover/feed'
+    | '/api/landing/carousel'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -683,6 +719,7 @@ export interface FileRouteTypes {
     | '/api/profiles/$userId/avatar'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
+    | '/api/landing/carousel/$itemId/image'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -704,6 +741,7 @@ export interface RootRouteChildren {
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
   PostPostIdRoute: typeof PostPostIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
+  ApiAdminCarouselRoute: typeof ApiAdminCarouselRoute
   ApiAdminOverviewRoute: typeof ApiAdminOverviewRoute
   ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
@@ -715,6 +753,7 @@ export interface RootRouteChildren {
   ApiCommunityClaimsRoute: typeof ApiCommunityClaimsRouteWithChildren
   ApiCommunityFlagsRoute: typeof ApiCommunityFlagsRoute
   ApiDiscoverFeedRoute: typeof ApiDiscoverFeedRoute
+  ApiLandingCarouselRoute: typeof ApiLandingCarouselRouteWithChildren
   ApiPatternsPublicRoute: typeof ApiPatternsPublicRoute
   ApiProfilesUserIdRoute: typeof ApiProfilesUserIdRouteWithChildren
   ApiScanAssociateRoute: typeof ApiScanAssociateRoute
@@ -937,6 +976,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPatternsPublicRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/landing/carousel': {
+      id: '/api/landing/carousel'
+      path: '/api/landing/carousel'
+      fullPath: '/api/landing/carousel'
+      preLoaderRoute: typeof ApiLandingCarouselRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/discover/feed': {
       id: '/api/discover/feed'
       path: '/api/discover/feed'
@@ -1012,6 +1058,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/overview'
       fullPath: '/api/admin/overview'
       preLoaderRoute: typeof ApiAdminOverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/carousel': {
+      id: '/api/admin/carousel'
+      path: '/api/admin/carousel'
+      fullPath: '/api/admin/carousel'
+      preLoaderRoute: typeof ApiAdminCarouselRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/account-settings/password': {
@@ -1097,6 +1150,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/moderation/remove'
       preLoaderRoute: typeof ApiAdminModerationRemoveRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/landing/carousel/$itemId/image': {
+      id: '/api/landing/carousel/$itemId/image'
+      path: '/$itemId/image'
+      fullPath: '/api/landing/carousel/$itemId/image'
+      preLoaderRoute: typeof ApiLandingCarouselItemIdImageRouteImport
+      parentRoute: typeof ApiLandingCarouselRoute
     }
     '/api/community/claims/$claimId/vote': {
       id: '/api/community/claims/$claimId/vote'
@@ -1197,6 +1257,17 @@ const ApiCommunityClaimsRouteChildren: ApiCommunityClaimsRouteChildren = {
 const ApiCommunityClaimsRouteWithChildren =
   ApiCommunityClaimsRoute._addFileChildren(ApiCommunityClaimsRouteChildren)
 
+interface ApiLandingCarouselRouteChildren {
+  ApiLandingCarouselItemIdImageRoute: typeof ApiLandingCarouselItemIdImageRoute
+}
+
+const ApiLandingCarouselRouteChildren: ApiLandingCarouselRouteChildren = {
+  ApiLandingCarouselItemIdImageRoute: ApiLandingCarouselItemIdImageRoute,
+}
+
+const ApiLandingCarouselRouteWithChildren =
+  ApiLandingCarouselRoute._addFileChildren(ApiLandingCarouselRouteChildren)
+
 interface ApiProfilesUserIdRouteChildren {
   ApiProfilesUserIdAvatarRoute: typeof ApiProfilesUserIdAvatarRoute
 }
@@ -1227,6 +1298,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPostsRoute: ApiPostsRouteWithChildren,
   PostPostIdRoute: PostPostIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
+  ApiAdminCarouselRoute: ApiAdminCarouselRoute,
   ApiAdminOverviewRoute: ApiAdminOverviewRoute,
   ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
@@ -1238,6 +1310,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCommunityClaimsRoute: ApiCommunityClaimsRouteWithChildren,
   ApiCommunityFlagsRoute: ApiCommunityFlagsRoute,
   ApiDiscoverFeedRoute: ApiDiscoverFeedRoute,
+  ApiLandingCarouselRoute: ApiLandingCarouselRouteWithChildren,
   ApiPatternsPublicRoute: ApiPatternsPublicRoute,
   ApiProfilesUserIdRoute: ApiProfilesUserIdRouteWithChildren,
   ApiScanAssociateRoute: ApiScanAssociateRoute,

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { AlertTriangle, Save, ShieldCheck, Users, XCircle } from 'lucide-react'
+import { AlertTriangle, ExternalLink, ImagePlus, Save, ShieldCheck, Trash2, Users, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 
 export const Route = createFileRoute('/admin')({ component: AdminPage })
 
@@ -61,6 +62,15 @@ type AdminPayload = {
       updatedAt: number
     }>
   }
+  carouselItems: Array<{
+    id: string
+    altText: string | null
+    linkUrl: string | null
+    sortOrder: number
+    isActive: boolean
+    updatedAt: number
+    imageSrc: string
+  }>
 }
 
 function AdminPage() {
@@ -69,6 +79,18 @@ function AdminPage() {
   const [status, setStatus] = useState('')
   const [data, setData] = useState<AdminPayload | null>(null)
   const [roleDrafts, setRoleDrafts] = useState<Record<string, 'member' | 'admin'>>({})
+  const [carouselDrafts, setCarouselDrafts] = useState<Record<string, {
+    altText: string
+    linkUrl: string
+    sortOrder: number
+    isActive: boolean
+  }>>({})
+  const [newCarouselImage, setNewCarouselImage] = useState<File | null>(null)
+  const [newCarouselAltText, setNewCarouselAltText] = useState('')
+  const [newCarouselLinkUrl, setNewCarouselLinkUrl] = useState('')
+  const [newCarouselSortOrder, setNewCarouselSortOrder] = useState(0)
+  const [newCarouselActive, setNewCarouselActive] = useState(true)
+  const [addingCarousel, setAddingCarousel] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -83,6 +105,19 @@ function AdminPage() {
 
     setData(payload)
     setRoleDrafts(Object.fromEntries(payload.users.map((user) => [user.id, user.role])))
+    setCarouselDrafts(
+      Object.fromEntries(
+        payload.carouselItems.map((item) => [
+          item.id,
+          {
+            altText: item.altText ?? '',
+            linkUrl: item.linkUrl ?? '',
+            sortOrder: item.sortOrder,
+            isActive: item.isActive,
+          },
+        ]),
+      ),
+    )
     setLoading(false)
   }
 
@@ -107,6 +142,74 @@ function AdminPage() {
     })
     const payload = (await response.json()) as { message?: string }
     setStatus(payload.message ?? (response.ok ? 'Role updated.' : 'Could not update role.'))
+    if (response.ok) {
+      await load()
+    }
+  }
+
+  const addCarouselItem = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!newCarouselImage) {
+      setStatus('Choose an image before adding a carousel item.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('image', newCarouselImage)
+    formData.append('altText', newCarouselAltText)
+    formData.append('linkUrl', newCarouselLinkUrl)
+    formData.append('sortOrder', String(newCarouselSortOrder))
+    formData.append('isActive', newCarouselActive ? '1' : '0')
+
+    setAddingCarousel(true)
+    const response = await fetch('/api/admin/carousel', {
+      method: 'POST',
+      body: formData,
+    })
+    const payload = (await response.json()) as { message?: string }
+    setStatus(payload.message ?? (response.ok ? 'Carousel item added.' : 'Could not add carousel item.'))
+    setAddingCarousel(false)
+    if (response.ok) {
+      setNewCarouselImage(null)
+      setNewCarouselAltText('')
+      setNewCarouselLinkUrl('')
+      setNewCarouselSortOrder(0)
+      setNewCarouselActive(true)
+      await load()
+    }
+  }
+
+  const saveCarouselItem = async (itemId: string) => {
+    const draft = carouselDrafts[itemId]
+    if (!draft) {
+      return
+    }
+    const response = await fetch('/api/admin/carousel', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: itemId,
+        altText: draft.altText,
+        linkUrl: draft.linkUrl,
+        sortOrder: draft.sortOrder,
+        isActive: draft.isActive,
+      }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setStatus(payload.message ?? (response.ok ? 'Carousel item updated.' : 'Could not update carousel item.'))
+    if (response.ok) {
+      await load()
+    }
+  }
+
+  const deleteCarouselItem = async (itemId: string) => {
+    const response = await fetch('/api/admin/carousel', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: itemId }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setStatus(payload.message ?? (response.ok ? 'Carousel item removed.' : 'Could not remove carousel item.'))
     if (response.ok) {
       await load()
     }
@@ -223,6 +326,151 @@ function AdminPage() {
             ) : (
               <p>No open flags.</p>
             )}
+          </article>
+
+          <article className="soft-panel">
+            <h2>
+              <ImagePlus size={16} /> Landing carousel
+            </h2>
+            <form className="stack-form" onSubmit={addCarouselItem}>
+              <label>
+                Image
+                <input
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(event) => setNewCarouselImage(event.target.files?.[0] ?? null)}
+                  required
+                  type="file"
+                />
+              </label>
+              <label>
+                Alt text (optional)
+                <input
+                  onChange={(event) => setNewCarouselAltText(event.target.value)}
+                  placeholder="Describe the image for accessibility"
+                  type="text"
+                  value={newCarouselAltText}
+                />
+              </label>
+              <label>
+                Link URL (optional)
+                <input
+                  onChange={(event) => setNewCarouselLinkUrl(event.target.value)}
+                  placeholder="https://example.com or /catalog"
+                  type="text"
+                  value={newCarouselLinkUrl}
+                />
+              </label>
+              <label>
+                Sort order
+                <input
+                  onChange={(event) => setNewCarouselSortOrder(Number.parseInt(event.target.value, 10) || 0)}
+                  type="number"
+                  value={newCarouselSortOrder}
+                />
+              </label>
+              <label className="inventory-toggle-label">
+                <input
+                  checked={newCarouselActive}
+                  onChange={(event) => setNewCarouselActive(event.target.checked)}
+                  type="checkbox"
+                />
+                Active on landing page
+              </label>
+              <button className="button button-primary" disabled={addingCarousel} type="submit">
+                <ImagePlus size={14} /> {addingCarousel ? 'Adding...' : 'Add carousel item'}
+              </button>
+            </form>
+
+            <div className="catalog-sublist">
+              {data.carouselItems.map((item) => {
+                const draft = carouselDrafts[item.id]
+                return (
+                  <div className="admin-carousel-row" key={item.id}>
+                    <img alt={draft?.altText || item.altText || 'Carousel image'} className="admin-carousel-thumb" src={item.imageSrc} />
+                    <label>
+                      Alt text
+                      <input
+                        onChange={(event) =>
+                          setCarouselDrafts((current) => ({
+                            ...current,
+                            [item.id]: {
+                              ...(current[item.id] ?? { altText: '', linkUrl: '', sortOrder: 0, isActive: true }),
+                              altText: event.target.value,
+                            },
+                          }))
+                        }
+                        type="text"
+                        value={draft?.altText ?? ''}
+                      />
+                    </label>
+                    <label>
+                      Link URL
+                      <input
+                        onChange={(event) =>
+                          setCarouselDrafts((current) => ({
+                            ...current,
+                            [item.id]: {
+                              ...(current[item.id] ?? { altText: '', linkUrl: '', sortOrder: 0, isActive: true }),
+                              linkUrl: event.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="https://example.com or /catalog"
+                        type="text"
+                        value={draft?.linkUrl ?? ''}
+                      />
+                    </label>
+                    <label>
+                      Sort order
+                      <input
+                        onChange={(event) =>
+                          setCarouselDrafts((current) => ({
+                            ...current,
+                            [item.id]: {
+                              ...(current[item.id] ?? { altText: '', linkUrl: '', sortOrder: 0, isActive: true }),
+                              sortOrder: Number.parseInt(event.target.value, 10) || 0,
+                            },
+                          }))
+                        }
+                        type="number"
+                        value={draft?.sortOrder ?? 0}
+                      />
+                    </label>
+                    <label className="inventory-toggle-label">
+                      <input
+                        checked={Boolean(draft?.isActive)}
+                        onChange={(event) =>
+                          setCarouselDrafts((current) => ({
+                            ...current,
+                            [item.id]: {
+                              ...(current[item.id] ?? { altText: '', linkUrl: '', sortOrder: 0, isActive: true }),
+                              isActive: event.target.checked,
+                            },
+                          }))
+                        }
+                        type="checkbox"
+                      />
+                      Active
+                    </label>
+                    <div className="hero-actions">
+                      {draft?.linkUrl ? (
+                        <a className="button" href={draft.linkUrl} rel="noreferrer" target="_blank">
+                          <ExternalLink size={14} /> Open
+                        </a>
+                      ) : null}
+                      <button className="button" onClick={() => void saveCarouselItem(item.id)} type="button">
+                        <Save size={14} /> Save
+                      </button>
+                      <button className="button" onClick={() => void deleteCarouselItem(item.id)} type="button">
+                        <Trash2 size={14} /> Remove
+                      </button>
+                    </div>
+                    <span className="admin-carousel-updated">Updated {new Date(item.updatedAt).toLocaleString()}</span>
+                  </div>
+                )
+              })}
+              {!data.carouselItems.length ? <p>No carousel items yet.</p> : null}
+            </div>
           </article>
 
           <article className="soft-panel">

@@ -175,6 +175,19 @@ export const posts = sqliteTable('posts', {
   ...timestamps,
 })
 
+export const carouselItems = sqliteTable('carousel_items', {
+  id: text('id').primaryKey(),
+  createdByUserId: text('created_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  imageR2Key: text('image_r2_key').notNull(),
+  imageMimeType: text('image_mime_type'),
+  imageByteSize: integer('image_byte_size'),
+  altText: text('alt_text'),
+  linkUrl: text('link_url'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  ...timestamps,
+})
+
 export const postImages = sqliteTable('post_images', {
   id: text('id').primaryKey(),
   postId: text('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
