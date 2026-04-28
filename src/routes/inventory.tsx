@@ -5,7 +5,16 @@ import type { FormEvent } from 'react'
 
 import { FileDropInput } from '#/components/file-drop-input'
 
-export const Route = createFileRoute('/inventory')({ component: InventoryPage })
+export const Route = createFileRoute('/inventory')({
+  validateSearch: (search: Record<string, unknown>): { tab?: InventoryKind } => {
+    const tab = typeof search.tab === 'string' ? search.tab : ''
+    if (tab === 'yarn' || tab === 'hooks' || tab === 'patterns' || tab === 'creations') {
+      return { tab }
+    }
+    return {}
+  },
+  component: InventoryPage,
+})
 
 type InventoryKind = 'yarn' | 'hooks' | 'patterns' | 'creations'
 
@@ -103,7 +112,14 @@ const tabs: Array<{ key: InventoryKind; label: string; icon: typeof Package }> =
 ]
 
 function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<InventoryKind>('yarn')
+  const navigate = Route.useNavigate()
+  const search = Route.useSearch()
+  const activeTab = useMemo<InventoryKind>(() => {
+    if (search.tab === 'hooks' || search.tab === 'patterns' || search.tab === 'creations') {
+      return search.tab
+    }
+    return 'yarn'
+  }, [search.tab])
   const [queryInput, setQueryInput] = useState('')
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
@@ -486,6 +502,16 @@ function InventoryPage() {
   }
 
   const statEntries = Object.entries(data?.summary ?? {}).slice(0, 4)
+
+  const setActiveTab = (tab: InventoryKind) => {
+    void navigate({
+      search: (prev) => ({
+        ...prev,
+        tab,
+      }),
+      replace: true,
+    })
+  }
 
   return (
     <section className="page-stack">

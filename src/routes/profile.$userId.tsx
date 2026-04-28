@@ -1,8 +1,19 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { Download, ExternalLink, MessageCircle, Newspaper, Palette, Scissors } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-export const Route = createFileRoute('/profile/$userId')({ component: ProfilePage })
+type ProfileTab = 'posts' | 'creations' | 'patterns' | 'comments'
+
+export const Route = createFileRoute('/profile/$userId')({
+  validateSearch: (search: Record<string, unknown>): { tab?: ProfileTab } => {
+    const tab = typeof search.tab === 'string' ? search.tab : ''
+    if (tab === 'posts' || tab === 'creations' || tab === 'patterns' || tab === 'comments') {
+      return { tab }
+    }
+    return {}
+  },
+  component: ProfilePage,
+})
 
 type ProfilePayload = {
   profile: {
@@ -32,9 +43,28 @@ type ProfilePayload = {
 
 function ProfilePage() {
   const { userId } = Route.useParams()
+  const navigate = Route.useNavigate()
+  const search = Route.useSearch()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<ProfilePayload | null>(null)
+
+  const activeTab = useMemo<ProfileTab>(() => {
+    if (search.tab === 'creations' || search.tab === 'patterns' || search.tab === 'comments') {
+      return search.tab
+    }
+    return 'posts'
+  }, [search.tab])
+
+  const setActiveTab = (tab: ProfileTab) => {
+    void navigate({
+      search: (prev) => ({
+        ...prev,
+        tab,
+      }),
+      replace: true,
+    })
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -110,86 +140,90 @@ function ProfilePage() {
             </div>
           </article>
 
-          <div className="catalog-stat-grid">
-            <article className="catalog-stat"><strong>{data.stats.posts}</strong><span>Posts</span></article>
-            <article className="catalog-stat"><strong>{data.stats.patterns}</strong><span>Patterns</span></article>
-            <article className="catalog-stat"><strong>{data.stats.creations}</strong><span>Creations</span></article>
-            <article className="catalog-stat"><strong>{data.stats.comments}</strong><span>Comments</span></article>
-          </div>
+          <article className="soft-panel">
+            <div className="inventory-tab-row" role="tablist" aria-label="Profile content tabs">
+              <button className={`inventory-tab ${activeTab === 'posts' ? 'active' : ''}`} onClick={() => setActiveTab('posts')} role="tab" type="button">
+                <Newspaper size={15} /> Posts ({data.stats.posts})
+              </button>
+              <button className={`inventory-tab ${activeTab === 'creations' ? 'active' : ''}`} onClick={() => setActiveTab('creations')} role="tab" type="button">
+                <Scissors size={15} /> Creations ({data.stats.creations})
+              </button>
+              <button className={`inventory-tab ${activeTab === 'patterns' ? 'active' : ''}`} onClick={() => setActiveTab('patterns')} role="tab" type="button">
+                <Palette size={15} /> Patterns ({data.stats.patterns})
+              </button>
+              <button className={`inventory-tab ${activeTab === 'comments' ? 'active' : ''}`} onClick={() => setActiveTab('comments')} role="tab" type="button">
+                <MessageCircle size={15} /> Comments ({data.stats.comments})
+              </button>
+            </div>
 
-          <section className="catalog-detail-grid">
-            <article className="soft-panel">
-              <h2><Newspaper size={16} /> Public posts</h2>
-              <div className="catalog-sublist">
-                {data.posts.length ? data.posts.map((post) => (
-                  <Link className="catalog-subrow" key={post.id} params={{ postId: post.id }} to="/post/$postId">
-                    <div>
-                      <strong>{post.title || post.body.slice(0, 80) || 'Post'}</strong>
-                      <span>{new Date(post.updatedAt).toLocaleString()}</span>
-                    </div>
-                  </Link>
-                )) : <p>No public posts yet.</p>}
-              </div>
-            </article>
+            <div className="catalog-sublist">
+              {activeTab === 'posts'
+                ? data.posts.length
+                  ? data.posts.map((post) => (
+                      <Link className="catalog-subrow" key={post.id} params={{ postId: post.id }} to="/post/$postId">
+                        <div>
+                          <strong>{post.title || post.body.slice(0, 80) || 'Post'}</strong>
+                          <span>{new Date(post.updatedAt).toLocaleString()}</span>
+                        </div>
+                      </Link>
+                    ))
+                  : <p>No public posts yet.</p>
+                : null}
 
-            <article className="soft-panel">
-              <h2><Palette size={16} /> Public patterns</h2>
-              <div className="catalog-sublist">
-                {data.patterns.length ? data.patterns.map((pattern) => (
-                  <div className="catalog-subrow" key={pattern.id}>
-                    <div>
-                      <strong>{pattern.title}</strong>
-                      <span>
-                        {pattern.difficulty ? `${pattern.difficulty} · ` : ''}
-                        {pattern.description ?? 'No description'}
-                        {pattern.hasPdf ? ' · Download available' : ''}
-                      </span>
-                    </div>
-                    {pattern.hasPdf ? (
-                      <a className="button" href={`/api/patterns/${pattern.id}/file`}>
-                        <Download size={14} /> Download
-                      </a>
-                    ) : null}
-                  </div>
-                )) : <p>No public patterns yet.</p>}
-              </div>
-            </article>
-          </section>
+              {activeTab === 'patterns'
+                ? data.patterns.length
+                  ? data.patterns.map((pattern) => (
+                      <div className="catalog-subrow" key={pattern.id}>
+                        <div>
+                          <strong>{pattern.title}</strong>
+                          <span>
+                            {pattern.difficulty ? `${pattern.difficulty} · ` : ''}
+                            {pattern.description ?? 'No description'}
+                            {pattern.hasPdf ? ' · Download available' : ''}
+                          </span>
+                        </div>
+                        {pattern.hasPdf ? (
+                          <a className="button" href={`/api/patterns/${pattern.id}/file`}>
+                            <Download size={14} /> Download
+                          </a>
+                        ) : null}
+                      </div>
+                    ))
+                  : <p>No public patterns yet.</p>
+                : null}
 
-          <section className="catalog-detail-grid">
-            <article className="soft-panel">
-              <h2><Scissors size={16} /> Public creations</h2>
-              <div className="catalog-sublist">
-                {data.creations.length ? data.creations.map((creation) => (
-                  <div className="catalog-subrow" key={creation.id}>
-                    <div>
-                      <strong>{creation.name}</strong>
-                      <span>{creation.status} · {creation.notes ?? 'No notes'}</span>
-                    </div>
-                  </div>
-                )) : <p>No public creations yet.</p>}
-              </div>
-            </article>
+              {activeTab === 'creations'
+                ? data.creations.length
+                  ? data.creations.map((creation) => (
+                      <div className="catalog-subrow" key={creation.id}>
+                        <div>
+                          <strong>{creation.name}</strong>
+                          <span>{creation.status} · {creation.notes ?? 'No notes'}</span>
+                        </div>
+                      </div>
+                    ))
+                  : <p>No public creations yet.</p>
+                : null}
 
-            <article className="soft-panel">
-              <h2><MessageCircle size={16} /> Recent comments</h2>
-              <div className="catalog-sublist">
-                {data.comments.length ? data.comments.map((comment) => (
-                  <div className="catalog-subrow" key={comment.id}>
-                    <div>
-                      <strong>{comment.entityType}</strong>
-                      <span>{comment.body}</span>
-                    </div>
-                    {comment.targetPath ? (
-                      <a className="button" href={comment.targetPath}>
-                        View
-                      </a>
-                    ) : null}
-                  </div>
-                )) : <p>No comments yet.</p>}
-              </div>
-            </article>
-          </section>
+              {activeTab === 'comments'
+                ? data.comments.length
+                  ? data.comments.map((comment) => (
+                      <div className="catalog-subrow" key={comment.id}>
+                        <div>
+                          <strong>{comment.entityType}</strong>
+                          <span>{comment.body}</span>
+                        </div>
+                        {comment.targetPath ? (
+                          <a className="button" href={comment.targetPath}>
+                            View
+                          </a>
+                        ) : null}
+                      </div>
+                    ))
+                  : <p>No comments yet.</p>
+                : null}
+            </div>
+          </article>
         </>
       ) : null}
     </section>
