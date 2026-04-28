@@ -342,6 +342,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/account-settings">
                   <Settings size={14} /> Account Settings
                 </Link>
+                <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/notifications">
+                  <Bell size={14} /> Notifications
+                </Link>
                 {authUser?.role === 'admin' ? (
                   <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/admin">
                     <Shield size={14} /> Admin Panel
@@ -389,11 +392,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <ScanLine size={17} />
             <span>Scan</span>
           </Link>
-          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/notifications">
-            <Bell size={17} />
-            <span>Alerts</span>
-            {unreadNotifications > 0 ? <span className="mobile-nav-badge">{Math.min(unreadNotifications, 99)}</span> : null}
-          </Link>
           <button
             className={`mobile-bottom-item ${pathname === '/account-settings' || pathname.startsWith('/profile/') ? 'active' : ''}`}
             onClick={() => setProfileOpen((current) => !current)}
@@ -401,6 +399,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           >
             <UserRound size={17} />
             <span>Profile</span>
+            {unreadNotifications > 0 ? <span className="mobile-nav-badge">{Math.min(unreadNotifications, 99)}</span> : null}
           </button>
         </nav>
         {profileOpen ? (
@@ -419,6 +418,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
               ) : null}
               <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/account-settings">
                 <Settings size={14} /> Account Settings
+              </Link>
+              <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/notifications">
+                <Bell size={14} /> Notifications
+                {unreadNotifications > 0 ? <span className="menu-notification-badge">{Math.min(unreadNotifications, 99)}</span> : null}
               </Link>
               {authUser?.role === 'admin' ? (
                 <Link className="profile-menu-item" onClick={() => setProfileOpen(false)} to="/admin">
