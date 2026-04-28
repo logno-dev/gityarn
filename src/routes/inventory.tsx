@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { BookOpenCheck, Download, ImagePlus, Lock, Minus, Package, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
+import { BookOpenCheck, Download, Ellipsis, Lock, Minus, Package, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
@@ -160,6 +160,9 @@ function InventoryPage() {
   const [newCreationYarnIds, setNewCreationYarnIds] = useState<string[]>([])
   const [newCreationHookIds, setNewCreationHookIds] = useState<string[]>([])
   const [patternChoices, setPatternChoices] = useState<Array<{ id: string; title: string }>>([])
+  const [addingItem, setAddingItem] = useState(false)
+  const [patternMenuOpenId, setPatternMenuOpenId] = useState<string | null>(null)
+  const [editingPatternId, setEditingPatternId] = useState<string | null>(null)
 
   const selectedLine = useMemo(
     () => catalogResults.find((line) => line.id === selectedLineId) ?? null,
@@ -368,6 +371,12 @@ function InventoryPage() {
   }
 
   const addCurrentItem = async () => {
+    if (addingItem) {
+      return
+    }
+    setAddingItem(true)
+    setStatus('Saving item...')
+    try {
     if (activeTab === 'yarn') {
       if (!selectedLineId) {
         setStatus('Select a yarn line first.')
@@ -487,6 +496,9 @@ function InventoryPage() {
     setNewCreationImages([])
     await loadInventory()
     setStatus('Creation added.')
+    } finally {
+      setAddingItem(false)
+    }
   }
 
   const removeItem = async (itemId: string) => {
@@ -761,8 +773,8 @@ function InventoryPage() {
           </div>
         ) : null}
 
-        <button className="button button-primary" onClick={() => void addCurrentItem()} type="button">
-          <Plus size={15} /> Add item
+        <button className="button button-primary" disabled={addingItem} onClick={() => void addCurrentItem()} type="button">
+          <Plus size={15} /> {addingItem ? 'Saving...' : 'Add item'}
         </button>
       </article>
 
@@ -930,112 +942,52 @@ function InventoryPage() {
 
         {!loading && !error && data?.kind === 'patterns'
           ? (data.items as PatternItem[]).map((item) => (
-              <article className="pattern-row" key={item.id}>
-                <div className="pattern-row-head">
-                  <strong>{item.title}</strong>
-                  <span>
-                    {item.isPublic ? 'Public' : 'Private'}
-                    {item.hasPdf ? ' · PDF ready' : ' · No PDF'}
-                    {item.hasCover ? ' · Cover ready' : ''}
-                    {item.moderationStatus !== 'active' ? ` · Removed by admin${item.moderationReason ? ` (${item.moderationReason})` : ''}` : ''}
-                  </span>
-                </div>
-                <label>
-                  Title
-                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], title: event.target.value } }))} type="text" value={String((drafts[item.id]?.title as string | undefined) ?? item.title)} />
-                </label>
-                <label>
-                  Description
-                  <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], description: event.target.value } }))} rows={4} value={String((drafts[item.id]?.description as string | undefined) ?? item.description ?? '')} />
-                </label>
-                <label>
-                  Source URL
-                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], sourceUrl: event.target.value } }))} type="text" value={String((drafts[item.id]?.sourceUrl as string | undefined) ?? item.sourceUrl ?? '')} />
-                </label>
-                <label>
-                  Difficulty
-                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], difficulty: event.target.value } }))} type="text" value={String((drafts[item.id]?.difficulty as string | undefined) ?? item.difficulty ?? '')} />
-                </label>
-                <label>
-                  Notes
-                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], notes: event.target.value } }))} type="text" value={String((drafts[item.id]?.notes as string | undefined) ?? item.notes ?? '')} />
-                </label>
-                <label className="inventory-toggle-label">
-                  <input
-                    checked={Boolean((drafts[item.id]?.isPublic as boolean | undefined) ?? item.isPublic)}
-                    onChange={(event) =>
-                      setDrafts((current) => ({
-                        ...current,
-                        [item.id]: { ...current[item.id], isPublic: event.target.checked },
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  Make public (free download)
-                </label>
-                <label className="inventory-toggle-label">
-                  <input
-                    checked={Boolean((drafts[item.id]?.publicShareConfirmed as boolean | undefined) ?? item.publicShareConfirmed)}
-                    onChange={(event) =>
-                      setDrafts((current) => ({
-                        ...current,
-                        [item.id]: { ...current[item.id], publicShareConfirmed: event.target.checked },
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  I am creator / have permission
-                </label>
-                <div className="pattern-assets-row">
-                  <label>
-                    Upload PDF
-                    <FileDropInput
-                      accept="application/pdf"
-                      onSelect={async (files) => {
-                        const file = files[0]
-                        if (!file) return
-                        const ok = await uploadPatternAsset(item.id, 'pdf', file)
-                        if (ok) {
-                          await loadInventory()
-                        }
-                      }}
-                    />
-                  </label>
-                  <label>
-                    Upload cover
-                    <FileDropInput
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      onSelect={async (files) => {
-                        const file = files[0]
-                        if (!file) return
-                        const ok = await uploadPatternAsset(item.id, 'cover', file)
-                        if (ok) {
-                          await loadInventory()
-                        }
-                      }}
-                    />
-                  </label>
-                  <div className="hero-actions">
-                    {item.hasPdf ? (
-                      <a className="button" href={`/api/patterns/${item.id}/file`}>
-                        <Download size={14} /> Download PDF
-                      </a>
-                    ) : null}
-                    {item.hasCover ? (
-                      <a className="button" href={`/api/patterns/${item.id}/cover`} target="_blank" rel="noreferrer">
-                        <ImagePlus size={14} /> View cover
-                      </a>
-                    ) : null}
+              <article className="pattern-card" key={item.id}>
+                <button className="pattern-menu-trigger" onClick={() => setPatternMenuOpenId((curr) => (curr === item.id ? null : item.id))} type="button">
+                  <Ellipsis size={16} />
+                </button>
+                {patternMenuOpenId === item.id ? (
+                  <div className="pattern-menu-popover">
+                    <button className="button" onClick={() => { setEditingPatternId((curr) => (curr === item.id ? null : item.id)); setPatternMenuOpenId(null) }} type="button">
+                      <Save size={14} /> Edit
+                    </button>
+                    <button className="button" onClick={() => void removeItem(item.id)} type="button">
+                      <Trash2 size={14} /> Delete
+                    </button>
                   </div>
-                </div>
-                <div className="hero-actions">
-                  <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button">
-                    <Save size={14} /> Save
-                  </button>
-                  <button className="button" onClick={() => void removeItem(item.id)} type="button">
-                    <Trash2 size={14} /> Remove
-                  </button>
-                </div>
+                ) : null}
+
+                <a className="pattern-card-link" href={item.hasPdf ? `/api/patterns/${item.id}/file` : undefined}>
+                  {item.hasCover ? (
+                    <img alt={item.title} className="pattern-card-cover" src={`/api/patterns/${item.id}/cover`} />
+                  ) : (
+                    <div className="pattern-card-cover pattern-card-cover-fallback">
+                      <BookOpenCheck size={20} />
+                    </div>
+                  )}
+                  <div className="pattern-card-body">
+                    <strong>{item.title}</strong>
+                    <span>{item.description || 'No description yet.'}</span>
+                    <span>{item.difficulty || 'No difficulty'} · {item.isPublic ? 'Public' : 'Private'} · {item.hasPdf ? 'PDF ready' : 'No PDF'}</span>
+                  </div>
+                </a>
+
+                {editingPatternId === item.id ? (
+                  <div className="pattern-card-editor">
+                    <label>
+                      Title
+                      <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], title: event.target.value } }))} type="text" value={String((drafts[item.id]?.title as string | undefined) ?? item.title)} />
+                    </label>
+                    <label>
+                      Description
+                      <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], description: event.target.value } }))} rows={3} value={String((drafts[item.id]?.description as string | undefined) ?? item.description ?? '')} />
+                    </label>
+                    <div className="hero-actions">
+                      <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button"><Save size={14} /> Save</button>
+                      <button className="button" onClick={() => setEditingPatternId(null)} type="button">Done</button>
+                    </div>
+                  </div>
+                ) : null}
               </article>
             ))
           : null}
