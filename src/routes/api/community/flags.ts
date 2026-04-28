@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { communityFlags } from '#/lib/db/schema'
+import { sendAdminModerationAlert } from '#/lib/notifications/admin-moderation'
 
 export const Route = createFileRoute('/api/community/flags')({
   server: {
@@ -33,6 +34,25 @@ export const Route = createFileRoute('/api/community/flags')({
           details: body.details ?? null,
           createdByUserId: authUser.id,
         })
+
+        try {
+          await sendAdminModerationAlert({
+            kind: body.reason === 'comment_report' ? 'report' : 'flag',
+            actor: {
+              id: authUser.id,
+              displayName: authUser.displayName,
+              email: authUser.email,
+            },
+            entity: {
+              type: body.entityType,
+              id: body.entityId,
+            },
+            reason: body.reason,
+            details: body.details ?? null,
+          })
+        } catch (error) {
+          console.error('Failed sending moderation flag alert email', error)
+        }
 
         return Response.json({ message: 'Flag submitted. Thank you for the report.' }, { status: 201 })
       },

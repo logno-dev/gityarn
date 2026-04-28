@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { communityClaims, communityClaimVotes, users } from '#/lib/db/schema'
+import { sendAdminModerationAlert } from '#/lib/notifications/admin-moderation'
 
 export const Route = createFileRoute('/api/community/claims')({
   server: {
@@ -122,6 +123,25 @@ export const Route = createFileRoute('/api/community/claims')({
           notes: body.notes ?? null,
           createdByUserId: authUser.id,
         })
+
+        try {
+          await sendAdminModerationAlert({
+            kind: 'correction',
+            actor: {
+              id: authUser.id,
+              displayName: authUser.displayName,
+              email: authUser.email,
+            },
+            entity: {
+              type: body.entityType,
+              id: body.entityId,
+            },
+            reason: body.fieldKey ?? null,
+            details: body.notes ?? body.proposedValue ?? null,
+          })
+        } catch (error) {
+          console.error('Failed sending correction alert email', error)
+        }
 
         return Response.json({ message: 'Correction submitted.' }, { status: 201 })
       },

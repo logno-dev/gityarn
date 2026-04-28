@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { communityFlags, patterns } from '#/lib/db/schema'
+import { sendAdminModerationAlert } from '#/lib/notifications/admin-moderation'
 
 export const Route = createFileRoute('/api/patterns/$patternId/claim')({
   server: {
@@ -45,6 +46,26 @@ export const Route = createFileRoute('/api/patterns/$patternId/claim')({
           status: 'open',
           createdByUserId: authUser.id,
         })
+
+        try {
+          await sendAdminModerationAlert({
+            kind: 'claim',
+            actor: {
+              id: authUser.id,
+              displayName: authUser.displayName,
+              email: authUser.email,
+            },
+            entity: {
+              type: 'pattern_publication',
+              id: params.patternId,
+            },
+            reason: 'copyright_claim',
+            details,
+            sourcePath: `/inventory?tab=patterns`,
+          })
+        } catch (error) {
+          console.error('Failed sending pattern claim alert email', error)
+        }
 
         return Response.json({ message: 'Claim filed. Admins will review this report.' }, { status: 201 })
       },
