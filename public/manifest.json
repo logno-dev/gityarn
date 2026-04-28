@@ -67,8 +67,7 @@
             "image/webp",
             "image/gif",
             "image/heic",
-            "image/heif",
-            "application/pdf"
+            "image/heif"
           ]
         }
       ]
