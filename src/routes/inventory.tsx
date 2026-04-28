@@ -161,6 +161,19 @@ function InventoryPage() {
   const [newCreationHookIds, setNewCreationHookIds] = useState<string[]>([])
   const [patternChoices, setPatternChoices] = useState<Array<{ id: string; title: string }>>([])
   const [addingItem, setAddingItem] = useState(false)
+  const [patternUploadProgress, setPatternUploadProgress] = useState<{
+    open: boolean
+    total: number
+    completed: number
+    currentLabel: string
+    error: string | null
+  }>({
+    open: false,
+    total: 0,
+    completed: 0,
+    currentLabel: '',
+    error: null,
+  })
   const [patternMenuOpenId, setPatternMenuOpenId] = useState<string | null>(null)
   const [editingPatternId, setEditingPatternId] = useState<string | null>(null)
 
@@ -421,6 +434,7 @@ function InventoryPage() {
     }
 
     if (activeTab === 'patterns') {
+      const totalUploads = Number(Boolean(newPatternPdfFile)) + Number(Boolean(newPatternCoverFile))
       const response = await fetch('/api/scan/inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -432,17 +446,33 @@ function InventoryPage() {
         return
       }
 
+      if (totalUploads > 0) {
+        setPatternUploadProgress({
+          open: true,
+          total: totalUploads,
+          completed: 0,
+          currentLabel: 'Preparing uploads...',
+          error: null,
+        })
+      }
+
       if (payload.patternId && newPatternPdfFile) {
+        setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Uploading PDF...' }))
         const ok = await uploadPatternAsset(payload.patternId, 'pdf', newPatternPdfFile)
         if (!ok) {
+          setPatternUploadProgress((current) => ({ ...current, error: 'PDF upload failed.' }))
           return
         }
+        setPatternUploadProgress((current) => ({ ...current, completed: current.completed + 1 }))
       }
       if (payload.patternId && newPatternCoverFile) {
+        setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Uploading cover image...' }))
         const ok = await uploadPatternAsset(payload.patternId, 'cover', newPatternCoverFile)
         if (!ok) {
+          setPatternUploadProgress((current) => ({ ...current, error: 'Cover image upload failed.' }))
           return
         }
+        setPatternUploadProgress((current) => ({ ...current, completed: current.completed + 1 }))
       }
 
       setNewPattern({
@@ -462,7 +492,13 @@ function InventoryPage() {
         const publicPayload = (await publicResponse.json()) as PublicPatternsResponse
         setPublicPatterns(publicPayload.patterns ?? [])
       }
+      setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Finalizing...', error: null }))
       setStatus('Pattern added.')
+      if (totalUploads > 0) {
+        setTimeout(() => {
+          setPatternUploadProgress({ open: false, total: 0, completed: 0, currentLabel: '', error: null })
+        }, 350)
+      }
       return
     }
 
@@ -496,6 +532,16 @@ function InventoryPage() {
     setNewCreationImages([])
     await loadInventory()
     setStatus('Creation added.')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unexpected error while saving item.'
+      setStatus(message)
+      if (activeTab === 'patterns') {
+        setPatternUploadProgress((current) => ({
+          ...current,
+          open: true,
+          error: current.error ?? 'Upload failed due to an unexpected error.',
+        }))
+      }
     } finally {
       setAddingItem(false)
     }
@@ -798,6 +844,32 @@ function InventoryPage() {
         {loading ? <p className="inventory-message">Loading...</p> : null}
         {error ? <p className="inventory-message">{error}</p> : null}
         {status ? <p className="inventory-message">{status}</p> : null}
+
+        {patternUploadProgress.open ? (
+          <div className="modal-backdrop" role="presentation">
+            <div aria-label="Pattern upload progress" aria-modal="true" className="community-modal" role="dialog">
+              <div className="community-modal-head">
+                <h3>Uploading pattern files</h3>
+              </div>
+              <div className="stack-form">
+                <p>{patternUploadProgress.completed}/{patternUploadProgress.total} files uploaded</p>
+                <p>{patternUploadProgress.currentLabel}</p>
+                {patternUploadProgress.error ? <p>{patternUploadProgress.error}</p> : null}
+                <div className="hero-actions">
+                  {patternUploadProgress.error ? (
+                    <button
+                      className="button"
+                      onClick={() => setPatternUploadProgress({ open: false, total: 0, completed: 0, currentLabel: '', error: null })}
+                      type="button"
+                    >
+                      Close
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {!loading && !error && data && data.items.length === 0 ? <p className="inventory-message">No items yet.</p> : null}
 
