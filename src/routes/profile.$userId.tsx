@@ -210,14 +210,15 @@ function ProfilePage() {
                   ? data.comments.map((comment) => (
                       <div className="catalog-subrow" key={comment.id}>
                         <div>
-                          <strong>{comment.entityType}</strong>
-                          <span>{comment.body}</span>
+                          <span className="profile-comment-badge">{comment.entityType}</span>
+                          {comment.targetPath ? (
+                            <a className="profile-comment-link" href={comment.targetPath}>
+                              {comment.body}
+                            </a>
+                          ) : (
+                            <span>{comment.body}</span>
+                          )}
                         </div>
-                        {comment.targetPath ? (
-                          <a className="button" href={comment.targetPath}>
-                            View
-                          </a>
-                        ) : null}
                       </div>
                     ))
                   : <p>No comments yet.</p>

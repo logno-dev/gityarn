@@ -1,5 +1,5 @@
 import { Upload } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export function FileDropInput({
   accept,
@@ -16,16 +16,31 @@ export function FileDropInput({
 }) {
   const [dragOver, setDragOver] = useState(false)
   const [selectedNames, setSelectedNames] = useState<string[]>([])
+  const [isCoarsePointer, setIsCoarsePointer] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return
+    }
+    const mediaQuery = window.matchMedia('(pointer: coarse)')
+    const sync = () => setIsCoarsePointer(mediaQuery.matches)
+    sync()
+    mediaQuery.addEventListener('change', sync)
+    return () => mediaQuery.removeEventListener('change', sync)
+  }, [])
 
   const summary = useMemo(() => {
     if (!selectedNames.length) {
-      return hint ?? 'Drag and drop files here, or click to choose'
+      if (hint) {
+        return hint
+      }
+      return isCoarsePointer ? 'Tap to choose files' : 'Drag and drop files here, or click to choose'
     }
     if (selectedNames.length === 1) {
       return selectedNames[0]
     }
     return `${selectedNames.length} files selected`
-  }, [hint, selectedNames])
+  }, [hint, isCoarsePointer, selectedNames])
 
   const handleFiles = (files: File[]) => {
     setSelectedNames(files.map((file) => file.name))

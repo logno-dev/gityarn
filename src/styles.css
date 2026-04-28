@@ -1492,6 +1492,30 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   border: 1px solid var(--line);
 }
 
+.profile-comment-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  background: color-mix(in hsl, var(--bg-surface) 88%, #eadcff 12%);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.14rem 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.profile-comment-link {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.profile-comment-link:hover {
+  text-decoration: underline;
+}
+
 .comment-node-head span {
   color: var(--text-muted);
   font-size: 0.82rem;
