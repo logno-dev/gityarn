@@ -11,7 +11,7 @@ import { patterns } from '#/lib/db/schema'
 
 const MAX_PDF_BYTES = 40 * 1024 * 1024
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
-const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'])
 
 export const Route = createFileRoute('/api/patterns/$patternId/upload')({
   server: {
@@ -42,7 +42,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
         }
 
         if (isPdf) {
-          if (file.type !== 'application/pdf') {
+          if (!looksLikePdf(file)) {
             return Response.json({ message: 'Pattern file must be a PDF.' }, { status: 400 })
           }
           if (file.size > MAX_PDF_BYTES) {
@@ -51,17 +51,17 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
         }
 
         if (isCover) {
-          if (!IMAGE_MIME_TYPES.has(file.type)) {
-            return Response.json({ message: 'Cover image must be JPG, PNG, WEBP, or GIF.' }, { status: 400 })
+          if (!looksLikeSupportedImage(file)) {
+            return Response.json({ message: 'Cover image must be JPG, PNG, WEBP, GIF, HEIC, or HEIF.' }, { status: 400 })
           }
           if (file.size > MAX_IMAGE_BYTES) {
-            return Response.json({ message: 'Cover image must be 8MB or smaller.' }, { status: 400 })
+            return Response.json({ message: 'Cover image must be 20MB or smaller.' }, { status: 400 })
           }
         }
 
         const processedImage = isCover ? await processUploadedImage(file, { maxWidth: 1200 }) : null
         const ext = isPdf ? 'pdf' : (processedImage?.extension ?? 'jpg')
-        const mimeType = isPdf ? file.type : (processedImage?.mimeType ?? file.type)
+        const mimeType = isPdf ? 'application/pdf' : (processedImage?.mimeType ?? file.type)
         const bytes = isPdf ? new Uint8Array(await file.arrayBuffer()) : (processedImage?.bytes ?? new Uint8Array())
         const r2Key = `users/${authUser.id}/patterns/${pattern.id}/${isPdf ? 'file' : 'cover'}-${crypto.randomUUID()}.${ext}`
         const env = getServerEnv()
@@ -87,7 +87,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
 
         if (isPdf) {
           updatePayload.pdfR2Key = r2Key
-          updatePayload.pdfMimeType = file.type
+          updatePayload.pdfMimeType = 'application/pdf'
           updatePayload.pdfFileName = file.name || `${pattern.title}.pdf`
           if (pattern.pdfR2Key) {
             await safeDeleteObject(pattern.pdfR2Key)
@@ -114,5 +114,26 @@ async function safeDeleteObject(key: string) {
       Bucket: getServerEnv().R2_BUCKET,
       Key: key,
     }),
+  )
+}
+
+function looksLikePdf(file: File) {
+  if (file.type === 'application/pdf') return true
+  const name = file.name.toLowerCase()
+  return (file.type === 'application/octet-stream' || file.type === '') && name.endsWith('.pdf')
+}
+
+function looksLikeSupportedImage(file: File) {
+  if (IMAGE_MIME_TYPES.has(file.type)) return true
+  if (file.type && file.type !== 'application/octet-stream') return false
+  const name = file.name.toLowerCase()
+  return (
+    name.endsWith('.jpg') ||
+    name.endsWith('.jpeg') ||
+    name.endsWith('.png') ||
+    name.endsWith('.webp') ||
+    name.endsWith('.gif') ||
+    name.endsWith('.heic') ||
+    name.endsWith('.heif')
   )
 }

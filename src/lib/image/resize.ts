@@ -69,6 +69,8 @@ function normalizeImageMimeType(mimeType: string) {
   if (mimeType === 'image/png') return 'image/png'
   if (mimeType === 'image/webp') return 'image/webp'
   if (mimeType === 'image/gif') return 'image/gif'
+  if (mimeType === 'image/heic') return 'image/heic'
+  if (mimeType === 'image/heif') return 'image/heif'
   return null
 }
 
@@ -77,12 +79,15 @@ function extensionFromMime(mimeType: string) {
   if (mimeType === 'image/png') return 'png'
   if (mimeType === 'image/gif') return 'gif'
   if (mimeType === 'image/webp') return 'webp'
+  if (mimeType === 'image/heic') return 'heic'
+  if (mimeType === 'image/heif') return 'heif'
   return 'bin'
 }
 
-function formatFromMime(mimeType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif') {
+function formatFromMime(mimeType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' | 'image/heic' | 'image/heif') {
   if (mimeType === 'image/png') return 'png'
   if (mimeType === 'image/webp') return 'webp'
   if (mimeType === 'image/gif') return 'gif'
+  if (mimeType === 'image/heic' || mimeType === 'image/heif') return 'jpeg'
   return 'jpeg'
 }

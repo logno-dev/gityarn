@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { BookOpenCheck, Download, Ellipsis, Lock, Minus, Package, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
+import { BookOpenCheck, Download, Ellipsis, ImagePlus, Lock, Minus, Package, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
@@ -1054,6 +1054,88 @@ function InventoryPage() {
                       Description
                       <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], description: event.target.value } }))} rows={3} value={String((drafts[item.id]?.description as string | undefined) ?? item.description ?? '')} />
                     </label>
+                    <label>
+                      Source URL
+                      <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], sourceUrl: event.target.value } }))} type="text" value={String((drafts[item.id]?.sourceUrl as string | undefined) ?? item.sourceUrl ?? '')} />
+                    </label>
+                    <label>
+                      Difficulty
+                      <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], difficulty: event.target.value } }))} type="text" value={String((drafts[item.id]?.difficulty as string | undefined) ?? item.difficulty ?? '')} />
+                    </label>
+                    <label>
+                      Notes
+                      <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], notes: event.target.value } }))} rows={3} value={String((drafts[item.id]?.notes as string | undefined) ?? item.notes ?? '')} />
+                    </label>
+                    <label className="inventory-toggle-label">
+                      <input
+                        checked={Boolean((drafts[item.id]?.isPublic as boolean | undefined) ?? item.isPublic)}
+                        onChange={(event) =>
+                          setDrafts((current) => ({
+                            ...current,
+                            [item.id]: { ...current[item.id], isPublic: event.target.checked },
+                          }))
+                        }
+                        type="checkbox"
+                      />
+                      Make public (free download)
+                    </label>
+                    <label className="inventory-toggle-label">
+                      <input
+                        checked={Boolean((drafts[item.id]?.publicShareConfirmed as boolean | undefined) ?? item.publicShareConfirmed)}
+                        onChange={(event) =>
+                          setDrafts((current) => ({
+                            ...current,
+                            [item.id]: { ...current[item.id], publicShareConfirmed: event.target.checked },
+                          }))
+                        }
+                        type="checkbox"
+                      />
+                      I am creator / have permission
+                    </label>
+                    <div className="pattern-assets-row">
+                      <label>
+                        {item.hasPdf ? 'Replace PDF' : 'Upload PDF'}
+                        <FileDropInput
+                          accept="application/pdf"
+                          onSelect={async (files) => {
+                            const file = files[0]
+                            if (!file) return
+                            const ok = await uploadPatternAsset(item.id, 'pdf', file)
+                            if (ok) {
+                              await loadInventory()
+                              setStatus(item.hasPdf ? 'Pattern PDF replaced.' : 'Pattern PDF uploaded.')
+                            }
+                          }}
+                        />
+                      </label>
+                      <label>
+                        {item.hasCover ? 'Replace cover' : 'Upload cover'}
+                        <FileDropInput
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          onSelect={async (files) => {
+                            const file = files[0]
+                            if (!file) return
+                            const ok = await uploadPatternAsset(item.id, 'cover', file)
+                            if (ok) {
+                              await loadInventory()
+                              setStatus(item.hasCover ? 'Pattern cover replaced.' : 'Pattern cover uploaded.')
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div className="hero-actions">
+                      {item.hasPdf ? (
+                        <a className="button" href={`/api/patterns/${item.id}/file`}>
+                          <Download size={14} /> View PDF
+                        </a>
+                      ) : null}
+                      {item.hasCover ? (
+                        <a className="button" href={`/api/patterns/${item.id}/cover`} rel="noreferrer" target="_blank">
+                          <ImagePlus size={14} /> View cover
+                        </a>
+                      ) : null}
+                    </div>
                     <div className="hero-actions">
                       <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button"><Save size={14} /> Save</button>
                       <button className="button" onClick={() => setEditingPatternId(null)} type="button">Done</button>
