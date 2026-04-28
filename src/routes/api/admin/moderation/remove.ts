@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
-import { creations, patterns, posts } from '#/lib/db/schema'
+import { comments, creations, patterns, posts } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/admin/moderation/remove')({
   server: {
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/api/admin/moderation/remove')({
         }
 
         const body = (await request.json()) as {
-          entityType?: 'pattern' | 'creation' | 'post'
+          entityType?: 'pattern' | 'creation' | 'post' | 'comment'
           entityId?: string
           reason?: string | null
         }
@@ -87,6 +87,24 @@ export const Route = createFileRoute('/api/admin/moderation/remove')({
             })
             .where(and(eq(posts.id, entityId)))
           return Response.json({ message: 'Post removed from public visibility.' }, { status: 200 })
+        }
+
+        if (body.entityType === 'comment') {
+          const existing = await db.query.comments.findFirst({ where: eq(comments.id, entityId) })
+          if (!existing) {
+            return Response.json({ message: 'Comment not found.' }, { status: 404 })
+          }
+          await db
+            .update(comments)
+            .set({
+              moderationStatus: 'removed',
+              moderationReason,
+              moderatedByUserId: authUser.id,
+              moderatedAt: now,
+              updatedAt: now,
+            })
+            .where(and(eq(comments.id, entityId)))
+          return Response.json({ message: 'Comment removed.' }, { status: 200 })
         }
 
         return Response.json({ message: 'Unsupported entityType.' }, { status: 400 })

@@ -1,9 +1,9 @@
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray, sql } from 'drizzle-orm'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
-import { comments, users } from '#/lib/db/schema'
+import { commentHearts, comments, users } from '#/lib/db/schema'
 
 const MAX_DEPTH = 6
 
@@ -34,6 +34,8 @@ export const Route = createFileRoute('/api/comments')({
             depth: comments.depth,
             createdAt: comments.createdAt,
             updatedAt: comments.updatedAt,
+            moderationStatus: comments.moderationStatus,
+            moderationReason: comments.moderationReason,
             authorId: users.id,
             authorDisplayName: users.displayName,
           })
@@ -42,6 +44,29 @@ export const Route = createFileRoute('/api/comments')({
           .where(and(eq(comments.entityType, entityType), eq(comments.entityId, entityId)))
           .orderBy(asc(comments.createdAt))
 
+        const commentIds = rows.map((row) => row.id)
+        let heartCountMap = new Map<string, number>()
+        let viewerHeartSet = new Set<string>()
+
+        if (commentIds.length) {
+          const heartCountRows = await getDb()
+            .select({
+              commentId: commentHearts.commentId,
+              count: sql<number>`count(*)`,
+            })
+            .from(commentHearts)
+            .where(inArray(commentHearts.commentId, commentIds))
+            .groupBy(commentHearts.commentId)
+
+          const viewerHeartRows = await getDb()
+            .select({ commentId: commentHearts.commentId })
+            .from(commentHearts)
+            .where(and(inArray(commentHearts.commentId, commentIds), eq(commentHearts.userId, authUser.id)))
+
+          heartCountMap = new Map(heartCountRows.map((row) => [row.commentId, Number(row.count) || 0]))
+          viewerHeartSet = new Set(viewerHeartRows.map((row) => row.commentId))
+        }
+
         return Response.json(
           {
             comments: rows.map((row) => ({
@@ -49,10 +74,17 @@ export const Route = createFileRoute('/api/comments')({
               entityType: row.entityType,
               entityId: row.entityId,
               parentCommentId: row.parentCommentId,
-              body: row.body,
+              body: row.moderationStatus === 'removed' ? '[Removed by admin]' : row.body,
               depth: row.depth,
               createdAt: row.createdAt,
               updatedAt: row.updatedAt,
+              moderationStatus: row.moderationStatus,
+              moderationReason:
+                row.moderationStatus === 'removed' && (row.authorId === authUser.id || authUser.role === 'admin')
+                  ? row.moderationReason
+                  : null,
+              heartCount: heartCountMap.get(row.id) ?? 0,
+              viewerHasHeart: viewerHeartSet.has(row.id),
               author: {
                 id: row.authorId,
                 displayName: row.authorDisplayName,
@@ -95,6 +127,9 @@ export const Route = createFileRoute('/api/comments')({
           const parent = await getDb().query.comments.findFirst({ where: eq(comments.id, parentCommentId) })
           if (!parent) {
             return Response.json({ message: 'Parent comment not found.' }, { status: 404 })
+          }
+          if (parent.moderationStatus === 'removed') {
+            return Response.json({ message: 'You cannot reply to a removed comment.' }, { status: 400 })
           }
           if (parent.entityType !== entityType || parent.entityId !== entityId) {
             return Response.json({ message: 'Parent comment belongs to a different entity.' }, { status: 400 })

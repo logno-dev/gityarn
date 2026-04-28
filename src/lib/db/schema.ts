@@ -284,8 +284,18 @@ export const comments = sqliteTable('comments', {
   parentCommentId: text('parent_comment_id').references((): any => comments.id, { onDelete: 'cascade' }),
   body: text('body').notNull(),
   depth: integer('depth').notNull().default(0),
+  moderationStatus: text('moderation_status').notNull().default('active'),
+  moderationReason: text('moderation_reason'),
+  moderatedByUserId: text('moderated_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  moderatedAt: integer('moderated_at'),
   ...timestamps,
 })
+
+export const commentHearts = sqliteTable('comment_hearts', {
+  commentId: text('comment_id').notNull().references(() => comments.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at').notNull(),
+}, (table) => [primaryKey({ columns: [table.commentId, table.userId] })])
 
 export const userRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),

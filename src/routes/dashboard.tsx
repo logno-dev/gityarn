@@ -178,7 +178,7 @@ function DiscoverPage() {
   }
 
   return (
-    <section className="page-stack">
+    <section className="page-stack discover-page">
       <article className="discover-compose">
         <form className={`stack-form ${composerExpanded ? 'expanded' : ''}`} onSubmit={publishPost}>
           {!composerExpanded ? (
@@ -260,8 +260,25 @@ function DiscoverPage() {
                 <span className="discover-card-kind">{item.kind}</span>
               </div>
             </div>
-            {item.previewImage ? <img alt={item.title || 'Post image'} className="discover-preview" src={item.previewImage} /> : null}
-            {item.body ? <p>{item.body}</p> : null}
+            {item.kind === 'post' ? (
+              <>
+                {item.previewImage ? (
+                  <Link className="post-preview-link" params={{ postId: item.entityId }} to="/post/$postId">
+                    <img alt={item.title || 'Post image'} className="discover-preview" src={item.previewImage} />
+                  </Link>
+                ) : null}
+                {item.body ? (
+                  <Link className="post-preview-link" params={{ postId: item.entityId }} to="/post/$postId">
+                    <p>{truncatePostBody(item.body)}</p>
+                  </Link>
+                ) : null}
+              </>
+            ) : (
+              <>
+                {item.previewImage ? <img alt={item.title || 'Post image'} className="discover-preview" src={item.previewImage} /> : null}
+                {item.body ? <p>{item.body}</p> : null}
+              </>
+            )}
             <div className="hero-actions">
               {item.downloadUrl ? (
                 <a className="button" href={item.downloadUrl}>
@@ -356,4 +373,11 @@ function DiscoverPage() {
 
     </section>
   )
+}
+
+function truncatePostBody(body: string) {
+  if (body.length <= 300) {
+    return body
+  }
+  return `${body.slice(0, 300).trimEnd()}...`
 }

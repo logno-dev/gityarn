@@ -31,6 +31,7 @@ import { Route as ApiPostsRouteImport } from './routes/api/posts'
 import { Route as ApiCommentsRouteImport } from './routes/api/comments'
 import { Route as ApiAccountSettingsRouteImport } from './routes/api/account-settings'
 import { Route as ApiCatalogIndexRouteImport } from './routes/api/catalog/index'
+import { Route as ApiShareOptionsRouteImport } from './routes/api/share/options'
 import { Route as ApiShareIngestRouteImport } from './routes/api/share/ingest'
 import { Route as ApiShareDraftRouteImport } from './routes/api/share/draft'
 import { Route as ApiShareCommitRouteImport } from './routes/api/share/commit'
@@ -66,6 +67,7 @@ import { Route as ApiPatternsPatternIdFileRouteImport } from './routes/api/patte
 import { Route as ApiPatternsPatternIdCoverRouteImport } from './routes/api/patterns/$patternId/cover'
 import { Route as ApiPatternsPatternIdClaimRouteImport } from './routes/api/patterns/$patternId/claim'
 import { Route as ApiCreationsCreationIdImagesRouteImport } from './routes/api/creations/$creationId/images'
+import { Route as ApiCommentsCommentIdHeartsRouteImport } from './routes/api/comments/$commentId/hearts'
 import { Route as ApiCatalogLineIdBarcodesRouteImport } from './routes/api/catalog/$lineId/barcodes'
 import { Route as ApiAdminModerationRemoveRouteImport } from './routes/api/admin/moderation/remove'
 import { Route as ApiLandingCarouselItemIdImageRouteImport } from './routes/api/landing/carousel/$itemId/image'
@@ -180,6 +182,11 @@ const ApiAccountSettingsRoute = ApiAccountSettingsRouteImport.update({
 const ApiCatalogIndexRoute = ApiCatalogIndexRouteImport.update({
   id: '/api/catalog/',
   path: '/api/catalog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareOptionsRoute = ApiShareOptionsRouteImport.update({
+  id: '/api/share/options',
+  path: '/api/share/options',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShareIngestRoute = ApiShareIngestRouteImport.update({
@@ -364,6 +371,12 @@ const ApiCreationsCreationIdImagesRoute =
     path: '/api/creations/$creationId/images',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiCommentsCommentIdHeartsRoute =
+  ApiCommentsCommentIdHeartsRouteImport.update({
+    id: '/$commentId/hearts',
+    path: '/$commentId/hearts',
+    getParentRoute: () => ApiCommentsRoute,
+  } as any)
 const ApiCatalogLineIdBarcodesRoute =
   ApiCatalogLineIdBarcodesRouteImport.update({
     id: '/barcodes',
@@ -410,7 +423,7 @@ export interface FileRoutesByFullPath {
   '/share-intake': typeof ShareIntakeRoute
   '/sign-in': typeof SignInRoute
   '/api/account-settings': typeof ApiAccountSettingsRouteWithChildren
-  '/api/comments': typeof ApiCommentsRoute
+  '/api/comments': typeof ApiCommentsRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -442,9 +455,11 @@ export interface FileRoutesByFullPath {
   '/api/share/commit': typeof ApiShareCommitRoute
   '/api/share/draft': typeof ApiShareDraftRoute
   '/api/share/ingest': typeof ApiShareIngestRoute
+  '/api/share/options': typeof ApiShareOptionsRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
+  '/api/comments/$commentId/hearts': typeof ApiCommentsCommentIdHeartsRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
@@ -474,7 +489,7 @@ export interface FileRoutesByTo {
   '/share-intake': typeof ShareIntakeRoute
   '/sign-in': typeof SignInRoute
   '/api/account-settings': typeof ApiAccountSettingsRouteWithChildren
-  '/api/comments': typeof ApiCommentsRoute
+  '/api/comments': typeof ApiCommentsRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -506,9 +521,11 @@ export interface FileRoutesByTo {
   '/api/share/commit': typeof ApiShareCommitRoute
   '/api/share/draft': typeof ApiShareDraftRoute
   '/api/share/ingest': typeof ApiShareIngestRoute
+  '/api/share/options': typeof ApiShareOptionsRoute
   '/api/catalog': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
+  '/api/comments/$commentId/hearts': typeof ApiCommentsCommentIdHeartsRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
@@ -539,7 +556,7 @@ export interface FileRoutesById {
   '/share-intake': typeof ShareIntakeRoute
   '/sign-in': typeof SignInRoute
   '/api/account-settings': typeof ApiAccountSettingsRouteWithChildren
-  '/api/comments': typeof ApiCommentsRoute
+  '/api/comments': typeof ApiCommentsRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -571,9 +588,11 @@ export interface FileRoutesById {
   '/api/share/commit': typeof ApiShareCommitRoute
   '/api/share/draft': typeof ApiShareDraftRoute
   '/api/share/ingest': typeof ApiShareIngestRoute
+  '/api/share/options': typeof ApiShareOptionsRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
+  '/api/comments/$commentId/hearts': typeof ApiCommentsCommentIdHeartsRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
@@ -637,9 +656,11 @@ export interface FileRouteTypes {
     | '/api/share/commit'
     | '/api/share/draft'
     | '/api/share/ingest'
+    | '/api/share/options'
     | '/api/catalog/'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
+    | '/api/comments/$commentId/hearts'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
@@ -701,9 +722,11 @@ export interface FileRouteTypes {
     | '/api/share/commit'
     | '/api/share/draft'
     | '/api/share/ingest'
+    | '/api/share/options'
     | '/api/catalog'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
+    | '/api/comments/$commentId/hearts'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
@@ -765,9 +788,11 @@ export interface FileRouteTypes {
     | '/api/share/commit'
     | '/api/share/draft'
     | '/api/share/ingest'
+    | '/api/share/options'
     | '/api/catalog/'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
+    | '/api/comments/$commentId/hearts'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
@@ -798,7 +823,7 @@ export interface RootRouteChildren {
   ShareIntakeRoute: typeof ShareIntakeRoute
   SignInRoute: typeof SignInRoute
   ApiAccountSettingsRoute: typeof ApiAccountSettingsRouteWithChildren
-  ApiCommentsRoute: typeof ApiCommentsRoute
+  ApiCommentsRoute: typeof ApiCommentsRouteWithChildren
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
   PostPostIdRoute: typeof PostPostIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
@@ -825,6 +850,7 @@ export interface RootRouteChildren {
   ApiShareCommitRoute: typeof ApiShareCommitRoute
   ApiShareDraftRoute: typeof ApiShareDraftRoute
   ApiShareIngestRoute: typeof ApiShareIngestRoute
+  ApiShareOptionsRoute: typeof ApiShareOptionsRoute
   ApiCatalogIndexRoute: typeof ApiCatalogIndexRoute
   ApiAdminModerationRemoveRoute: typeof ApiAdminModerationRemoveRoute
   ApiCreationsCreationIdImagesRoute: typeof ApiCreationsCreationIdImagesRoute
@@ -990,6 +1016,13 @@ declare module '@tanstack/react-router' {
       path: '/api/catalog'
       fullPath: '/api/catalog/'
       preLoaderRoute: typeof ApiCatalogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/options': {
+      id: '/api/share/options'
+      path: '/api/share/options'
+      fullPath: '/api/share/options'
+      preLoaderRoute: typeof ApiShareOptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/share/ingest': {
@@ -1237,6 +1270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCreationsCreationIdImagesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/comments/$commentId/hearts': {
+      id: '/api/comments/$commentId/hearts'
+      path: '/$commentId/hearts'
+      fullPath: '/api/comments/$commentId/hearts'
+      preLoaderRoute: typeof ApiCommentsCommentIdHeartsRouteImport
+      parentRoute: typeof ApiCommentsRoute
+    }
     '/api/catalog/$lineId/barcodes': {
       id: '/api/catalog/$lineId/barcodes'
       path: '/barcodes'
@@ -1308,6 +1348,18 @@ const ApiAccountSettingsRouteChildren: ApiAccountSettingsRouteChildren = {
 
 const ApiAccountSettingsRouteWithChildren =
   ApiAccountSettingsRoute._addFileChildren(ApiAccountSettingsRouteChildren)
+
+interface ApiCommentsRouteChildren {
+  ApiCommentsCommentIdHeartsRoute: typeof ApiCommentsCommentIdHeartsRoute
+}
+
+const ApiCommentsRouteChildren: ApiCommentsRouteChildren = {
+  ApiCommentsCommentIdHeartsRoute: ApiCommentsCommentIdHeartsRoute,
+}
+
+const ApiCommentsRouteWithChildren = ApiCommentsRoute._addFileChildren(
+  ApiCommentsRouteChildren,
+)
 
 interface ApiPostsPostIdRouteChildren {
   ApiPostsPostIdHeartsRoute: typeof ApiPostsPostIdHeartsRoute
@@ -1395,7 +1447,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShareIntakeRoute: ShareIntakeRoute,
   SignInRoute: SignInRoute,
   ApiAccountSettingsRoute: ApiAccountSettingsRouteWithChildren,
-  ApiCommentsRoute: ApiCommentsRoute,
+  ApiCommentsRoute: ApiCommentsRouteWithChildren,
   ApiPostsRoute: ApiPostsRouteWithChildren,
   PostPostIdRoute: PostPostIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
@@ -1422,6 +1474,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShareCommitRoute: ApiShareCommitRoute,
   ApiShareDraftRoute: ApiShareDraftRoute,
   ApiShareIngestRoute: ApiShareIngestRoute,
+  ApiShareOptionsRoute: ApiShareOptionsRoute,
   ApiCatalogIndexRoute: ApiCatalogIndexRoute,
   ApiAdminModerationRemoveRoute: ApiAdminModerationRemoveRoute,
   ApiCreationsCreationIdImagesRoute: ApiCreationsCreationIdImagesRoute,

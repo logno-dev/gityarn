@@ -70,7 +70,7 @@ function PostDetailPage() {
   }
 
   return (
-    <section className="page-stack page-narrow">
+    <section className="page-stack post-detail-page">
       <Link className="button" to="/dashboard">
         <ArrowLeft size={14} /> Back to Discover
       </Link>

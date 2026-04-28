@@ -694,6 +694,16 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   margin-inline: auto;
 }
 
+.discover-page {
+  width: min(760px, 100%);
+  margin-inline: auto;
+}
+
+.post-detail-page {
+  width: min(980px, 100%);
+  margin-inline: auto;
+}
+
 .settings-page {
   width: min(1160px, 100%);
   margin-inline: auto;
@@ -1254,6 +1264,12 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   object-fit: contain;
   border-radius: 12px;
   border: 1px solid var(--line);
+}
+
+.post-preview-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
 }
 
 .discover-image-stack {

@@ -1,7 +1,10 @@
 import { Link } from '@tanstack/react-router'
-import { MessageCircle, Reply, Send } from 'lucide-react'
+import { Flag, MessageCircle, Reply, Send, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+
+import heartEmpty from '../../assets/heart_empty.svg'
+import heartFull from '../../assets/heart_full.svg'
 
 type CommentNode = {
   id: string
@@ -10,6 +13,10 @@ type CommentNode = {
   depth: number
   createdAt: number
   updatedAt: number
+  moderationStatus: string
+  moderationReason: string | null
+  heartCount: number
+  viewerHasHeart: boolean
   author: {
     id: string
     displayName: string
@@ -27,6 +34,7 @@ export function CommentThread({ entityType, entityId }: { entityType: string; en
   const [draft, setDraft] = useState('')
   const [replyOpenForId, setReplyOpenForId] = useState<string | null>(null)
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({})
+  const [authUser, setAuthUser] = useState<{ id: string; role: 'member' | 'admin' } | null>(null)
 
   const loadComments = async () => {
     setLoading(true)
@@ -44,6 +52,13 @@ export function CommentThread({ entityType, entityId }: { entityType: string; en
   useEffect(() => {
     void loadComments()
   }, [entityType, entityId])
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((response) => response.json())
+      .then((data: { user: { id: string; role: 'member' | 'admin' } | null }) => setAuthUser(data.user))
+      .catch(() => setAuthUser(null))
+  }, [])
 
   const childrenByParent = useMemo(() => {
     const map = new Map<string | null, CommentNode[]>()
@@ -95,6 +110,60 @@ export function CommentThread({ entityType, entityId }: { entityType: string; en
     }
   }
 
+  const toggleHeart = async (commentId: string) => {
+    const response = await fetch(`/api/comments/${commentId}/hearts`, { method: 'POST' })
+    const payload = (await response.json()) as { message?: string; heartCount?: number; viewerHasHeart?: boolean }
+    if (!response.ok) {
+      setStatus(payload.message ?? 'Could not update heart.')
+      return
+    }
+    setComments((current) =>
+      current.map((item) =>
+        item.id === commentId
+          ? {
+              ...item,
+              heartCount: payload.heartCount ?? item.heartCount,
+              viewerHasHeart: payload.viewerHasHeart ?? item.viewerHasHeart,
+            }
+          : item,
+      ),
+    )
+  }
+
+  const reportComment = async (commentId: string) => {
+    const details = window.prompt('Optional details for this report:') ?? ''
+    const response = await fetch('/api/community/flags', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entityType: 'comment',
+        entityId: commentId,
+        reason: 'comment_report',
+        details: details.trim() || null,
+      }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setStatus(payload.message ?? (response.ok ? 'Report submitted.' : 'Could not submit report.'))
+  }
+
+  const removeCommentAsAdmin = async (commentId: string) => {
+    const reason = window.prompt('Optional removal reason (shown to owner):') ?? ''
+    const response = await fetch('/api/admin/moderation/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entityType: 'comment',
+        entityId: commentId,
+        reason: reason.trim() || null,
+      }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setStatus(payload.message ?? (response.ok ? 'Comment removed.' : 'Could not remove comment.'))
+    if (response.ok) {
+      await loadComments()
+    }
+  }
+
   return (
     <article className="soft-panel comment-thread-shell">
       <h2>
@@ -128,10 +197,14 @@ export function CommentThread({ entityType, entityId }: { entityType: string; en
                 [commentId]: value,
               }))
             }
+            onRemoveComment={removeCommentAsAdmin}
+            onReportComment={reportComment}
             onToggleReply={(commentId) => setReplyOpenForId((current) => (current === commentId ? null : commentId))}
+            onToggleHeart={toggleHeart}
             replyDraft={replyDrafts[comment.id] ?? ''}
             replyOpenForId={replyOpenForId}
             replyDrafts={replyDrafts}
+            viewerIsAdmin={authUser?.role === 'admin'}
           />
         ))}
       </div>
@@ -148,6 +221,10 @@ function CommentBranch({
   onToggleReply,
   onReplyDraftChange,
   onPostReply,
+  onToggleHeart,
+  onReportComment,
+  onRemoveComment,
+  viewerIsAdmin,
 }: {
   comment: CommentNode
   childrenByParent: Map<string | null, CommentNode[]>
@@ -157,6 +234,10 @@ function CommentBranch({
   onToggleReply: (commentId: string) => void
   onReplyDraftChange: (commentId: string, value: string) => void
   onPostReply: (event: FormEvent<HTMLFormElement>, parentCommentId: string) => Promise<void>
+  onToggleHeart: (commentId: string) => Promise<void>
+  onReportComment: (commentId: string) => Promise<void>
+  onRemoveComment: (commentId: string) => Promise<void>
+  viewerIsAdmin: boolean
 }) {
   const replies = childrenByParent.get(comment.id) ?? []
 
@@ -182,11 +263,26 @@ function CommentBranch({
           <span>{new Date(comment.createdAt).toLocaleString()}</span>
         </div>
         <p>{comment.body}</p>
-        {comment.depth < 6 ? (
-          <button className="button" onClick={() => onToggleReply(comment.id)} type="button">
-            <Reply size={14} /> Reply
+        {comment.moderationStatus === 'removed' && comment.moderationReason ? <p>{comment.moderationReason}</p> : null}
+        <div className="hero-actions">
+          <button className="button" onClick={() => void onToggleHeart(comment.id)} type="button">
+            <img alt="" aria-hidden="true" className="heart-icon" src={comment.viewerHasHeart ? heartFull : heartEmpty} />
+            {comment.heartCount}
           </button>
-        ) : null}
+          {comment.moderationStatus !== 'removed' && comment.depth < 6 ? (
+            <button className="button" onClick={() => onToggleReply(comment.id)} type="button">
+              <Reply size={14} /> Reply
+            </button>
+          ) : null}
+          <button className="button" onClick={() => void onReportComment(comment.id)} type="button">
+            <Flag size={14} /> Report
+          </button>
+          {viewerIsAdmin && comment.moderationStatus !== 'removed' ? (
+            <button className="button" onClick={() => void onRemoveComment(comment.id)} type="button">
+              <XCircle size={14} /> Remove
+            </button>
+          ) : null}
+        </div>
 
         {replyOpenForId === comment.id ? (
           <form className="stack-form comment-reply-form" onSubmit={(event) => void onPostReply(event, comment.id)}>
@@ -215,10 +311,14 @@ function CommentBranch({
               key={reply.id}
               onPostReply={onPostReply}
               onReplyDraftChange={onReplyDraftChange}
+              onRemoveComment={onRemoveComment}
+              onReportComment={onReportComment}
               onToggleReply={onToggleReply}
+              onToggleHeart={onToggleHeart}
               replyDraft={replyDrafts[reply.id] ?? ''}
               replyOpenForId={replyOpenForId}
               replyDrafts={replyDrafts}
+              viewerIsAdmin={viewerIsAdmin}
             />
           ))}
         </div>

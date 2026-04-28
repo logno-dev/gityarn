@@ -31,6 +31,10 @@ type DraftPayload = {
   }
 }
 
+type ShareOptionsPayload = {
+  creations: Array<{ id: string; name: string; status: string; updatedAt: number }>
+}
+
 function ShareIntakePage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
@@ -38,6 +42,19 @@ function ShareIntakePage() {
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState('')
   const [draft, setDraft] = useState<DraftPayload['draft'] | null>(null)
+  const [target, setTarget] = useState<'post' | 'creation' | 'pattern'>('post')
+  const [creationMode, setCreationMode] = useState<'new' | 'existing'>('new')
+  const [creationOptions, setCreationOptions] = useState<ShareOptionsPayload['creations']>([])
+  const [postTitle, setPostTitle] = useState('')
+  const [postBody, setPostBody] = useState('')
+  const [patternTitle, setPatternTitle] = useState('')
+  const [patternDescription, setPatternDescription] = useState('')
+  const [patternSourceUrl, setPatternSourceUrl] = useState('')
+  const [patternNotes, setPatternNotes] = useState('')
+  const [existingCreationId, setExistingCreationId] = useState('')
+  const [creationName, setCreationName] = useState('')
+  const [creationStatus, setCreationStatus] = useState('active')
+  const [creationNotes, setCreationNotes] = useState('')
 
   const draftId = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -63,12 +80,35 @@ function ShareIntakePage() {
       })
       .then((payload) => {
         setDraft(payload.draft)
+        setPostTitle(payload.draft.title ?? '')
+        setPostBody(payload.draft.text ?? payload.draft.url ?? '')
+        setPatternTitle(payload.draft.title ?? '')
+        setPatternDescription(payload.draft.text ?? '')
+        setPatternSourceUrl(payload.draft.url ?? '')
+        setPatternNotes(payload.draft.text ?? '')
+        setCreationName(payload.draft.title ?? 'Shared creation')
+        setCreationNotes(payload.draft.text ?? payload.draft.url ?? '')
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : 'Could not load shared content.')
       })
       .finally(() => setLoading(false))
   }, [draftId])
+
+  useEffect(() => {
+    fetch('/api/share/options')
+      .then(async (response) => {
+        const payload = (await response.json()) as ShareOptionsPayload & { message?: string }
+        if (!response.ok) {
+          throw new Error(payload.message ?? 'Could not load share options.')
+        }
+        return payload
+      })
+      .then((payload) => {
+        setCreationOptions(payload.creations)
+      })
+      .catch(() => setCreationOptions([]))
+  }, [])
 
   const importAs = async (target: 'post' | 'creation' | 'pattern') => {
     if (!draft) {
@@ -78,7 +118,21 @@ function ShareIntakePage() {
     const response = await fetch('/api/share/commit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ draftId: draft.id, target }),
+      body: JSON.stringify({
+        draftId: draft.id,
+        target,
+        postTitle,
+        postBody,
+        patternTitle,
+        patternDescription,
+        patternSourceUrl,
+        patternNotes,
+        creationMode,
+        existingCreationId,
+        creationName,
+        creationStatus,
+        creationNotes,
+      }),
     })
     const payload = (await response.json()) as { message?: string; nextPath?: string }
     setStatus(payload.message ?? (response.ok ? 'Shared content imported.' : 'Could not import shared content.'))
@@ -131,15 +185,104 @@ function ShareIntakePage() {
               </p>
             ) : null}
 
+            <label>
+              Import target
+              <select onChange={(event) => setTarget(event.target.value as 'post' | 'creation' | 'pattern')} value={target}>
+                <option value="post">Post</option>
+                <option value="creation">Creation</option>
+                <option value="pattern">Pattern</option>
+              </select>
+            </label>
+
+            {target === 'post' ? (
+              <>
+                <label>
+                  Post title (optional)
+                  <input onChange={(event) => setPostTitle(event.target.value)} type="text" value={postTitle} />
+                </label>
+                <label>
+                  Post body
+                  <textarea
+                    maxLength={5000}
+                    onChange={(event) => setPostBody(event.target.value)}
+                    rows={5}
+                    value={postBody}
+                  />
+                </label>
+              </>
+            ) : null}
+
+            {target === 'pattern' ? (
+              <>
+                <label>
+                  Pattern title
+                  <input onChange={(event) => setPatternTitle(event.target.value)} type="text" value={patternTitle} />
+                </label>
+                <label>
+                  Description
+                  <textarea onChange={(event) => setPatternDescription(event.target.value)} rows={4} value={patternDescription} />
+                </label>
+                <label>
+                  Source URL
+                  <input onChange={(event) => setPatternSourceUrl(event.target.value)} type="text" value={patternSourceUrl} />
+                </label>
+                <label>
+                  Notes
+                  <textarea onChange={(event) => setPatternNotes(event.target.value)} rows={3} value={patternNotes} />
+                </label>
+              </>
+            ) : null}
+
+            {target === 'creation' ? (
+              <>
+                <label>
+                  Creation mode
+                  <select onChange={(event) => setCreationMode(event.target.value as 'new' | 'existing')} value={creationMode}>
+                    <option value="new">Create new creation</option>
+                    <option value="existing">Attach to existing creation</option>
+                  </select>
+                </label>
+                {creationMode === 'existing' ? (
+                  <label>
+                    Existing creation
+                    <select onChange={(event) => setExistingCreationId(event.target.value)} value={existingCreationId}>
+                      <option value="">Select creation</option>
+                      {creationOptions.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name} ({item.status})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <>
+                    <label>
+                      New creation name
+                      <input onChange={(event) => setCreationName(event.target.value)} type="text" value={creationName} />
+                    </label>
+                    <label>
+                      Status
+                      <select onChange={(event) => setCreationStatus(event.target.value)} value={creationStatus}>
+                        <option value="active">active</option>
+                        <option value="paused">paused</option>
+                        <option value="finished">finished</option>
+                      </select>
+                    </label>
+                    <label>
+                      Notes
+                      <textarea onChange={(event) => setCreationNotes(event.target.value)} rows={3} value={creationNotes} />
+                    </label>
+                  </>
+                )}
+              </>
+            ) : null}
+
             <div className="hero-actions">
-              <button className="button button-primary" disabled={saving} onClick={() => void importAs('post')} type="button">
-                <Newspaper size={14} /> Import as Post
-              </button>
-              <button className="button" disabled={saving} onClick={() => void importAs('creation')} type="button">
-                <Scissors size={14} /> Import as Creation
-              </button>
-              <button className="button" disabled={saving} onClick={() => void importAs('pattern')} type="button">
-                <BookOpen size={14} /> Import as Pattern
+              <button className="button button-primary" disabled={saving} onClick={() => void importAs(target)} type="button">
+                {target === 'post' ? <Newspaper size={14} /> : null}
+                {target === 'creation' ? <Scissors size={14} /> : null}
+                {target === 'pattern' ? <BookOpen size={14} /> : null}
+                Import as {target.charAt(0).toUpperCase() + target.slice(1)}
               </button>
             </div>
           </div>
