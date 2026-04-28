@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
+import { createNotification } from '#/lib/notifications/create'
 import { postHearts, posts } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/posts/$postId/hearts')({
@@ -57,6 +58,18 @@ export const Route = createFileRoute('/api/posts/$postId/hearts')({
             userId: authUser.id,
             createdAt: Date.now(),
           })
+          if (post.userId !== authUser.id) {
+            await createNotification({
+              userId: post.userId,
+              actorUserId: authUser.id,
+              type: 'post_hearted',
+              entityType: 'post',
+              entityId: post.id,
+              message: `${authUser.displayName} hearted your post.`,
+              targetPath: `/post/${post.id}`,
+              dedupeWindowMs: 1000 * 60 * 10,
+            })
+          }
         }
 
         const [countRow] = await db

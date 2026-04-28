@@ -14,6 +14,7 @@ import { Route as ShareIntakeRouteImport } from './routes/share-intake'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -28,6 +29,7 @@ import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as CatalogLineIdRouteImport } from './routes/catalog.$lineId'
 import { Route as ApiPostsRouteImport } from './routes/api/posts'
+import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiCommentsRouteImport } from './routes/api/comments'
 import { Route as ApiAccountSettingsRouteImport } from './routes/api/account-settings'
 import { Route as ApiCatalogIndexRouteImport } from './routes/api/catalog/index'
@@ -99,6 +101,11 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InventoryRoute = InventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -167,6 +174,11 @@ const CatalogLineIdRoute = CatalogLineIdRouteImport.update({
 const ApiPostsRoute = ApiPostsRouteImport.update({
   id: '/api/posts',
   path: '/api/posts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNotificationsRoute = ApiNotificationsRouteImport.update({
+  id: '/api/notifications',
+  path: '/api/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCommentsRoute = ApiCommentsRouteImport.update({
@@ -417,6 +429,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
+  '/notifications': typeof NotificationsRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scan': typeof ScanRouteWithChildren
@@ -424,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/api/account-settings': typeof ApiAccountSettingsRouteWithChildren
   '/api/comments': typeof ApiCommentsRouteWithChildren
+  '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -483,6 +497,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
+  '/notifications': typeof NotificationsRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scan': typeof ScanRouteWithChildren
@@ -490,6 +505,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/api/account-settings': typeof ApiAccountSettingsRouteWithChildren
   '/api/comments': typeof ApiCommentsRouteWithChildren
+  '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -550,6 +566,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
+  '/notifications': typeof NotificationsRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scan': typeof ScanRouteWithChildren
@@ -557,6 +574,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/api/account-settings': typeof ApiAccountSettingsRouteWithChildren
   '/api/comments': typeof ApiCommentsRouteWithChildren
+  '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -618,6 +636,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/forgot-password'
     | '/inventory'
+    | '/notifications'
     | '/register'
     | '/reset-password'
     | '/scan'
@@ -625,6 +644,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/api/account-settings'
     | '/api/comments'
+    | '/api/notifications'
     | '/api/posts'
     | '/catalog/$lineId'
     | '/post/$postId'
@@ -684,6 +704,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/forgot-password'
     | '/inventory'
+    | '/notifications'
     | '/register'
     | '/reset-password'
     | '/scan'
@@ -691,6 +712,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/api/account-settings'
     | '/api/comments'
+    | '/api/notifications'
     | '/api/posts'
     | '/catalog/$lineId'
     | '/post/$postId'
@@ -750,6 +772,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/forgot-password'
     | '/inventory'
+    | '/notifications'
     | '/register'
     | '/reset-password'
     | '/scan'
@@ -757,6 +780,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/api/account-settings'
     | '/api/comments'
+    | '/api/notifications'
     | '/api/posts'
     | '/catalog/$lineId'
     | '/post/$postId'
@@ -817,6 +841,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InventoryRoute: typeof InventoryRoute
+  NotificationsRoute: typeof NotificationsRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ScanRoute: typeof ScanRouteWithChildren
@@ -824,6 +849,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   ApiAccountSettingsRoute: typeof ApiAccountSettingsRouteWithChildren
   ApiCommentsRoute: typeof ApiCommentsRouteWithChildren
+  ApiNotificationsRoute: typeof ApiNotificationsRoute
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
   PostPostIdRoute: typeof PostPostIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
@@ -897,6 +923,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventory': {
@@ -995,6 +1028,13 @@ declare module '@tanstack/react-router' {
       path: '/api/posts'
       fullPath: '/api/posts'
       preLoaderRoute: typeof ApiPostsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications': {
+      id: '/api/notifications'
+      path: '/api/notifications'
+      fullPath: '/api/notifications'
+      preLoaderRoute: typeof ApiNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/comments': {
@@ -1441,6 +1481,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InventoryRoute: InventoryRoute,
+  NotificationsRoute: NotificationsRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ScanRoute: ScanRouteWithChildren,
@@ -1448,6 +1489,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   ApiAccountSettingsRoute: ApiAccountSettingsRouteWithChildren,
   ApiCommentsRoute: ApiCommentsRouteWithChildren,
+  ApiNotificationsRoute: ApiNotificationsRoute,
   ApiPostsRoute: ApiPostsRouteWithChildren,
   PostPostIdRoute: PostPostIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,

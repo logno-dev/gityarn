@@ -3,7 +3,8 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
-import { commentHearts, comments, users } from '#/lib/db/schema'
+import { createNotification } from '#/lib/notifications/create'
+import { commentHearts, comments, posts, users } from '#/lib/db/schema'
 
 const MAX_DEPTH = 6
 
@@ -141,6 +142,12 @@ export const Route = createFileRoute('/api/comments')({
         }
 
         const now = Date.now()
+        let parentAuthorUserId: string | null = null
+        if (parentCommentId) {
+          const parent = await getDb().query.comments.findFirst({ where: eq(comments.id, parentCommentId) })
+          parentAuthorUserId = parent?.userId ?? null
+        }
+
         await getDb().insert(comments).values({
           id: crypto.randomUUID(),
           userId: authUser.id,
@@ -152,6 +159,35 @@ export const Route = createFileRoute('/api/comments')({
           createdAt: now,
           updatedAt: now,
         })
+
+        if (entityType === 'post') {
+          const post = await getDb().query.posts.findFirst({ where: eq(posts.id, entityId) })
+          if (post && post.userId !== authUser.id) {
+            await createNotification({
+              userId: post.userId,
+              actorUserId: authUser.id,
+              type: 'post_commented',
+              entityType: 'post',
+              entityId,
+              message: `${authUser.displayName} commented on your post.`,
+              targetPath: `/post/${entityId}`,
+              dedupeWindowMs: 1000 * 60 * 5,
+            })
+          }
+        }
+
+        if (parentAuthorUserId && parentAuthorUserId !== authUser.id) {
+          await createNotification({
+            userId: parentAuthorUserId,
+            actorUserId: authUser.id,
+            type: 'comment_replied',
+            entityType,
+            entityId,
+            message: `${authUser.displayName} replied to your comment.`,
+            targetPath: entityType === 'post' ? `/post/${entityId}` : null,
+            dedupeWindowMs: 1000 * 60 * 5,
+          })
+        }
 
         return Response.json({ message: 'Comment posted.' }, { status: 201 })
       },

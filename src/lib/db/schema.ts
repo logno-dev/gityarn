@@ -297,6 +297,19 @@ export const commentHearts = sqliteTable('comment_hearts', {
   createdAt: integer('created_at').notNull(),
 }, (table) => [primaryKey({ columns: [table.commentId, table.userId] })])
 
+export const notifications = sqliteTable('notifications', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  actorUserId: text('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+  type: text('type').notNull(),
+  entityType: text('entity_type').notNull(),
+  entityId: text('entity_id').notNull(),
+  message: text('message').notNull(),
+  targetPath: text('target_path'),
+  readAt: integer('read_at'),
+  ...timestamps,
+})
+
 export const userRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   yarn: many(inventoryYarn),

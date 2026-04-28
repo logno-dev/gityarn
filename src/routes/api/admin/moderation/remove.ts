@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
+import { createNotification } from '#/lib/notifications/create'
 import { comments, creations, patterns, posts } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/admin/moderation/remove')({
@@ -48,6 +49,17 @@ export const Route = createFileRoute('/api/admin/moderation/remove')({
               updatedAt: now,
             })
             .where(and(eq(patterns.id, entityId)))
+          if (existing.userId !== authUser.id) {
+            await createNotification({
+              userId: existing.userId,
+              actorUserId: authUser.id,
+              type: 'content_moderated',
+              entityType: 'pattern',
+              entityId,
+              message: `An admin removed your pattern${moderationReason ? `: ${moderationReason}` : '.'}`,
+              targetPath: '/inventory?tab=patterns',
+            })
+          }
           return Response.json({ message: 'Pattern removed from public visibility.' }, { status: 200 })
         }
 
@@ -67,6 +79,17 @@ export const Route = createFileRoute('/api/admin/moderation/remove')({
               updatedAt: now,
             })
             .where(and(eq(creations.id, entityId)))
+          if (existing.userId !== authUser.id) {
+            await createNotification({
+              userId: existing.userId,
+              actorUserId: authUser.id,
+              type: 'content_moderated',
+              entityType: 'creation',
+              entityId,
+              message: `An admin removed your creation${moderationReason ? `: ${moderationReason}` : '.'}`,
+              targetPath: '/inventory?tab=creations',
+            })
+          }
           return Response.json({ message: 'Creation removed from public visibility.' }, { status: 200 })
         }
 
@@ -86,6 +109,17 @@ export const Route = createFileRoute('/api/admin/moderation/remove')({
               updatedAt: now,
             })
             .where(and(eq(posts.id, entityId)))
+          if (existing.userId !== authUser.id) {
+            await createNotification({
+              userId: existing.userId,
+              actorUserId: authUser.id,
+              type: 'content_moderated',
+              entityType: 'post',
+              entityId,
+              message: `An admin removed your post${moderationReason ? `: ${moderationReason}` : '.'}`,
+              targetPath: `/post/${entityId}`,
+            })
+          }
           return Response.json({ message: 'Post removed from public visibility.' }, { status: 200 })
         }
 
@@ -104,6 +138,17 @@ export const Route = createFileRoute('/api/admin/moderation/remove')({
               updatedAt: now,
             })
             .where(and(eq(comments.id, entityId)))
+          if (existing.userId !== authUser.id) {
+            await createNotification({
+              userId: existing.userId,
+              actorUserId: authUser.id,
+              type: 'content_moderated',
+              entityType: 'comment',
+              entityId,
+              message: `An admin removed your comment${moderationReason ? `: ${moderationReason}` : '.'}`,
+              targetPath: existing.entityType === 'post' ? `/post/${existing.entityId}` : null,
+            })
+          }
           return Response.json({ message: 'Comment removed.' }, { status: 200 })
         }
 

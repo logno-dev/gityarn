@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import {
   Backpack,
+  Bell,
   BookOpen,
   Newspaper,
   LogOut,
@@ -150,6 +151,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     email: string
     role: 'member' | 'admin'
   } | null>(null)
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -157,6 +159,32 @@ function AppShell({ children }: { children: React.ReactNode }) {
       .then((data: { user: typeof authUser }) => setAuthUser(data.user))
       .catch(() => setAuthUser(null))
   }, [])
+
+  useEffect(() => {
+    if (!authUser) {
+      setUnreadNotifications(0)
+      return
+    }
+
+    let cancelled = false
+    const loadUnread = async () => {
+      const response = await fetch('/api/notifications')
+      const payload = (await response.json()) as { unreadCount?: number }
+      if (!cancelled && response.ok) {
+        setUnreadNotifications(payload.unreadCount ?? 0)
+      }
+    }
+
+    void loadUnread()
+    const timer = window.setInterval(() => {
+      void loadUnread()
+    }, 30000)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [authUser, pathname])
 
   useEffect(() => {
     const current = document.documentElement.dataset.theme
@@ -280,6 +308,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <ScanLine aria-hidden="true" size={18} />
             <span className="nav-label">Barcode Scan</span>
           </Link>
+          <Link activeProps={{ className: 'active' }} className="nav-item" to="/notifications">
+            <Bell aria-hidden="true" size={18} />
+            <span className="nav-label">Notifications</span>
+            {unreadNotifications > 0 ? <span className="nav-badge">{Math.min(unreadNotifications, 99)}</span> : null}
+          </Link>
         </nav>
 
         <div className="sidebar-footer">
@@ -355,6 +388,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/scan">
             <ScanLine size={17} />
             <span>Scan</span>
+          </Link>
+          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/notifications">
+            <Bell size={17} />
+            <span>Alerts</span>
+            {unreadNotifications > 0 ? <span className="mobile-nav-badge">{Math.min(unreadNotifications, 99)}</span> : null}
           </Link>
           <button
             className={`mobile-bottom-item ${pathname === '/account-settings' || pathname.startsWith('/profile/') ? 'active' : ''}`}
