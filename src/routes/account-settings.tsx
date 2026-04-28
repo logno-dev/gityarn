@@ -3,6 +3,8 @@ import { ImagePlus, KeyRound, Save, UserRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 
+import { FileDropInput } from '#/components/file-drop-input'
+
 export const Route = createFileRoute('/account-settings')({ component: AccountSettingsPage })
 
 type AccountPayload = {
@@ -155,7 +157,10 @@ function AccountSettingsPage() {
               </div>
               <label>
                 Upload image
-                <input accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setAvatarFile(event.target.files?.[0] ?? null)} type="file" />
+                <FileDropInput
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onSelect={(files) => setAvatarFile(files[0] ?? null)}
+                />
               </label>
               <button className="button" type="submit">
                 <Save size={14} /> Save photo

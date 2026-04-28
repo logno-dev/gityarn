@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gityarn-static-v3'
+const CACHE_NAME = 'gityarn-static-v4'
 const APP_SHELL = ['/', '/manifest.json', '/pwa-icon-192.png', '/pwa-icon-512.png', '/pwa-maskable-192.png', '/pwa-maskable-512.png', '/favicon.ico']
 
 self.addEventListener('install', (event) => {

@@ -6,6 +6,8 @@ import type { FormEvent } from 'react'
 import heartEmpty from '../../assets/heart_empty.svg'
 import heartFull from '../../assets/heart_full.svg'
 
+import { FileDropInput } from '#/components/file-drop-input'
+
 export const Route = createFileRoute('/dashboard')({ component: DiscoverPage })
 
 type FeedItem = {
@@ -196,11 +198,11 @@ function DiscoverPage() {
               </label>
               <label>
                 <ImagePlus size={14} /> Add images (optional)
-                <input
+                <FileDropInput
                   accept="image/jpeg,image/png,image/webp,image/gif"
+                  hint="Drag and drop post images, or click to choose"
                   multiple
-                  onChange={(event) => setPostImages(Array.from(event.target.files ?? []))}
-                  type="file"
+                  onSelect={(files) => setPostImages(files)}
                 />
               </label>
               <div className="hero-actions">

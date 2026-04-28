@@ -3,6 +3,8 @@ import { BookOpenCheck, Download, ImagePlus, Lock, Minus, Package, Plus, Save, S
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
+import { FileDropInput } from '#/components/file-drop-input'
+
 export const Route = createFileRoute('/inventory')({ component: InventoryPage })
 
 type InventoryKind = 'yarn' | 'hooks' | 'patterns' | 'creations'
@@ -635,14 +637,13 @@ function InventoryPage() {
             </label>
             <label>
               Pattern PDF (optional)
-              <input accept="application/pdf" onChange={(event) => setNewPatternPdfFile(event.target.files?.[0] ?? null)} type="file" />
+              <FileDropInput accept="application/pdf" onSelect={(files) => setNewPatternPdfFile(files[0] ?? null)} />
             </label>
             <label>
               Cover image (optional)
-              <input
+              <FileDropInput
                 accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={(event) => setNewPatternCoverFile(event.target.files?.[0] ?? null)}
-                type="file"
+                onSelect={(files) => setNewPatternCoverFile(files[0] ?? null)}
               />
             </label>
             <label className="inventory-toggle-label">
@@ -702,11 +703,11 @@ function InventoryPage() {
             </label>
             <label>
               Creation images (up to 8)
-              <input
+              <FileDropInput
                 accept="image/jpeg,image/png,image/webp,image/gif"
+                hint="Drag and drop creation images, or click to choose"
                 multiple
-                onChange={(event) => setNewCreationImages(Array.from(event.target.files ?? []))}
-                type="file"
+                onSelect={(files) => setNewCreationImages(files)}
               />
             </label>
             <label className="inventory-toggle-label">
@@ -962,32 +963,30 @@ function InventoryPage() {
                 <div className="pattern-assets-row">
                   <label>
                     Upload PDF
-                    <input
+                    <FileDropInput
                       accept="application/pdf"
-                      onChange={async (event) => {
-                        const file = event.target.files?.[0]
+                      onSelect={async (files) => {
+                        const file = files[0]
                         if (!file) return
                         const ok = await uploadPatternAsset(item.id, 'pdf', file)
                         if (ok) {
                           await loadInventory()
                         }
                       }}
-                      type="file"
                     />
                   </label>
                   <label>
                     Upload cover
-                    <input
+                    <FileDropInput
                       accept="image/jpeg,image/png,image/webp,image/gif"
-                      onChange={async (event) => {
-                        const file = event.target.files?.[0]
+                      onSelect={async (files) => {
+                        const file = files[0]
                         if (!file) return
                         const ok = await uploadPatternAsset(item.id, 'cover', file)
                         if (ok) {
                           await loadInventory()
                         }
                       }}
-                      type="file"
                     />
                   </label>
                   <div className="hero-actions">
@@ -1115,11 +1114,11 @@ function InventoryPage() {
                 </label>
                 <label>
                   Add images
-                  <input
+                  <FileDropInput
                     accept="image/jpeg,image/png,image/webp,image/gif"
+                    hint="Drag and drop creation images, or click to choose"
                     multiple
-                    onChange={async (event) => {
-                      const files = Array.from(event.target.files ?? [])
+                    onSelect={async (files) => {
                       if (!files.length) {
                         return
                       }
@@ -1129,7 +1128,6 @@ function InventoryPage() {
                         setStatus('Creation images uploaded.')
                       }
                     }}
-                    type="file"
                   />
                 </label>
                 <div className="hero-actions">

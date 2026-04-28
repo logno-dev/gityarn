@@ -175,6 +175,30 @@ export const posts = sqliteTable('posts', {
   ...timestamps,
 })
 
+export const shareInboxItems = sqliteTable('share_inbox_items', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title'),
+  text: text('text'),
+  url: text('url'),
+  consumedAt: integer('consumed_at'),
+  consumedEntityType: text('consumed_entity_type'),
+  consumedEntityId: text('consumed_entity_id'),
+  ...timestamps,
+})
+
+export const shareInboxFiles = sqliteTable('share_inbox_files', {
+  id: text('id').primaryKey(),
+  draftId: text('draft_id').notNull().references(() => shareInboxItems.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  kind: text('kind').notNull().default('image'),
+  originalFileName: text('original_file_name'),
+  r2Key: text('r2_key').notNull(),
+  mimeType: text('mime_type'),
+  byteSize: integer('byte_size'),
+  ...timestamps,
+})
+
 export const carouselItems = sqliteTable('carousel_items', {
   id: text('id').primaryKey(),
   createdByUserId: text('created_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),

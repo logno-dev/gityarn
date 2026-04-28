@@ -48,6 +48,25 @@
     }
   ],
   "start_url": "/",
+  "share_target": {
+    "action": "/api/share/ingest",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": [
+            "image/*",
+            "application/pdf"
+          ]
+        }
+      ]
+    }
+  },
   "display": "standalone",
   "theme_color": "#f8dce6",
   "background_color": "#fff8fb"

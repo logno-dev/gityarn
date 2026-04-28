@@ -1462,6 +1462,20 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   color: var(--text-primary);
 }
 
+.share-intake-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.55rem;
+}
+
+.share-intake-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
 .comment-node-head span {
   color: var(--text-muted);
   font-size: 0.82rem;
@@ -1748,6 +1762,48 @@ ol {
 .stack-form {
   display: grid;
   gap: 0.7rem;
+}
+
+.file-dropzone {
+  position: relative;
+  display: grid;
+  border: 1px dashed var(--line-strong);
+  border-radius: 12px;
+  background: color-mix(in hsl, var(--bg-surface) 92%, #efe4ff 8%);
+  min-height: 74px;
+  overflow: hidden;
+}
+
+.file-dropzone.drag-over {
+  border-color: color-mix(in hsl, var(--accent-violet) 70%, var(--accent-rose) 30%);
+  background: color-mix(in hsl, var(--bg-surface) 86%, #ead7ff 14%);
+}
+
+.file-dropzone-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.file-dropzone-content {
+  min-height: 74px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.file-dropzone-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 label {

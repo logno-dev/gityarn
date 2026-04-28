@@ -3,6 +3,8 @@ import { AlertTriangle, ExternalLink, ImagePlus, Save, ShieldCheck, Trash2, User
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
+import { FileDropInput } from '#/components/file-drop-input'
+
 export const Route = createFileRoute('/admin')({ component: AdminPage })
 
 type AdminPayload = {
@@ -335,11 +337,10 @@ function AdminPage() {
             <form className="stack-form" onSubmit={addCarouselItem}>
               <label>
                 Image
-                <input
+                <FileDropInput
                   accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={(event) => setNewCarouselImage(event.target.files?.[0] ?? null)}
+                  onSelect={(files) => setNewCarouselImage(files[0] ?? null)}
                   required
-                  type="file"
                 />
               </label>
               <label>
