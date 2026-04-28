@@ -2,7 +2,16 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { BookOpen, LoaderCircle, Newspaper, Scissors } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-export const Route = createFileRoute('/share-intake')({ component: ShareIntakePage })
+import { ingestSharedPayload } from '#/lib/share/ingest'
+
+export const Route = createFileRoute('/share-intake')({
+  component: ShareIntakePage,
+  server: {
+    handlers: {
+      POST: async ({ request }) => ingestSharedPayload(request),
+    },
+  },
+})
 
 type DraftPayload = {
   draft: {
