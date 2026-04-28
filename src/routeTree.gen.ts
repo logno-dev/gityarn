@@ -33,10 +33,12 @@ import { Route as ApiNotificationsRouteImport } from './routes/api/notifications
 import { Route as ApiCommentsRouteImport } from './routes/api/comments'
 import { Route as ApiAccountSettingsRouteImport } from './routes/api/account-settings'
 import { Route as ApiCatalogIndexRouteImport } from './routes/api/catalog/index'
+import { Route as ApiShareUploadUrlRouteImport } from './routes/api/share/upload-url'
 import { Route as ApiShareOptionsRouteImport } from './routes/api/share/options'
 import { Route as ApiShareIngestRouteImport } from './routes/api/share/ingest'
 import { Route as ApiShareDraftRouteImport } from './routes/api/share/draft'
 import { Route as ApiShareCommitRouteImport } from './routes/api/share/commit'
+import { Route as ApiShareAttachUploadRouteImport } from './routes/api/share/attach-upload'
 import { Route as ApiScanSearchRouteImport } from './routes/api/scan/search'
 import { Route as ApiScanResolveRouteImport } from './routes/api/scan/resolve'
 import { Route as ApiScanInventoryRouteImport } from './routes/api/scan/inventory'
@@ -196,6 +198,11 @@ const ApiCatalogIndexRoute = ApiCatalogIndexRouteImport.update({
   path: '/api/catalog/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShareUploadUrlRoute = ApiShareUploadUrlRouteImport.update({
+  id: '/api/share/upload-url',
+  path: '/api/share/upload-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiShareOptionsRoute = ApiShareOptionsRouteImport.update({
   id: '/api/share/options',
   path: '/api/share/options',
@@ -214,6 +221,11 @@ const ApiShareDraftRoute = ApiShareDraftRouteImport.update({
 const ApiShareCommitRoute = ApiShareCommitRouteImport.update({
   id: '/api/share/commit',
   path: '/api/share/commit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareAttachUploadRoute = ApiShareAttachUploadRouteImport.update({
+  id: '/api/share/attach-upload',
+  path: '/api/share/attach-upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiScanSearchRoute = ApiScanSearchRouteImport.update({
@@ -466,10 +478,12 @@ export interface FileRoutesByFullPath {
   '/api/scan/inventory': typeof ApiScanInventoryRoute
   '/api/scan/resolve': typeof ApiScanResolveRoute
   '/api/scan/search': typeof ApiScanSearchRoute
+  '/api/share/attach-upload': typeof ApiShareAttachUploadRoute
   '/api/share/commit': typeof ApiShareCommitRoute
   '/api/share/draft': typeof ApiShareDraftRoute
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
+  '/api/share/upload-url': typeof ApiShareUploadUrlRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
@@ -534,10 +548,12 @@ export interface FileRoutesByTo {
   '/api/scan/inventory': typeof ApiScanInventoryRoute
   '/api/scan/resolve': typeof ApiScanResolveRoute
   '/api/scan/search': typeof ApiScanSearchRoute
+  '/api/share/attach-upload': typeof ApiShareAttachUploadRoute
   '/api/share/commit': typeof ApiShareCommitRoute
   '/api/share/draft': typeof ApiShareDraftRoute
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
+  '/api/share/upload-url': typeof ApiShareUploadUrlRoute
   '/api/catalog': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
@@ -603,10 +619,12 @@ export interface FileRoutesById {
   '/api/scan/inventory': typeof ApiScanInventoryRoute
   '/api/scan/resolve': typeof ApiScanResolveRoute
   '/api/scan/search': typeof ApiScanSearchRoute
+  '/api/share/attach-upload': typeof ApiShareAttachUploadRoute
   '/api/share/commit': typeof ApiShareCommitRoute
   '/api/share/draft': typeof ApiShareDraftRoute
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
+  '/api/share/upload-url': typeof ApiShareUploadUrlRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
@@ -673,10 +691,12 @@ export interface FileRouteTypes {
     | '/api/scan/inventory'
     | '/api/scan/resolve'
     | '/api/scan/search'
+    | '/api/share/attach-upload'
     | '/api/share/commit'
     | '/api/share/draft'
     | '/api/share/ingest'
     | '/api/share/options'
+    | '/api/share/upload-url'
     | '/api/catalog/'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
@@ -741,10 +761,12 @@ export interface FileRouteTypes {
     | '/api/scan/inventory'
     | '/api/scan/resolve'
     | '/api/scan/search'
+    | '/api/share/attach-upload'
     | '/api/share/commit'
     | '/api/share/draft'
     | '/api/share/ingest'
     | '/api/share/options'
+    | '/api/share/upload-url'
     | '/api/catalog'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
@@ -809,10 +831,12 @@ export interface FileRouteTypes {
     | '/api/scan/inventory'
     | '/api/scan/resolve'
     | '/api/scan/search'
+    | '/api/share/attach-upload'
     | '/api/share/commit'
     | '/api/share/draft'
     | '/api/share/ingest'
     | '/api/share/options'
+    | '/api/share/upload-url'
     | '/api/catalog/'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
@@ -873,10 +897,12 @@ export interface RootRouteChildren {
   ApiScanInventoryRoute: typeof ApiScanInventoryRoute
   ApiScanResolveRoute: typeof ApiScanResolveRoute
   ApiScanSearchRoute: typeof ApiScanSearchRoute
+  ApiShareAttachUploadRoute: typeof ApiShareAttachUploadRoute
   ApiShareCommitRoute: typeof ApiShareCommitRoute
   ApiShareDraftRoute: typeof ApiShareDraftRoute
   ApiShareIngestRoute: typeof ApiShareIngestRoute
   ApiShareOptionsRoute: typeof ApiShareOptionsRoute
+  ApiShareUploadUrlRoute: typeof ApiShareUploadUrlRoute
   ApiCatalogIndexRoute: typeof ApiCatalogIndexRoute
   ApiAdminModerationRemoveRoute: typeof ApiAdminModerationRemoveRoute
   ApiCreationsCreationIdImagesRoute: typeof ApiCreationsCreationIdImagesRoute
@@ -1058,6 +1084,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCatalogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/share/upload-url': {
+      id: '/api/share/upload-url'
+      path: '/api/share/upload-url'
+      fullPath: '/api/share/upload-url'
+      preLoaderRoute: typeof ApiShareUploadUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/share/options': {
       id: '/api/share/options'
       path: '/api/share/options'
@@ -1084,6 +1117,13 @@ declare module '@tanstack/react-router' {
       path: '/api/share/commit'
       fullPath: '/api/share/commit'
       preLoaderRoute: typeof ApiShareCommitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/attach-upload': {
+      id: '/api/share/attach-upload'
+      path: '/api/share/attach-upload'
+      fullPath: '/api/share/attach-upload'
+      preLoaderRoute: typeof ApiShareAttachUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/scan/search': {
@@ -1513,10 +1553,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiScanInventoryRoute: ApiScanInventoryRoute,
   ApiScanResolveRoute: ApiScanResolveRoute,
   ApiScanSearchRoute: ApiScanSearchRoute,
+  ApiShareAttachUploadRoute: ApiShareAttachUploadRoute,
   ApiShareCommitRoute: ApiShareCommitRoute,
   ApiShareDraftRoute: ApiShareDraftRoute,
   ApiShareIngestRoute: ApiShareIngestRoute,
   ApiShareOptionsRoute: ApiShareOptionsRoute,
+  ApiShareUploadUrlRoute: ApiShareUploadUrlRoute,
   ApiCatalogIndexRoute: ApiCatalogIndexRoute,
   ApiAdminModerationRemoveRoute: ApiAdminModerationRemoveRoute,
   ApiCreationsCreationIdImagesRoute: ApiCreationsCreationIdImagesRoute,

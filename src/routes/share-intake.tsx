@@ -55,12 +55,20 @@ function ShareIntakePage() {
   const [creationName, setCreationName] = useState('')
   const [creationStatus, setCreationStatus] = useState('active')
   const [creationNotes, setCreationNotes] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   const draftId = useMemo(() => {
     if (typeof window === 'undefined') {
       return ''
     }
     return new URLSearchParams(window.location.search).get('draftId')?.trim() ?? ''
+  }, [])
+
+  const incomingError = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return ''
+    }
+    return new URLSearchParams(window.location.search).get('error')?.trim() ?? ''
   }, [])
 
   useEffect(() => {
@@ -142,6 +150,64 @@ function ShareIntakePage() {
     }
   }
 
+  const uploadAdditionalFile = async (file: File) => {
+    if (!draft) return
+    setUploading(true)
+
+    const urlResponse = await fetch('/api/share/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        draftId: draft.id,
+        fileName: file.name,
+        mimeType: file.type,
+      }),
+    })
+    const urlPayload = (await urlResponse.json()) as { message?: string; uploadUrl?: string; key?: string; mimeType?: string; originalFileName?: string }
+    if (!urlResponse.ok || !urlPayload.uploadUrl || !urlPayload.key || !urlPayload.mimeType) {
+      setStatus(urlPayload.message ?? 'Could not prepare upload URL.')
+      setUploading(false)
+      return
+    }
+
+    const uploadResponse = await fetch(urlPayload.uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': urlPayload.mimeType,
+      },
+      body: file,
+    })
+    if (!uploadResponse.ok) {
+      setStatus('Upload failed. Please try a smaller file or better connection.')
+      setUploading(false)
+      return
+    }
+
+    const attachResponse = await fetch('/api/share/attach-upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        draftId: draft.id,
+        key: urlPayload.key,
+        mimeType: urlPayload.mimeType,
+        originalFileName: urlPayload.originalFileName ?? file.name,
+      }),
+    })
+    const attachPayload = (await attachResponse.json()) as { message?: string }
+    if (!attachResponse.ok) {
+      setStatus(attachPayload.message ?? 'Could not attach uploaded file to draft.')
+      setUploading(false)
+      return
+    }
+
+    await fetch(`/api/share/draft?draftId=${encodeURIComponent(draft.id)}`)
+      .then((response) => response.json())
+      .then((payload: DraftPayload) => setDraft(payload.draft))
+
+    setUploading(false)
+    setStatus('File uploaded and attached.')
+  }
+
   const imageFiles = draft?.files.filter((file) => file.kind === 'image') ?? []
   const pdfFiles = draft?.files.filter((file) => file.kind === 'pdf') ?? []
 
@@ -152,6 +218,12 @@ function ShareIntakePage() {
         {loading ? <p><LoaderCircle size={14} /> Loading shared content...</p> : null}
         {error ? <p>{error}</p> : null}
         {status ? <p>{status}</p> : null}
+        {incomingError ? (
+          <p>
+            The original share payload could not be imported ({incomingError.replace(/\+/g, ' ')}). If this was a large file,
+            use the direct upload field below to attach it manually.
+          </p>
+        ) : null}
 
         {!loading && !error && draft ? (
           <div className="stack-form">
@@ -184,6 +256,22 @@ function ShareIntakePage() {
                 {pdfFiles.length} PDF file{pdfFiles.length === 1 ? '' : 's'} attached.
               </p>
             ) : null}
+
+            <label>
+              Add file to this draft (direct upload)
+              <input
+                accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,application/pdf"
+                disabled={uploading}
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (file) {
+                    void uploadAdditionalFile(file)
+                  }
+                  event.currentTarget.value = ''
+                }}
+                type="file"
+              />
+            </label>
 
             <label>
               Import target

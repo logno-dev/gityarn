@@ -6,9 +6,8 @@ import { shareInboxFiles, shareInboxItems } from '#/lib/db/schema'
 import { getServerEnv } from '#/lib/env'
 import { processUploadedImage } from '#/lib/image/resize'
 import { getR2Client } from '#/lib/r2/client'
+import { SHARE_PDF_MIME_TYPE, extensionForMimeType, normalizeShareMimeType } from '#/lib/share/files'
 
-const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'])
-const PDF_MIME_TYPE = 'application/pdf'
 
 export async function ingestSharedPayload(request: Request) {
   const authUser = await getAuthenticatedUser(request.headers.get('cookie'))
@@ -56,7 +55,7 @@ export async function ingestSharedPayload(request: Request) {
       continue
     }
 
-    const processed = mimeType === PDF_MIME_TYPE ? await passthroughFile(file) : await processUploadedImage(file, { maxWidth: 1600 })
+    const processed = mimeType === SHARE_PDF_MIME_TYPE ? await passthroughFile(file) : await processUploadedImage(file, { maxWidth: 1600 })
     const key = `users/${authUser.id}/share-inbox/${draftId}/${crypto.randomUUID()}.${processed.extension}`
     await getR2Client().send(
       new PutObjectCommand({
@@ -71,7 +70,7 @@ export async function ingestSharedPayload(request: Request) {
       id: crypto.randomUUID(),
       draftId,
       userId: authUser.id,
-      kind: processed.mimeType === PDF_MIME_TYPE ? 'pdf' : 'image',
+      kind: processed.mimeType === SHARE_PDF_MIME_TYPE ? 'pdf' : 'image',
       originalFileName: file.name || null,
       r2Key: key,
       mimeType: processed.mimeType,
@@ -95,13 +94,7 @@ async function passthroughFile(file: File) {
   const bytes = new Uint8Array(await file.arrayBuffer())
   return {
     bytes,
-    mimeType: PDF_MIME_TYPE,
-    extension: 'pdf',
+    mimeType: SHARE_PDF_MIME_TYPE,
+    extension: extensionForMimeType(SHARE_PDF_MIME_TYPE),
   }
-}
-
-function normalizeShareMimeType(mimeType: string) {
-  if (IMAGE_MIME_TYPES.has(mimeType)) return mimeType
-  if (mimeType === PDF_MIME_TYPE) return mimeType
-  return null
 }
