@@ -161,6 +161,7 @@ function InventoryPage() {
   const [newCreationHookIds, setNewCreationHookIds] = useState<string[]>([])
   const [patternChoices, setPatternChoices] = useState<Array<{ id: string; title: string }>>([])
   const [addingItem, setAddingItem] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
   const [patternUploadProgress, setPatternUploadProgress] = useState<{
     open: boolean
     total: number
@@ -375,7 +376,10 @@ function InventoryPage() {
 
     return { ok: true, message: `${kind} uploaded.` }
     } catch (error) {
-      const message = error instanceof Error ? error.message : `Unexpected ${kind} upload error.`
+      const rawMessage = error instanceof Error ? error.message : `Unexpected ${kind} upload error.`
+      const message = /Failed to fetch/i.test(rawMessage)
+        ? `Upload network/CORS error for ${kind}. Check R2 bucket CORS for PUT from this app origin.`
+        : rawMessage
       setStatus(message)
       return { ok: false, message }
     }
@@ -465,6 +469,7 @@ function InventoryPage() {
       setNewYarnReserved(false)
       await loadInventory()
       setStatus('Yarn item added.')
+      setShowAddForm(false)
       return
     }
 
@@ -477,6 +482,7 @@ function InventoryPage() {
       setNewHook({ sizeLabel: '', metricSizeMm: '', material: '', quantity: 1 })
       await loadInventory()
       setStatus('Hook added.')
+      setShowAddForm(false)
       return
     }
 
@@ -541,6 +547,7 @@ function InventoryPage() {
       }
       setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Finalizing...', error: null }))
       setStatus('Pattern added.')
+      setShowAddForm(false)
       if (totalUploads > 0) {
         setTimeout(() => {
           setPatternUploadProgress({ open: false, total: 0, completed: 0, currentLabel: '', error: null })
@@ -579,6 +586,7 @@ function InventoryPage() {
     setNewCreationImages([])
     await loadInventory()
     setStatus('Creation added.')
+    setShowAddForm(false)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unexpected error while saving item.'
       setStatus(message)
@@ -628,6 +636,7 @@ function InventoryPage() {
             onClick={() => {
               setActiveTab(tab.key)
               setStatus('')
+              setShowAddForm(false)
             }}
             type="button"
           >
@@ -646,8 +655,13 @@ function InventoryPage() {
       </div>
 
       <article className="soft-panel inventory-add-shell">
-        <h2>Add {tabs.find((tab) => tab.key === activeTab)?.label}</h2>
-        {activeTab === 'yarn' ? (
+        <div className="hero-actions">
+          <h2>Add {tabs.find((tab) => tab.key === activeTab)?.label}</h2>
+          <button className="button" onClick={() => setShowAddForm((current) => !current)} type="button">
+            <Plus size={14} /> {showAddForm ? 'Hide form' : 'Add'}
+          </button>
+        </div>
+        {showAddForm && activeTab === 'yarn' ? (
           <>
             <form className="catalog-search" onSubmit={searchCatalog}>
               <label>
@@ -723,7 +737,7 @@ function InventoryPage() {
           </>
         ) : null}
 
-        {activeTab === 'hooks' ? (
+        {showAddForm && activeTab === 'hooks' ? (
           <div className="inventory-add-grid">
             <label>
               Size label
@@ -744,7 +758,7 @@ function InventoryPage() {
           </div>
         ) : null}
 
-        {activeTab === 'patterns' ? (
+        {showAddForm && activeTab === 'patterns' ? (
           <div className="inventory-add-grid">
             <label>
               Title
@@ -803,7 +817,7 @@ function InventoryPage() {
           </div>
         ) : null}
 
-        {activeTab === 'creations' ? (
+        {showAddForm && activeTab === 'creations' ? (
           <div className="inventory-add-grid">
             <label>
               Name
@@ -866,9 +880,11 @@ function InventoryPage() {
           </div>
         ) : null}
 
-        <button className="button button-primary" disabled={addingItem} onClick={() => void addCurrentItem()} type="button">
-          <Plus size={15} /> {addingItem ? 'Saving...' : 'Add item'}
-        </button>
+        {showAddForm ? (
+          <button className="button button-primary" disabled={addingItem} onClick={() => void addCurrentItem()} type="button">
+            <Plus size={15} /> {addingItem ? 'Saving...' : 'Add item'}
+          </button>
+        ) : null}
       </article>
 
       <section className="catalog-list-shell" aria-label="Inventory list">
