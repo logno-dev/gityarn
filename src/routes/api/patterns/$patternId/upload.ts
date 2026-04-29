@@ -6,6 +6,7 @@ import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { getServerEnv } from '#/lib/env'
 import { processUploadedImage } from '#/lib/image/resize'
+import { generatePatternPdfPreview } from '#/lib/patterns/pdf-preview'
 import { getR2Client } from '#/lib/r2/client'
 import { patterns } from '#/lib/db/schema'
 
@@ -80,6 +81,8 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
           pdfR2Key?: string | null
           pdfMimeType?: string | null
           pdfFileName?: string | null
+          pdfPreviewR2Key?: string | null
+          pdfPreviewMimeType?: string | null
           coverR2Key?: string | null
           coverMimeType?: string | null
           updatedAt: number
@@ -89,8 +92,18 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
           updatePayload.pdfR2Key = r2Key
           updatePayload.pdfMimeType = 'application/pdf'
           updatePayload.pdfFileName = file.name || `${pattern.title}.pdf`
+          const preview = await generatePatternPdfPreview({
+            userId: authUser.id,
+            patternId: pattern.id,
+            pdfR2Key: r2Key,
+          })
+          updatePayload.pdfPreviewR2Key = preview?.key ?? null
+          updatePayload.pdfPreviewMimeType = preview?.mimeType ?? null
           if (pattern.pdfR2Key) {
             await safeDeleteObject(pattern.pdfR2Key)
+          }
+          if (pattern.pdfPreviewR2Key) {
+            await safeDeleteObject(pattern.pdfPreviewR2Key)
           }
         } else {
           updatePayload.coverR2Key = r2Key

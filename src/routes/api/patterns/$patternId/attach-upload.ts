@@ -5,6 +5,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { getServerEnv } from '#/lib/env'
+import { generatePatternPdfPreview } from '#/lib/patterns/pdf-preview'
 import { getR2Client } from '#/lib/r2/client'
 import { patterns } from '#/lib/db/schema'
 
@@ -40,12 +41,22 @@ export const Route = createFileRoute('/api/patterns/$patternId/attach-upload')({
           if (pattern.pdfR2Key) {
             await getR2Client().send(new DeleteObjectCommand({ Bucket: getServerEnv().R2_BUCKET, Key: pattern.pdfR2Key }))
           }
+          if (pattern.pdfPreviewR2Key) {
+            await getR2Client().send(new DeleteObjectCommand({ Bucket: getServerEnv().R2_BUCKET, Key: pattern.pdfPreviewR2Key }))
+          }
+          const preview = await generatePatternPdfPreview({
+            userId: authUser.id,
+            patternId: pattern.id,
+            pdfR2Key: key,
+          })
           await db
             .update(patterns)
             .set({
               pdfR2Key: key,
               pdfMimeType: 'application/pdf',
               pdfFileName: body.fileName?.trim() || `${pattern.title}.pdf`,
+              pdfPreviewR2Key: preview?.key ?? null,
+              pdfPreviewMimeType: preview?.mimeType ?? null,
               updatedAt: now,
             })
             .where(and(eq(patterns.id, pattern.id), eq(patterns.userId, authUser.id)))

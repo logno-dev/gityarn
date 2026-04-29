@@ -115,6 +115,8 @@ export const patterns = sqliteTable('patterns', {
   pdfR2Key: text('pdf_r2_key'),
   pdfMimeType: text('pdf_mime_type'),
   pdfFileName: text('pdf_file_name'),
+  pdfPreviewR2Key: text('pdf_preview_r2_key'),
+  pdfPreviewMimeType: text('pdf_preview_mime_type'),
   coverR2Key: text('cover_r2_key'),
   coverMimeType: text('cover_mime_type'),
   moderationStatus: text('moderation_status').notNull().default('active'),

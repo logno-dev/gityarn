@@ -51,6 +51,7 @@ type PatternItem = {
   isPublic: boolean
   publicShareConfirmed: boolean
   hasPdf: boolean
+  hasPdfPreview: boolean
   hasCover: boolean
   pdfFileName: string | null
   moderationStatus: string
@@ -1094,6 +1095,8 @@ function InventoryPage() {
                 <a className="pattern-card-link" href={item.hasPdf ? `/api/patterns/${item.id}/file` : undefined}>
                   {item.hasCover ? (
                     <img alt={item.title} className="pattern-card-cover" src={`/api/patterns/${item.id}/cover`} />
+                  ) : item.hasPdfPreview ? (
+                    <img alt={`${item.title} preview`} className="pattern-card-cover" src={`/api/patterns/${item.id}/preview`} />
                   ) : (
                     <div className="pattern-card-cover pattern-card-cover-fallback">
                       <BookOpenCheck size={20} />

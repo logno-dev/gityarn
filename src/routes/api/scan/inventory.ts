@@ -323,7 +323,7 @@ export const Route = createFileRoute('/api/scan/inventory')({
             return Response.json({ message: 'Pattern not found.' }, { status: 404 })
           }
 
-          await deleteR2Objects([pattern.pdfR2Key, pattern.coverR2Key])
+          await deleteR2Objects([pattern.pdfR2Key, pattern.pdfPreviewR2Key, pattern.coverR2Key])
           await getDb().delete(patterns).where(and(eq(patterns.id, body.itemId), eq(patterns.userId, authUser.id)))
           return Response.json({ message: 'Pattern removed.' }, { status: 200 })
         }
@@ -503,6 +503,7 @@ async function getPatterns(userId: string, query: string) {
       isPublic: patterns.isPublic,
       publicShareConfirmed: patterns.publicShareConfirmed,
       hasPdf: sql<boolean>`case when ${patterns.pdfR2Key} is not null then 1 else 0 end`,
+      hasPdfPreview: sql<boolean>`case when ${patterns.pdfPreviewR2Key} is not null then 1 else 0 end`,
       hasCover: sql<boolean>`case when ${patterns.coverR2Key} is not null then 1 else 0 end`,
       pdfFileName: patterns.pdfFileName,
       moderationStatus: patterns.moderationStatus,
