@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { LogIn, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 
@@ -7,6 +7,7 @@ export const Route = createFileRoute('/sign-in')({ component: SignInPage })
 
 function SignInPage() {
   const [status, setStatus] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -40,7 +41,17 @@ function SignInPage() {
           </label>
           <label>
             Password
-            <input minLength={8} name="password" required type="password" />
+            <div className="password-input-wrap">
+              <input minLength={8} name="password" required type={showPassword ? 'text' : 'password'} />
+              <button
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="password-toggle"
+                onClick={() => setShowPassword((current) => !current)}
+                type="button"
+              >
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
           </label>
           <button className="button button-primary" type="submit">
             <LogIn size={16} /> Sign In

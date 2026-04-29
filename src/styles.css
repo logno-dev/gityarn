@@ -940,6 +940,30 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   color: var(--text-muted);
 }
 
+.password-input-wrap {
+  position: relative;
+}
+
+.password-input-wrap input {
+  padding-right: 2.2rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  width: 1.6rem;
+  height: 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 .inline-link {
   display: inline-flex;
   align-items: center;
