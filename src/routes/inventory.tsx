@@ -328,6 +328,7 @@ function InventoryPage() {
   }
 
   const uploadPatternAsset = async (patternId: string, kind: 'pdf' | 'cover', file: File) => {
+    try {
     const presignResponse = await fetch(`/api/patterns/${patternId}/upload-url`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -373,6 +374,11 @@ function InventoryPage() {
     }
 
     return { ok: true, message: `${kind} uploaded.` }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : `Unexpected ${kind} upload error.`
+      setStatus(message)
+      return { ok: false, message }
+    }
   }
 
   const parseJsonOrText = async (response: Response): Promise<{ message?: string; [key: string]: any }> => {
@@ -580,7 +586,7 @@ function InventoryPage() {
         setPatternUploadProgress((current) => ({
           ...current,
           open: true,
-          error: current.error ?? 'Upload failed due to an unexpected error.',
+          error: current.error ?? message,
         }))
       }
     } finally {
