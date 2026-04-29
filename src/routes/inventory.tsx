@@ -328,19 +328,57 @@ function InventoryPage() {
   }
 
   const uploadPatternAsset = async (patternId: string, kind: 'pdf' | 'cover', file: File) => {
-    const form = new FormData()
-    form.append('kind', kind)
-    form.append('file', file)
-    const response = await fetch(`/api/patterns/${patternId}/upload`, {
+    const presignResponse = await fetch(`/api/patterns/${patternId}/upload-url`, {
       method: 'POST',
-      body: form,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind,
+        fileName: file.name,
+        mimeType: file.type,
+        byteSize: file.size,
+      }),
     })
-    const payload = (await response.json()) as { message?: string }
-    if (!response.ok) {
-      setStatus(payload.message ?? `Could not upload ${kind}.`)
+    const presignPayload = await parseJsonOrText(presignResponse)
+    if (!presignResponse.ok || !presignPayload.uploadUrl || !presignPayload.key || !presignPayload.contentType) {
+      setStatus(presignPayload.message ?? `Could not prepare ${kind} upload.`)
       return false
     }
+
+    const uploadResponse = await fetch(presignPayload.uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': presignPayload.contentType },
+      body: file,
+    })
+    if (!uploadResponse.ok) {
+      setStatus(`Could not upload ${kind}. File may be too large for network/runtime limits.`)
+      return false
+    }
+
+    const attachResponse = await fetch(`/api/patterns/${patternId}/attach-upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind,
+        key: presignPayload.key,
+        fileName: file.name,
+      }),
+    })
+    const attachPayload = await parseJsonOrText(attachResponse)
+    if (!attachResponse.ok) {
+      setStatus(attachPayload.message ?? `Could not attach uploaded ${kind}.`)
+      return false
+    }
+
     return true
+  }
+
+  const parseJsonOrText = async (response: Response): Promise<{ message?: string; [key: string]: any }> => {
+    const contentType = response.headers.get('content-type') ?? ''
+    if (contentType.includes('application/json')) {
+      return (await response.json()) as { message?: string; [key: string]: any }
+    }
+    const text = await response.text()
+    return { message: text || undefined }
   }
 
   const uploadCreationImages = async (creationId: string, files: File[]) => {
