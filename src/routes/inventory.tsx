@@ -58,6 +58,8 @@ type PatternItem = {
   moderationReason: string | null
   notes: string | null
   updatedAt: number
+  isLinked?: boolean
+  ownerDisplayName?: string | null
 }
 
 type CreationItem = {
@@ -73,6 +75,9 @@ type CreationItem = {
   yarnCount: number
   hookCount: number
   imageCount: number
+  imagePreviews: string[]
+  yarnInventoryIds: string[]
+  hookIds: string[]
 }
 
 type SearchPayload = {
@@ -126,7 +131,7 @@ function InventoryPage() {
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState('')
   const [data, setData] = useState<InventoryResponse | null>(null)
-  const [drafts, setDrafts] = useState<Record<string, Record<string, string | number | boolean | null>>>({})
+  const [drafts, setDrafts] = useState<Record<string, Record<string, unknown>>>({})
 
   const [catalogQuery, setCatalogQuery] = useState('')
   const [catalogLoading, setCatalogLoading] = useState(false)
@@ -177,6 +182,7 @@ function InventoryPage() {
   })
   const [patternMenuOpenId, setPatternMenuOpenId] = useState<string | null>(null)
   const [editingPatternId, setEditingPatternId] = useState<string | null>(null)
+  const [editingCreationId, setEditingCreationId] = useState<string | null>(null)
 
   const selectedLine = useMemo(
     () => catalogResults.find((line) => line.id === selectedLineId) ?? null,
@@ -328,7 +334,7 @@ function InventoryPage() {
     return () => window.clearTimeout(timer)
   }, [activeTab, catalogQuery])
 
-  const patchItem = async (itemId: string, values: Record<string, string | number | boolean | null>) => {
+  const patchItem = async (itemId: string, values: Record<string, unknown>) => {
     const response = await fetch('/api/scan/inventory', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -1083,11 +1089,13 @@ function InventoryPage() {
                 </button>
                 {patternMenuOpenId === item.id ? (
                   <div className="pattern-menu-popover">
-                    <button className="button" onClick={() => { setEditingPatternId((curr) => (curr === item.id ? null : item.id)); setPatternMenuOpenId(null) }} type="button">
-                      <Save size={14} /> Edit
-                    </button>
+                    {!item.isLinked ? (
+                      <button className="button" onClick={() => { setEditingPatternId((curr) => (curr === item.id ? null : item.id)); setPatternMenuOpenId(null) }} type="button">
+                        <Save size={14} /> Edit
+                      </button>
+                    ) : null}
                     <button className="button" onClick={() => void removeItem(item.id)} type="button">
-                      <Trash2 size={14} /> Delete
+                      <Trash2 size={14} /> {item.isLinked ? 'Remove link' : 'Delete'}
                     </button>
                   </div>
                 ) : null}
@@ -1106,10 +1114,11 @@ function InventoryPage() {
                     <strong>{item.title}</strong>
                     <span>{item.description || 'No description yet.'}</span>
                     <span>{item.difficulty || 'No difficulty'} · {item.isPublic ? 'Public' : 'Private'} · {item.hasPdf ? 'PDF ready' : 'No PDF'}</span>
+                    {item.isLinked ? <span>Linked from {item.ownerDisplayName ?? 'another user'}</span> : null}
                   </div>
                 </a>
 
-                {editingPatternId === item.id ? (
+                {editingPatternId === item.id && !item.isLinked ? (
                   <div className="pattern-card-editor">
                     <label>
                       Title
@@ -1261,83 +1270,114 @@ function InventoryPage() {
 
         {!loading && !error && data?.kind === 'creations'
           ? (data.items as CreationItem[]).map((item) => (
-              <article className="pattern-row" key={item.id}>
-                <div className="pattern-row-head">
-                  <strong>{item.name}</strong>
-                  <span>
-                    {item.status} · {item.isPublic ? 'Public' : 'Private'} · {item.yarnCount} yarn · {item.hookCount} hooks · {item.imageCount} images
-                    {item.moderationStatus !== 'active' ? ` · Removed by admin${item.moderationReason ? ` (${item.moderationReason})` : ''}` : ''}
-                  </span>
-                </div>
-                <label>
-                  Name
-                  <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], name: event.target.value } }))} type="text" value={String((drafts[item.id]?.name as string | undefined) ?? item.name)} />
-                </label>
-                <label>
-                  Status
-                  <select onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], status: event.target.value } }))} value={String((drafts[item.id]?.status as string | undefined) ?? item.status)}>
-                    <option value="active">active</option>
-                    <option value="paused">paused</option>
-                    <option value="finished">finished</option>
-                  </select>
-                </label>
-                <label>
-                  Pattern
-                  <select onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], patternId: event.target.value } }))} value={String((drafts[item.id]?.patternId as string | undefined) ?? item.patternId ?? '')}>
-                    <option value="">No pattern</option>
-                    {patternChoices.map((pattern) => (
-                      <option key={pattern.id} value={pattern.id}>
-                        {pattern.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Notes
-                  <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], notes: event.target.value } }))} rows={5} value={String((drafts[item.id]?.notes as string | undefined) ?? item.notes ?? '')} />
-                </label>
-                <label className="inventory-toggle-label">
-                  <input
-                    checked={Boolean((drafts[item.id]?.isPublic as boolean | undefined) ?? item.isPublic)}
-                    onChange={(event) =>
-                      setDrafts((current) => ({
-                        ...current,
-                        [item.id]: { ...current[item.id], isPublic: event.target.checked },
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  Public in Discover
-                </label>
-                <label>
-                  Add images
-                  <FileDropInput
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    hint="Drag and drop creation images, or click to choose"
-                    multiple
-                    onSelect={async (files) => {
-                      if (!files.length) {
-                        return
+              <article className="creation-card" key={item.id}>
+                <button className="creation-card-link" onClick={() => setEditingCreationId((current) => (current === item.id ? null : item.id))} type="button">
+                  {item.imagePreviews[0] ? <img alt={item.name} className="creation-card-cover" src={item.imagePreviews[0]} /> : <div className="creation-card-cover creation-card-cover-fallback"><Scissors size={18} /></div>}
+                  <div className="creation-card-body">
+                    <strong>{item.name}</strong>
+                    <span>Status: {item.status}</span>
+                    <span>Pattern: {item.patternTitle ?? 'No pattern'}</span>
+                    <span>{item.isPublic ? 'Public' : 'Private'} · {item.imageCount} images</span>
+                  </div>
+                </button>
+
+                {editingCreationId === item.id ? (
+                  <div className="pattern-card-editor">
+                    <label>
+                      Name
+                      <input onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], name: event.target.value } }))} type="text" value={String((drafts[item.id]?.name as string | undefined) ?? item.name)} />
+                    </label>
+                    <label>
+                      Status
+                      <select onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], status: event.target.value } }))} value={String((drafts[item.id]?.status as string | undefined) ?? item.status)}>
+                        <option value="active">active</option>
+                        <option value="paused">paused</option>
+                        <option value="finished">finished</option>
+                      </select>
+                    </label>
+                    <label>
+                      Pattern
+                      <select onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], patternId: event.target.value } }))} value={String((drafts[item.id]?.patternId as string | undefined) ?? item.patternId ?? '')}>
+                        <option value="">No pattern</option>
+                        {patternChoices.map((pattern) => (
+                          <option key={pattern.id} value={pattern.id}>
+                            {pattern.title}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Notes
+                      <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], notes: event.target.value } }))} rows={5} value={String((drafts[item.id]?.notes as string | undefined) ?? item.notes ?? '')} />
+                    </label>
+                    <label className="inventory-toggle-label">
+                      <input
+                        checked={Boolean((drafts[item.id]?.isPublic as boolean | undefined) ?? item.isPublic)}
+                        onChange={(event) =>
+                          setDrafts((current) => ({
+                            ...current,
+                            [item.id]: { ...current[item.id], isPublic: event.target.checked },
+                          }))
+                        }
+                        type="checkbox"
+                      />
+                      Public in Discover
+                    </label>
+                    <label>
+                      Add images
+                      <FileDropInput
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        hint="Drag and drop creation images, or click to choose"
+                        multiple
+                        onSelect={async (files) => {
+                          if (!files.length) {
+                            return
+                          }
+                          const ok = await uploadCreationImages(item.id, files)
+                          if (ok) {
+                            await loadInventory()
+                            setStatus('Creation images uploaded.')
+                          }
+                        }}
+                      />
+                    </label>
+                    <SearchableMultiSelect
+                      label="Yarn from inventory"
+                      onChange={(ids) =>
+                        setDrafts((current) => ({
+                          ...current,
+                          [item.id]: { ...current[item.id], yarnInventoryIds: ids },
+                        }))
                       }
-                      const ok = await uploadCreationImages(item.id, files)
-                      if (ok) {
-                        await loadInventory()
-                        setStatus('Creation images uploaded.')
+                      options={creationYarnOptions}
+                      placeholder="Search yarn in stash"
+                      selectedIds={
+                        (drafts[item.id]?.yarnInventoryIds as string[] | undefined) ?? item.yarnInventoryIds
                       }
-                    }}
-                  />
-                </label>
-                <div className="hero-actions">
-                  {item.imageCount ? <a className="button" href={`/api/creations/${item.id}/images`} target="_blank" rel="noreferrer">View images</a> : null}
-                </div>
-                <div className="hero-actions">
-                  <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button">
-                    <Save size={14} /> Save
-                  </button>
-                  <button className="button" onClick={() => void removeItem(item.id)} type="button">
-                    <Trash2 size={14} /> Remove
-                  </button>
-                </div>
+                    />
+                    <SearchableMultiSelect
+                      label="Hooks from inventory"
+                      onChange={(ids) =>
+                        setDrafts((current) => ({
+                          ...current,
+                          [item.id]: { ...current[item.id], hookIds: ids },
+                        }))
+                      }
+                      options={creationHookOptions}
+                      placeholder="Search hooks"
+                      selectedIds={(drafts[item.id]?.hookIds as string[] | undefined) ?? item.hookIds}
+                    />
+                    <div className="hero-actions">
+                      <a className="button" href={`/creation/${item.id}`}>View creation</a>
+                      <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button">
+                        <Save size={14} /> Save
+                      </button>
+                      <button className="button" onClick={() => void removeItem(item.id)} type="button">
+                        <Trash2 size={14} /> Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </article>
             ))
           : null}

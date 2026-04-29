@@ -27,6 +27,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ScanCreateItemRouteImport } from './routes/scan.create-item'
 import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
+import { Route as PatternPatternIdRouteImport } from './routes/pattern.$patternId'
+import { Route as CreationCreationIdRouteImport } from './routes/creation.$creationId'
 import { Route as CatalogLineIdRouteImport } from './routes/catalog.$lineId'
 import { Route as ApiPostsRouteImport } from './routes/api/posts'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
@@ -47,8 +49,10 @@ import { Route as ApiScanAssociateRouteImport } from './routes/api/scan/associat
 import { Route as ApiProfilesUserIdRouteImport } from './routes/api/profiles/$userId'
 import { Route as ApiPostsPostIdRouteImport } from './routes/api/posts/$postId'
 import { Route as ApiPatternsPublicRouteImport } from './routes/api/patterns/public'
+import { Route as ApiPatternsPatternIdRouteImport } from './routes/api/patterns/$patternId'
 import { Route as ApiLandingCarouselRouteImport } from './routes/api/landing/carousel'
 import { Route as ApiDiscoverFeedRouteImport } from './routes/api/discover/feed'
+import { Route as ApiCreationsCreationIdRouteImport } from './routes/api/creations/$creationId'
 import { Route as ApiCommunityFlagsRouteImport } from './routes/api/community/flags'
 import { Route as ApiCommunityClaimsRouteImport } from './routes/api/community/claims'
 import { Route as ApiCatalogLineIdRouteImport } from './routes/api/catalog/$lineId'
@@ -69,11 +73,14 @@ import { Route as ApiPostsPostIdHeartsRouteImport } from './routes/api/posts/$po
 import { Route as ApiPatternsPatternIdUploadUrlRouteImport } from './routes/api/patterns/$patternId/upload-url'
 import { Route as ApiPatternsPatternIdUploadRouteImport } from './routes/api/patterns/$patternId/upload'
 import { Route as ApiPatternsPatternIdPreviewRouteImport } from './routes/api/patterns/$patternId/preview'
+import { Route as ApiPatternsPatternIdLibraryRouteImport } from './routes/api/patterns/$patternId/library'
+import { Route as ApiPatternsPatternIdHeartsRouteImport } from './routes/api/patterns/$patternId/hearts'
 import { Route as ApiPatternsPatternIdFileRouteImport } from './routes/api/patterns/$patternId/file'
 import { Route as ApiPatternsPatternIdCoverRouteImport } from './routes/api/patterns/$patternId/cover'
 import { Route as ApiPatternsPatternIdClaimRouteImport } from './routes/api/patterns/$patternId/claim'
 import { Route as ApiPatternsPatternIdAttachUploadRouteImport } from './routes/api/patterns/$patternId/attach-upload'
 import { Route as ApiCreationsCreationIdImagesRouteImport } from './routes/api/creations/$creationId/images'
+import { Route as ApiCreationsCreationIdHeartsRouteImport } from './routes/api/creations/$creationId/hearts'
 import { Route as ApiCommentsCommentIdHeartsRouteImport } from './routes/api/comments/$commentId/hearts'
 import { Route as ApiCatalogLineIdBarcodesRouteImport } from './routes/api/catalog/$lineId/barcodes'
 import { Route as ApiAdminModerationRemoveRouteImport } from './routes/api/admin/moderation/remove'
@@ -169,6 +176,16 @@ const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
 const PostPostIdRoute = PostPostIdRouteImport.update({
   id: '/post/$postId',
   path: '/post/$postId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatternPatternIdRoute = PatternPatternIdRouteImport.update({
+  id: '/pattern/$patternId',
+  path: '/pattern/$patternId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreationCreationIdRoute = CreationCreationIdRouteImport.update({
+  id: '/creation/$creationId',
+  path: '/creation/$creationId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogLineIdRoute = CatalogLineIdRouteImport.update({
@@ -271,6 +288,11 @@ const ApiPatternsPublicRoute = ApiPatternsPublicRouteImport.update({
   path: '/api/patterns/public',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPatternsPatternIdRoute = ApiPatternsPatternIdRouteImport.update({
+  id: '/api/patterns/$patternId',
+  path: '/api/patterns/$patternId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLandingCarouselRoute = ApiLandingCarouselRouteImport.update({
   id: '/api/landing/carousel',
   path: '/api/landing/carousel',
@@ -279,6 +301,11 @@ const ApiLandingCarouselRoute = ApiLandingCarouselRouteImport.update({
 const ApiDiscoverFeedRoute = ApiDiscoverFeedRouteImport.update({
   id: '/api/discover/feed',
   path: '/api/discover/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCreationsCreationIdRoute = ApiCreationsCreationIdRouteImport.update({
+  id: '/api/creations/$creationId',
+  path: '/api/creations/$creationId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCommunityFlagsRoute = ApiCommunityFlagsRouteImport.update({
@@ -370,51 +397,69 @@ const ApiPostsPostIdHeartsRoute = ApiPostsPostIdHeartsRouteImport.update({
 } as any)
 const ApiPatternsPatternIdUploadUrlRoute =
   ApiPatternsPatternIdUploadUrlRouteImport.update({
-    id: '/api/patterns/$patternId/upload-url',
-    path: '/api/patterns/$patternId/upload-url',
-    getParentRoute: () => rootRouteImport,
+    id: '/upload-url',
+    path: '/upload-url',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
 const ApiPatternsPatternIdUploadRoute =
   ApiPatternsPatternIdUploadRouteImport.update({
-    id: '/api/patterns/$patternId/upload',
-    path: '/api/patterns/$patternId/upload',
-    getParentRoute: () => rootRouteImport,
+    id: '/upload',
+    path: '/upload',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
 const ApiPatternsPatternIdPreviewRoute =
   ApiPatternsPatternIdPreviewRouteImport.update({
-    id: '/api/patterns/$patternId/preview',
-    path: '/api/patterns/$patternId/preview',
-    getParentRoute: () => rootRouteImport,
+    id: '/preview',
+    path: '/preview',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
+const ApiPatternsPatternIdLibraryRoute =
+  ApiPatternsPatternIdLibraryRouteImport.update({
+    id: '/library',
+    path: '/library',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
+const ApiPatternsPatternIdHeartsRoute =
+  ApiPatternsPatternIdHeartsRouteImport.update({
+    id: '/hearts',
+    path: '/hearts',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
 const ApiPatternsPatternIdFileRoute =
   ApiPatternsPatternIdFileRouteImport.update({
-    id: '/api/patterns/$patternId/file',
-    path: '/api/patterns/$patternId/file',
-    getParentRoute: () => rootRouteImport,
+    id: '/file',
+    path: '/file',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
 const ApiPatternsPatternIdCoverRoute =
   ApiPatternsPatternIdCoverRouteImport.update({
-    id: '/api/patterns/$patternId/cover',
-    path: '/api/patterns/$patternId/cover',
-    getParentRoute: () => rootRouteImport,
+    id: '/cover',
+    path: '/cover',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
 const ApiPatternsPatternIdClaimRoute =
   ApiPatternsPatternIdClaimRouteImport.update({
-    id: '/api/patterns/$patternId/claim',
-    path: '/api/patterns/$patternId/claim',
-    getParentRoute: () => rootRouteImport,
+    id: '/claim',
+    path: '/claim',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
 const ApiPatternsPatternIdAttachUploadRoute =
   ApiPatternsPatternIdAttachUploadRouteImport.update({
-    id: '/api/patterns/$patternId/attach-upload',
-    path: '/api/patterns/$patternId/attach-upload',
-    getParentRoute: () => rootRouteImport,
+    id: '/attach-upload',
+    path: '/attach-upload',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
 const ApiCreationsCreationIdImagesRoute =
   ApiCreationsCreationIdImagesRouteImport.update({
-    id: '/api/creations/$creationId/images',
-    path: '/api/creations/$creationId/images',
-    getParentRoute: () => rootRouteImport,
+    id: '/images',
+    path: '/images',
+    getParentRoute: () => ApiCreationsCreationIdRoute,
+  } as any)
+const ApiCreationsCreationIdHeartsRoute =
+  ApiCreationsCreationIdHeartsRouteImport.update({
+    id: '/hearts',
+    path: '/hearts',
+    getParentRoute: () => ApiCreationsCreationIdRoute,
   } as any)
 const ApiCommentsCommentIdHeartsRoute =
   ApiCommentsCommentIdHeartsRouteImport.update({
@@ -473,6 +518,8 @@ export interface FileRoutesByFullPath {
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
+  '/creation/$creationId': typeof CreationCreationIdRoute
+  '/pattern/$patternId': typeof PatternPatternIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
@@ -489,8 +536,10 @@ export interface FileRoutesByFullPath {
   '/api/catalog/$lineId': typeof ApiCatalogLineIdRouteWithChildren
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
+  '/api/creations/$creationId': typeof ApiCreationsCreationIdRouteWithChildren
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
+  '/api/patterns/$patternId': typeof ApiPatternsPatternIdRouteWithChildren
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -509,11 +558,14 @@ export interface FileRoutesByFullPath {
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
   '/api/comments/$commentId/hearts': typeof ApiCommentsCommentIdHeartsRoute
+  '/api/creations/$creationId/hearts': typeof ApiCreationsCreationIdHeartsRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/attach-upload': typeof ApiPatternsPatternIdAttachUploadRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
+  '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
+  '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
@@ -546,6 +598,8 @@ export interface FileRoutesByTo {
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
+  '/creation/$creationId': typeof CreationCreationIdRoute
+  '/pattern/$patternId': typeof PatternPatternIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
@@ -562,8 +616,10 @@ export interface FileRoutesByTo {
   '/api/catalog/$lineId': typeof ApiCatalogLineIdRouteWithChildren
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
+  '/api/creations/$creationId': typeof ApiCreationsCreationIdRouteWithChildren
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
+  '/api/patterns/$patternId': typeof ApiPatternsPatternIdRouteWithChildren
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -582,11 +638,14 @@ export interface FileRoutesByTo {
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
   '/api/comments/$commentId/hearts': typeof ApiCommentsCommentIdHeartsRoute
+  '/api/creations/$creationId/hearts': typeof ApiCreationsCreationIdHeartsRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/attach-upload': typeof ApiPatternsPatternIdAttachUploadRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
+  '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
+  '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
@@ -620,6 +679,8 @@ export interface FileRoutesById {
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
+  '/creation/$creationId': typeof CreationCreationIdRoute
+  '/pattern/$patternId': typeof PatternPatternIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
@@ -636,8 +697,10 @@ export interface FileRoutesById {
   '/api/catalog/$lineId': typeof ApiCatalogLineIdRouteWithChildren
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
+  '/api/creations/$creationId': typeof ApiCreationsCreationIdRouteWithChildren
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
+  '/api/patterns/$patternId': typeof ApiPatternsPatternIdRouteWithChildren
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -656,11 +719,14 @@ export interface FileRoutesById {
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
   '/api/comments/$commentId/hearts': typeof ApiCommentsCommentIdHeartsRoute
+  '/api/creations/$creationId/hearts': typeof ApiCreationsCreationIdHeartsRoute
   '/api/creations/$creationId/images': typeof ApiCreationsCreationIdImagesRoute
   '/api/patterns/$patternId/attach-upload': typeof ApiPatternsPatternIdAttachUploadRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
+  '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
+  '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
@@ -695,6 +761,8 @@ export interface FileRouteTypes {
     | '/api/notifications'
     | '/api/posts'
     | '/catalog/$lineId'
+    | '/creation/$creationId'
+    | '/pattern/$patternId'
     | '/post/$postId'
     | '/profile/$userId'
     | '/scan/create-item'
@@ -711,8 +779,10 @@ export interface FileRouteTypes {
     | '/api/catalog/$lineId'
     | '/api/community/claims'
     | '/api/community/flags'
+    | '/api/creations/$creationId'
     | '/api/discover/feed'
     | '/api/landing/carousel'
+    | '/api/patterns/$patternId'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -731,11 +801,14 @@ export interface FileRouteTypes {
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
     | '/api/comments/$commentId/hearts'
+    | '/api/creations/$creationId/hearts'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/attach-upload'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
     | '/api/patterns/$patternId/file'
+    | '/api/patterns/$patternId/hearts'
+    | '/api/patterns/$patternId/library'
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
@@ -768,6 +841,8 @@ export interface FileRouteTypes {
     | '/api/notifications'
     | '/api/posts'
     | '/catalog/$lineId'
+    | '/creation/$creationId'
+    | '/pattern/$patternId'
     | '/post/$postId'
     | '/profile/$userId'
     | '/scan/create-item'
@@ -784,8 +859,10 @@ export interface FileRouteTypes {
     | '/api/catalog/$lineId'
     | '/api/community/claims'
     | '/api/community/flags'
+    | '/api/creations/$creationId'
     | '/api/discover/feed'
     | '/api/landing/carousel'
+    | '/api/patterns/$patternId'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -804,11 +881,14 @@ export interface FileRouteTypes {
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
     | '/api/comments/$commentId/hearts'
+    | '/api/creations/$creationId/hearts'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/attach-upload'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
     | '/api/patterns/$patternId/file'
+    | '/api/patterns/$patternId/hearts'
+    | '/api/patterns/$patternId/library'
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
@@ -841,6 +921,8 @@ export interface FileRouteTypes {
     | '/api/notifications'
     | '/api/posts'
     | '/catalog/$lineId'
+    | '/creation/$creationId'
+    | '/pattern/$patternId'
     | '/post/$postId'
     | '/profile/$userId'
     | '/scan/create-item'
@@ -857,8 +939,10 @@ export interface FileRouteTypes {
     | '/api/catalog/$lineId'
     | '/api/community/claims'
     | '/api/community/flags'
+    | '/api/creations/$creationId'
     | '/api/discover/feed'
     | '/api/landing/carousel'
+    | '/api/patterns/$patternId'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -877,11 +961,14 @@ export interface FileRouteTypes {
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
     | '/api/comments/$commentId/hearts'
+    | '/api/creations/$creationId/hearts'
     | '/api/creations/$creationId/images'
     | '/api/patterns/$patternId/attach-upload'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
     | '/api/patterns/$patternId/file'
+    | '/api/patterns/$patternId/hearts'
+    | '/api/patterns/$patternId/library'
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
@@ -914,6 +1001,8 @@ export interface RootRouteChildren {
   ApiCommentsRoute: typeof ApiCommentsRouteWithChildren
   ApiNotificationsRoute: typeof ApiNotificationsRoute
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
+  CreationCreationIdRoute: typeof CreationCreationIdRoute
+  PatternPatternIdRoute: typeof PatternPatternIdRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
   ApiAdminCarouselRoute: typeof ApiAdminCarouselRoute
@@ -927,8 +1016,10 @@ export interface RootRouteChildren {
   ApiCatalogLineIdRoute: typeof ApiCatalogLineIdRouteWithChildren
   ApiCommunityClaimsRoute: typeof ApiCommunityClaimsRouteWithChildren
   ApiCommunityFlagsRoute: typeof ApiCommunityFlagsRoute
+  ApiCreationsCreationIdRoute: typeof ApiCreationsCreationIdRouteWithChildren
   ApiDiscoverFeedRoute: typeof ApiDiscoverFeedRoute
   ApiLandingCarouselRoute: typeof ApiLandingCarouselRouteWithChildren
+  ApiPatternsPatternIdRoute: typeof ApiPatternsPatternIdRouteWithChildren
   ApiPatternsPublicRoute: typeof ApiPatternsPublicRoute
   ApiProfilesUserIdRoute: typeof ApiProfilesUserIdRouteWithChildren
   ApiScanAssociateRoute: typeof ApiScanAssociateRoute
@@ -944,14 +1035,6 @@ export interface RootRouteChildren {
   ApiShareUploadUrlRoute: typeof ApiShareUploadUrlRoute
   ApiCatalogIndexRoute: typeof ApiCatalogIndexRoute
   ApiAdminModerationRemoveRoute: typeof ApiAdminModerationRemoveRoute
-  ApiCreationsCreationIdImagesRoute: typeof ApiCreationsCreationIdImagesRoute
-  ApiPatternsPatternIdAttachUploadRoute: typeof ApiPatternsPatternIdAttachUploadRoute
-  ApiPatternsPatternIdClaimRoute: typeof ApiPatternsPatternIdClaimRoute
-  ApiPatternsPatternIdCoverRoute: typeof ApiPatternsPatternIdCoverRoute
-  ApiPatternsPatternIdFileRoute: typeof ApiPatternsPatternIdFileRoute
-  ApiPatternsPatternIdPreviewRoute: typeof ApiPatternsPatternIdPreviewRoute
-  ApiPatternsPatternIdUploadRoute: typeof ApiPatternsPatternIdUploadRoute
-  ApiPatternsPatternIdUploadUrlRoute: typeof ApiPatternsPatternIdUploadUrlRoute
   ApiShareFilesFileIdRoute: typeof ApiShareFilesFileIdRoute
   ApiAdminUsersUserIdRoleRoute: typeof ApiAdminUsersUserIdRoleRoute
 }
@@ -1082,6 +1165,20 @@ declare module '@tanstack/react-router' {
       path: '/post/$postId'
       fullPath: '/post/$postId'
       preLoaderRoute: typeof PostPostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pattern/$patternId': {
+      id: '/pattern/$patternId'
+      path: '/pattern/$patternId'
+      fullPath: '/pattern/$patternId'
+      preLoaderRoute: typeof PatternPatternIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creation/$creationId': {
+      id: '/creation/$creationId'
+      path: '/creation/$creationId'
+      fullPath: '/creation/$creationId'
+      preLoaderRoute: typeof CreationCreationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalog/$lineId': {
@@ -1224,6 +1321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPatternsPublicRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/patterns/$patternId': {
+      id: '/api/patterns/$patternId'
+      path: '/api/patterns/$patternId'
+      fullPath: '/api/patterns/$patternId'
+      preLoaderRoute: typeof ApiPatternsPatternIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/landing/carousel': {
       id: '/api/landing/carousel'
       path: '/api/landing/carousel'
@@ -1236,6 +1340,13 @@ declare module '@tanstack/react-router' {
       path: '/api/discover/feed'
       fullPath: '/api/discover/feed'
       preLoaderRoute: typeof ApiDiscoverFeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/creations/$creationId': {
+      id: '/api/creations/$creationId'
+      path: '/api/creations/$creationId'
+      fullPath: '/api/creations/$creationId'
+      preLoaderRoute: typeof ApiCreationsCreationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/community/flags': {
@@ -1359,59 +1470,80 @@ declare module '@tanstack/react-router' {
     }
     '/api/patterns/$patternId/upload-url': {
       id: '/api/patterns/$patternId/upload-url'
-      path: '/api/patterns/$patternId/upload-url'
+      path: '/upload-url'
       fullPath: '/api/patterns/$patternId/upload-url'
       preLoaderRoute: typeof ApiPatternsPatternIdUploadUrlRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
     }
     '/api/patterns/$patternId/upload': {
       id: '/api/patterns/$patternId/upload'
-      path: '/api/patterns/$patternId/upload'
+      path: '/upload'
       fullPath: '/api/patterns/$patternId/upload'
       preLoaderRoute: typeof ApiPatternsPatternIdUploadRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
     }
     '/api/patterns/$patternId/preview': {
       id: '/api/patterns/$patternId/preview'
-      path: '/api/patterns/$patternId/preview'
+      path: '/preview'
       fullPath: '/api/patterns/$patternId/preview'
       preLoaderRoute: typeof ApiPatternsPatternIdPreviewRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
+    '/api/patterns/$patternId/library': {
+      id: '/api/patterns/$patternId/library'
+      path: '/library'
+      fullPath: '/api/patterns/$patternId/library'
+      preLoaderRoute: typeof ApiPatternsPatternIdLibraryRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
+    '/api/patterns/$patternId/hearts': {
+      id: '/api/patterns/$patternId/hearts'
+      path: '/hearts'
+      fullPath: '/api/patterns/$patternId/hearts'
+      preLoaderRoute: typeof ApiPatternsPatternIdHeartsRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
     }
     '/api/patterns/$patternId/file': {
       id: '/api/patterns/$patternId/file'
-      path: '/api/patterns/$patternId/file'
+      path: '/file'
       fullPath: '/api/patterns/$patternId/file'
       preLoaderRoute: typeof ApiPatternsPatternIdFileRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
     }
     '/api/patterns/$patternId/cover': {
       id: '/api/patterns/$patternId/cover'
-      path: '/api/patterns/$patternId/cover'
+      path: '/cover'
       fullPath: '/api/patterns/$patternId/cover'
       preLoaderRoute: typeof ApiPatternsPatternIdCoverRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
     }
     '/api/patterns/$patternId/claim': {
       id: '/api/patterns/$patternId/claim'
-      path: '/api/patterns/$patternId/claim'
+      path: '/claim'
       fullPath: '/api/patterns/$patternId/claim'
       preLoaderRoute: typeof ApiPatternsPatternIdClaimRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
     }
     '/api/patterns/$patternId/attach-upload': {
       id: '/api/patterns/$patternId/attach-upload'
-      path: '/api/patterns/$patternId/attach-upload'
+      path: '/attach-upload'
       fullPath: '/api/patterns/$patternId/attach-upload'
       preLoaderRoute: typeof ApiPatternsPatternIdAttachUploadRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
     }
     '/api/creations/$creationId/images': {
       id: '/api/creations/$creationId/images'
-      path: '/api/creations/$creationId/images'
+      path: '/images'
       fullPath: '/api/creations/$creationId/images'
       preLoaderRoute: typeof ApiCreationsCreationIdImagesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiCreationsCreationIdRoute
+    }
+    '/api/creations/$creationId/hearts': {
+      id: '/api/creations/$creationId/hearts'
+      path: '/hearts'
+      fullPath: '/api/creations/$creationId/hearts'
+      preLoaderRoute: typeof ApiCreationsCreationIdHeartsRouteImport
+      parentRoute: typeof ApiCreationsCreationIdRoute
     }
     '/api/comments/$commentId/hearts': {
       id: '/api/comments/$commentId/hearts'
@@ -1552,6 +1684,22 @@ const ApiCommunityClaimsRouteChildren: ApiCommunityClaimsRouteChildren = {
 const ApiCommunityClaimsRouteWithChildren =
   ApiCommunityClaimsRoute._addFileChildren(ApiCommunityClaimsRouteChildren)
 
+interface ApiCreationsCreationIdRouteChildren {
+  ApiCreationsCreationIdHeartsRoute: typeof ApiCreationsCreationIdHeartsRoute
+  ApiCreationsCreationIdImagesRoute: typeof ApiCreationsCreationIdImagesRoute
+}
+
+const ApiCreationsCreationIdRouteChildren: ApiCreationsCreationIdRouteChildren =
+  {
+    ApiCreationsCreationIdHeartsRoute: ApiCreationsCreationIdHeartsRoute,
+    ApiCreationsCreationIdImagesRoute: ApiCreationsCreationIdImagesRoute,
+  }
+
+const ApiCreationsCreationIdRouteWithChildren =
+  ApiCreationsCreationIdRoute._addFileChildren(
+    ApiCreationsCreationIdRouteChildren,
+  )
+
 interface ApiLandingCarouselRouteChildren {
   ApiLandingCarouselItemIdImageRoute: typeof ApiLandingCarouselItemIdImageRoute
 }
@@ -1562,6 +1710,33 @@ const ApiLandingCarouselRouteChildren: ApiLandingCarouselRouteChildren = {
 
 const ApiLandingCarouselRouteWithChildren =
   ApiLandingCarouselRoute._addFileChildren(ApiLandingCarouselRouteChildren)
+
+interface ApiPatternsPatternIdRouteChildren {
+  ApiPatternsPatternIdAttachUploadRoute: typeof ApiPatternsPatternIdAttachUploadRoute
+  ApiPatternsPatternIdClaimRoute: typeof ApiPatternsPatternIdClaimRoute
+  ApiPatternsPatternIdCoverRoute: typeof ApiPatternsPatternIdCoverRoute
+  ApiPatternsPatternIdFileRoute: typeof ApiPatternsPatternIdFileRoute
+  ApiPatternsPatternIdHeartsRoute: typeof ApiPatternsPatternIdHeartsRoute
+  ApiPatternsPatternIdLibraryRoute: typeof ApiPatternsPatternIdLibraryRoute
+  ApiPatternsPatternIdPreviewRoute: typeof ApiPatternsPatternIdPreviewRoute
+  ApiPatternsPatternIdUploadRoute: typeof ApiPatternsPatternIdUploadRoute
+  ApiPatternsPatternIdUploadUrlRoute: typeof ApiPatternsPatternIdUploadUrlRoute
+}
+
+const ApiPatternsPatternIdRouteChildren: ApiPatternsPatternIdRouteChildren = {
+  ApiPatternsPatternIdAttachUploadRoute: ApiPatternsPatternIdAttachUploadRoute,
+  ApiPatternsPatternIdClaimRoute: ApiPatternsPatternIdClaimRoute,
+  ApiPatternsPatternIdCoverRoute: ApiPatternsPatternIdCoverRoute,
+  ApiPatternsPatternIdFileRoute: ApiPatternsPatternIdFileRoute,
+  ApiPatternsPatternIdHeartsRoute: ApiPatternsPatternIdHeartsRoute,
+  ApiPatternsPatternIdLibraryRoute: ApiPatternsPatternIdLibraryRoute,
+  ApiPatternsPatternIdPreviewRoute: ApiPatternsPatternIdPreviewRoute,
+  ApiPatternsPatternIdUploadRoute: ApiPatternsPatternIdUploadRoute,
+  ApiPatternsPatternIdUploadUrlRoute: ApiPatternsPatternIdUploadUrlRoute,
+}
+
+const ApiPatternsPatternIdRouteWithChildren =
+  ApiPatternsPatternIdRoute._addFileChildren(ApiPatternsPatternIdRouteChildren)
 
 interface ApiProfilesUserIdRouteChildren {
   ApiProfilesUserIdAvatarRoute: typeof ApiProfilesUserIdAvatarRoute
@@ -1594,6 +1769,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCommentsRoute: ApiCommentsRouteWithChildren,
   ApiNotificationsRoute: ApiNotificationsRoute,
   ApiPostsRoute: ApiPostsRouteWithChildren,
+  CreationCreationIdRoute: CreationCreationIdRoute,
+  PatternPatternIdRoute: PatternPatternIdRoute,
   PostPostIdRoute: PostPostIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
   ApiAdminCarouselRoute: ApiAdminCarouselRoute,
@@ -1607,8 +1784,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCatalogLineIdRoute: ApiCatalogLineIdRouteWithChildren,
   ApiCommunityClaimsRoute: ApiCommunityClaimsRouteWithChildren,
   ApiCommunityFlagsRoute: ApiCommunityFlagsRoute,
+  ApiCreationsCreationIdRoute: ApiCreationsCreationIdRouteWithChildren,
   ApiDiscoverFeedRoute: ApiDiscoverFeedRoute,
   ApiLandingCarouselRoute: ApiLandingCarouselRouteWithChildren,
+  ApiPatternsPatternIdRoute: ApiPatternsPatternIdRouteWithChildren,
   ApiPatternsPublicRoute: ApiPatternsPublicRoute,
   ApiProfilesUserIdRoute: ApiProfilesUserIdRouteWithChildren,
   ApiScanAssociateRoute: ApiScanAssociateRoute,
@@ -1624,14 +1803,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShareUploadUrlRoute: ApiShareUploadUrlRoute,
   ApiCatalogIndexRoute: ApiCatalogIndexRoute,
   ApiAdminModerationRemoveRoute: ApiAdminModerationRemoveRoute,
-  ApiCreationsCreationIdImagesRoute: ApiCreationsCreationIdImagesRoute,
-  ApiPatternsPatternIdAttachUploadRoute: ApiPatternsPatternIdAttachUploadRoute,
-  ApiPatternsPatternIdClaimRoute: ApiPatternsPatternIdClaimRoute,
-  ApiPatternsPatternIdCoverRoute: ApiPatternsPatternIdCoverRoute,
-  ApiPatternsPatternIdFileRoute: ApiPatternsPatternIdFileRoute,
-  ApiPatternsPatternIdPreviewRoute: ApiPatternsPatternIdPreviewRoute,
-  ApiPatternsPatternIdUploadRoute: ApiPatternsPatternIdUploadRoute,
-  ApiPatternsPatternIdUploadUrlRoute: ApiPatternsPatternIdUploadUrlRoute,
   ApiShareFilesFileIdRoute: ApiShareFilesFileIdRoute,
   ApiAdminUsersUserIdRoleRoute: ApiAdminUsersUserIdRoleRoute,
 }

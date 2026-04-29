@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
-import { comments, creationImages, creations, patterns, postHearts, postImages, posts, users } from '#/lib/db/schema'
+import { comments, creationHearts, creationImages, creations, patternHearts, patterns, postHearts, postImages, posts, users } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/discover/feed')({
   server: {
@@ -36,6 +36,20 @@ export const Route = createFileRoute('/api/discover/feed')({
           .orderBy(desc(patterns.updatedAt))
           .limit(300)
 
+        const patternIds = publicPatterns.map((row) => row.id)
+        const patternHeartCounts = patternIds.length
+          ? await db.select({ patternId: patternHearts.patternId, count: sql<number>`count(*)` }).from(patternHearts).where(inArray(patternHearts.patternId, patternIds)).groupBy(patternHearts.patternId)
+          : []
+        const patternViewerHearts = patternIds.length
+          ? await db.select({ patternId: patternHearts.patternId }).from(patternHearts).where(and(inArray(patternHearts.patternId, patternIds), eq(patternHearts.userId, authUser.id)))
+          : []
+        const patternCommentCounts = patternIds.length
+          ? await db.select({ entityId: comments.entityId, count: sql<number>`count(*)` }).from(comments).where(and(eq(comments.entityType, 'pattern'), inArray(comments.entityId, patternIds))).groupBy(comments.entityId)
+          : []
+        const patternHeartCountMap = new Map(patternHeartCounts.map((row) => [row.patternId, Number(row.count) || 0]))
+        const patternViewerHeartSet = new Set(patternViewerHearts.map((row) => row.patternId))
+        const patternCommentCountMap = new Map(patternCommentCounts.map((row) => [row.entityId, Number(row.count) || 0]))
+
         const publicCreations = await db
           .select({
             id: creations.id,
@@ -64,11 +78,44 @@ export const Route = createFileRoute('/api/discover/feed')({
           : []
 
         const firstCreationImageMap = new Map<string, string>()
+        const creationImageMap = new Map<string, string[]>()
         for (const image of creationPreviewImages) {
           if (!firstCreationImageMap.has(image.creationId)) {
             firstCreationImageMap.set(image.creationId, image.imageId)
           }
+          const existing = creationImageMap.get(image.creationId) ?? []
+          if (existing.length < 12) {
+            existing.push(image.imageId)
+            creationImageMap.set(image.creationId, existing)
+          }
         }
+
+        const creationHeartCounts = creationIds.length
+          ? await db
+              .select({ creationId: creationHearts.creationId, count: sql<number>`count(*)` })
+              .from(creationHearts)
+              .where(inArray(creationHearts.creationId, creationIds))
+              .groupBy(creationHearts.creationId)
+          : []
+
+        const creationViewerHeartRows = creationIds.length
+          ? await db
+              .select({ creationId: creationHearts.creationId })
+              .from(creationHearts)
+              .where(and(inArray(creationHearts.creationId, creationIds), eq(creationHearts.userId, authUser.id)))
+          : []
+
+        const creationCommentCounts = creationIds.length
+          ? await db
+              .select({ entityId: comments.entityId, count: sql<number>`count(*)` })
+              .from(comments)
+              .where(and(eq(comments.entityType, 'creation'), inArray(comments.entityId, creationIds)))
+              .groupBy(comments.entityId)
+          : []
+
+        const creationHeartCountMap = new Map(creationHeartCounts.map((row) => [row.creationId, Number(row.count) || 0]))
+        const creationViewerHeartSet = new Set(creationViewerHeartRows.map((row) => row.creationId))
+        const creationCommentCountMap = new Map(creationCommentCounts.map((row) => [row.entityId, Number(row.count) || 0]))
 
         const publicPosts = await db
           .select({
@@ -139,6 +186,9 @@ export const Route = createFileRoute('/api/discover/feed')({
             ownerDisplayName: item.ownerDisplayName,
             previewImage: item.hasCover ? `/api/patterns/${item.id}/cover` : null,
             downloadUrl: `/api/patterns/${item.id}/file`,
+            heartCount: patternHeartCountMap.get(item.id) ?? 0,
+            viewerHasHeart: patternViewerHeartSet.has(item.id),
+            commentCount: patternCommentCountMap.get(item.id) ?? 0,
             createdAt: item.updatedAt,
           })),
           ...publicCreations.map((item) => ({
@@ -152,7 +202,11 @@ export const Route = createFileRoute('/api/discover/feed')({
             previewImage: firstCreationImageMap.get(item.id)
               ? `/api/creations/${item.id}/images?imageId=${firstCreationImageMap.get(item.id)}`
               : null,
+            galleryImages: (creationImageMap.get(item.id) ?? []).map((imageId) => `/api/creations/${item.id}/images?imageId=${imageId}`),
             downloadUrl: null,
+            heartCount: creationHeartCountMap.get(item.id) ?? 0,
+            viewerHasHeart: creationViewerHeartSet.has(item.id),
+            commentCount: creationCommentCountMap.get(item.id) ?? 0,
             createdAt: item.updatedAt,
           })),
           ...publicPosts.map((item) => ({

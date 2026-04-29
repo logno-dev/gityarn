@@ -299,6 +299,24 @@ export const commentHearts = sqliteTable('comment_hearts', {
   createdAt: integer('created_at').notNull(),
 }, (table) => [primaryKey({ columns: [table.commentId, table.userId] })])
 
+export const creationHearts = sqliteTable('creation_hearts', {
+  creationId: text('creation_id').notNull().references(() => creations.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at').notNull(),
+}, (table) => [primaryKey({ columns: [table.creationId, table.userId] })])
+
+export const patternHearts = sqliteTable('pattern_hearts', {
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at').notNull(),
+}, (table) => [primaryKey({ columns: [table.patternId, table.userId] })])
+
+export const patternLibraryLinks = sqliteTable('pattern_library_links', {
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at').notNull(),
+}, (table) => [primaryKey({ columns: [table.patternId, table.userId] })])
+
 export const notifications = sqliteTable('notifications', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),

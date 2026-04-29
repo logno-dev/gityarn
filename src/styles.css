@@ -930,6 +930,16 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   color: var(--on-accent);
 }
 
+.button:disabled,
+.button[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: saturate(0.7);
+  border-color: color-mix(in hsl, var(--line) 80%, #b9aec3 20%);
+  background: color-mix(in hsl, var(--bg-surface) 92%, #ddd4e7 8%);
+  color: var(--text-muted);
+}
+
 .inline-link {
   display: inline-flex;
   align-items: center;
@@ -1391,6 +1401,10 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   white-space: nowrap;
 }
 
+.discover-card-clickable {
+  cursor: pointer;
+}
+
 .discover-preview {
   width: 100%;
   height: auto;
@@ -1403,6 +1417,93 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   display: block;
   color: inherit;
   text-decoration: none;
+}
+
+.creation-gallery-shell {
+  position: relative;
+}
+
+.creation-gallery-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(42, 26, 54, 0.5);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.creation-gallery-arrow.left {
+  left: 0.45rem;
+}
+
+.creation-gallery-arrow.right {
+  right: 0.45rem;
+}
+
+.creation-thumb-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.creation-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.creation-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in hsl, var(--bg-surface) 94%, #eaf4ff 6%);
+  overflow: hidden;
+}
+
+.creation-card-link {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.65rem;
+}
+
+.creation-card-cover {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #e5eef8;
+}
+
+.creation-card-cover-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.creation-card-body {
+  display: grid;
+  gap: 0.3rem;
+  align-content: start;
+}
+
+.creation-card-body span {
+  color: var(--text-muted);
+  font-size: 0.88rem;
 }
 
 .discover-image-stack {
@@ -2304,6 +2405,15 @@ textarea {
   }
 
   .pattern-card-cover {
+    width: 100%;
+    height: 220px;
+  }
+
+  .creation-card-link {
+    grid-template-columns: 1fr;
+  }
+
+  .creation-card-cover {
     width: 100%;
     height: 220px;
   }

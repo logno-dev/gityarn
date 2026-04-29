@@ -1,7 +1,7 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Download, ImagePlus, MessageCircle, Send, XCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ImagePlus, MessageCircle, Send, XCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, MouseEvent } from 'react'
 
 import heartEmpty from '../../assets/heart_empty.svg'
 import heartFull from '../../assets/heart_full.svg'
@@ -19,6 +19,7 @@ type FeedItem = {
   ownerId: string
   ownerDisplayName: string
   previewImage: string | null
+  galleryImages?: string[]
   downloadUrl: string | null
   heartCount?: number
   viewerHasHeart?: boolean
@@ -51,6 +52,7 @@ function DiscoverPage() {
   const [pendingRemovalItem, setPendingRemovalItem] = useState<FeedItem | null>(null)
   const [removalReason, setRemovalReason] = useState('')
   const [removing, setRemoving] = useState(false)
+  const [creationImageIndex, setCreationImageIndex] = useState<Record<string, number>>({})
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   const loadFeed = async (requestedPage: number, append: boolean) => {
@@ -177,6 +179,55 @@ function DiscoverPage() {
     )
   }
 
+  const toggleCreationHeart = async (item: FeedItem) => {
+    if (item.kind !== 'creation') return
+    const response = await fetch(`/api/creations/${item.entityId}/hearts`, { method: 'POST' })
+    const payload = (await response.json()) as { message?: string; heartCount?: number; viewerHasHeart?: boolean }
+    if (!response.ok) {
+      setStatus(payload.message ?? 'Could not update heart.')
+      return
+    }
+    setItems((current) =>
+      current.map((entry) =>
+        entry.id === item.id
+          ? {
+              ...entry,
+              heartCount: payload.heartCount ?? entry.heartCount ?? 0,
+              viewerHasHeart: payload.viewerHasHeart ?? entry.viewerHasHeart ?? false,
+            }
+          : entry,
+      ),
+    )
+  }
+
+  const togglePatternHeart = async (item: FeedItem) => {
+    if (item.kind !== 'pattern') return
+    const response = await fetch(`/api/patterns/${item.entityId}/hearts`, { method: 'POST' })
+    const payload = (await response.json()) as { message?: string; heartCount?: number; viewerHasHeart?: boolean }
+    if (!response.ok) {
+      setStatus(payload.message ?? 'Could not update heart.')
+      return
+    }
+    setItems((current) =>
+      current.map((entry) =>
+        entry.id === item.id
+          ? {
+              ...entry,
+              heartCount: payload.heartCount ?? entry.heartCount ?? 0,
+              viewerHasHeart: payload.viewerHasHeart ?? entry.viewerHasHeart ?? false,
+            }
+          : entry,
+      ),
+    )
+  }
+
+  const handleCardClick = (event: MouseEvent<HTMLElement>, item: FeedItem) => {
+    if (item.kind !== 'pattern') return
+    const target = event.target as HTMLElement
+    if (target.closest('a,button,input,textarea,select,label')) return
+    void navigate({ to: '/pattern/$patternId', params: { patternId: item.entityId } })
+  }
+
   return (
     <section className="page-stack discover-page">
       <article className="discover-compose">
@@ -233,7 +284,11 @@ function DiscoverPage() {
 
       <div className="discover-feed">
         {items.map((item) => (
-          <article className="soft-panel discover-card" key={item.id}>
+          <article
+            className={`soft-panel discover-card ${item.kind === 'pattern' ? 'discover-card-clickable' : ''}`}
+            key={item.id}
+            onClick={(event) => handleCardClick(event, item)}
+          >
             {item.kind === 'post' ? (
               <Link className="post-author-dot" params={{ userId: item.ownerId }} to="/profile/$userId">
                 <img
@@ -273,6 +328,68 @@ function DiscoverPage() {
                   </Link>
                 ) : null}
               </>
+            ) : item.kind === 'creation' ? (
+              <>
+                {(item.galleryImages?.length || item.previewImage) ? (
+                  <div className="creation-gallery-shell">
+                    <Link className="post-preview-link" params={{ creationId: item.entityId }} to="/creation/$creationId">
+                      <img
+                        alt={item.title || 'Creation image'}
+                        className="discover-preview"
+                        src={item.galleryImages?.[creationImageIndex[item.entityId] ?? 0] ?? item.previewImage ?? undefined}
+                      />
+                    </Link>
+                    {(item.galleryImages?.length ?? 0) > 1 ? (
+                      <>
+                        <button
+                          className="creation-gallery-arrow left"
+                          onClick={() =>
+                            setCreationImageIndex((current) => {
+                              const count = item.galleryImages?.length ?? 1
+                              const idx = current[item.entityId] ?? 0
+                              return { ...current, [item.entityId]: (idx - 1 + count) % count }
+                            })
+                          }
+                          type="button"
+                        >
+                          <ChevronLeft size={15} />
+                        </button>
+                        <button
+                          className="creation-gallery-arrow right"
+                          onClick={() =>
+                            setCreationImageIndex((current) => {
+                              const count = item.galleryImages?.length ?? 1
+                              const idx = current[item.entityId] ?? 0
+                              return { ...current, [item.entityId]: (idx + 1) % count }
+                            })
+                          }
+                          type="button"
+                        >
+                          <ChevronRight size={15} />
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
+                {item.body ? (
+                  <Link className="post-preview-link" params={{ creationId: item.entityId }} to="/creation/$creationId">
+                    <p>{item.body}</p>
+                  </Link>
+                ) : null}
+              </>
+            ) : item.kind === 'pattern' ? (
+              <>
+                {item.previewImage ? (
+                  <Link className="post-preview-link" params={{ patternId: item.entityId }} to="/pattern/$patternId">
+                    <img alt={item.title || 'Pattern cover'} className="discover-preview" src={item.previewImage} />
+                  </Link>
+                ) : null}
+                {item.body ? (
+                  <Link className="post-preview-link" params={{ patternId: item.entityId }} to="/pattern/$patternId">
+                    <p>{item.body}</p>
+                  </Link>
+                ) : null}
+              </>
             ) : (
               <>
                 {item.previewImage ? <img alt={item.title || 'Post image'} className="discover-preview" src={item.previewImage} /> : null}
@@ -280,11 +397,6 @@ function DiscoverPage() {
               </>
             )}
             <div className="hero-actions">
-              {item.downloadUrl ? (
-                <a className="button" href={item.downloadUrl}>
-                  <Download size={14} /> Download
-                </a>
-              ) : null}
               {item.kind === 'post' ? (
                 <button className="button" onClick={() => void togglePostHeart(item)} type="button">
                   <img
@@ -295,6 +407,38 @@ function DiscoverPage() {
                   />
                   {item.heartCount ?? 0}
                 </button>
+              ) : null}
+              {item.kind === 'creation' ? (
+                <>
+                  <button className="button" onClick={() => void toggleCreationHeart(item)} type="button">
+                    <img
+                      alt=""
+                      aria-hidden="true"
+                      className="heart-icon"
+                      src={item.viewerHasHeart ? heartFull : heartEmpty}
+                    />
+                    {item.heartCount ?? 0}
+                  </button>
+                  <Link className="button" params={{ creationId: item.entityId }} to="/creation/$creationId">
+                    <MessageCircle size={14} /> {item.commentCount ?? 0}
+                  </Link>
+                </>
+              ) : null}
+              {item.kind === 'pattern' ? (
+                <>
+                  <button className="button" onClick={() => void togglePatternHeart(item)} type="button">
+                    <img
+                      alt=""
+                      aria-hidden="true"
+                      className="heart-icon"
+                      src={item.viewerHasHeart ? heartFull : heartEmpty}
+                    />
+                    {item.heartCount ?? 0}
+                  </button>
+                  <Link className="button" params={{ patternId: item.entityId }} to="/pattern/$patternId">
+                    <MessageCircle size={14} /> {item.commentCount ?? 0}
+                  </Link>
+                </>
               ) : null}
               {item.kind === 'post' ? (
                 <button

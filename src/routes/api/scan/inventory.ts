@@ -10,11 +10,13 @@ import {
   creationHooks,
   creationImages,
   creationYarn,
+  patternLibraryLinks,
   creations,
   hooks,
   inventoryYarn,
   manufacturers,
   patterns,
+  users,
   yarnColorways,
   yarnLines,
 } from '#/lib/db/schema'
@@ -215,7 +217,11 @@ export const Route = createFileRoute('/api/scan/inventory')({
         if (kind === 'patterns') {
           const existing = await getDb().query.patterns.findFirst({ where: and(eq(patterns.id, itemId), eq(patterns.userId, authUser.id)) })
           if (!existing) {
-            return Response.json({ message: 'Pattern not found.' }, { status: 404 })
+            const linked = await getDb().query.patternLibraryLinks.findFirst({ where: and(eq(patternLibraryLinks.patternId, itemId), eq(patternLibraryLinks.userId, authUser.id)) })
+            if (!linked) {
+              return Response.json({ message: 'Pattern not found.' }, { status: 404 })
+            }
+            return Response.json({ message: 'Linked patterns are read-only. Remove from library to edit.' }, { status: 400 })
           }
 
           const updatePayload: {
@@ -251,6 +257,13 @@ export const Route = createFileRoute('/api/scan/inventory')({
         }
 
         if (kind === 'creations') {
+          const existingCreation = await getDb().query.creations.findFirst({
+            where: and(eq(creations.id, itemId), eq(creations.userId, authUser.id)),
+          })
+          if (!existingCreation) {
+            return Response.json({ message: 'Creation not found.' }, { status: 404 })
+          }
+
           const updatePayload: {
             name?: string
             patternId?: string | null
@@ -270,6 +283,52 @@ export const Route = createFileRoute('/api/scan/inventory')({
           if (typeof body.notes !== 'undefined') updatePayload.notes = typeof body.notes === 'string' ? body.notes.trim() || null : null
 
           await getDb().update(creations).set(updatePayload).where(and(eq(creations.id, itemId), eq(creations.userId, authUser.id)))
+
+          if (Array.isArray(body.yarnInventoryIds)) {
+            const requestedIds = body.yarnInventoryIds.filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+            const ownedYarn = requestedIds.length
+              ? await getDb()
+                  .select({ id: inventoryYarn.id })
+                  .from(inventoryYarn)
+                  .where(and(eq(inventoryYarn.userId, authUser.id), inArray(inventoryYarn.id, requestedIds)))
+              : []
+            const ownedYarnIds = new Set(ownedYarn.map((row) => row.id))
+            const nextYarnIds = requestedIds.filter((id) => ownedYarnIds.has(id))
+
+            await getDb().delete(creationYarn).where(eq(creationYarn.creationId, itemId))
+            if (nextYarnIds.length) {
+              await getDb().insert(creationYarn).values(
+                nextYarnIds.map((yarnId) => ({
+                  creationId: itemId,
+                  inventoryYarnId: yarnId,
+                  skeinsUsed: 1,
+                })),
+              )
+            }
+          }
+
+          if (Array.isArray(body.hookIds)) {
+            const requestedIds = body.hookIds.filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+            const ownedHooks = requestedIds.length
+              ? await getDb()
+                  .select({ id: hooks.id })
+                  .from(hooks)
+                  .where(and(eq(hooks.userId, authUser.id), inArray(hooks.id, requestedIds)))
+              : []
+            const ownedHookIds = new Set(ownedHooks.map((row) => row.id))
+            const nextHookIds = requestedIds.filter((id) => ownedHookIds.has(id))
+
+            await getDb().delete(creationHooks).where(eq(creationHooks.creationId, itemId))
+            if (nextHookIds.length) {
+              await getDb().insert(creationHooks).values(
+                nextHookIds.map((hookId) => ({
+                  creationId: itemId,
+                  hookId,
+                })),
+              )
+            }
+          }
+
           return Response.json({ message: 'Creation updated.' }, { status: 200 })
         }
 
@@ -320,7 +379,8 @@ export const Route = createFileRoute('/api/scan/inventory')({
             where: and(eq(patterns.id, body.itemId), eq(patterns.userId, authUser.id)),
           })
           if (!pattern) {
-            return Response.json({ message: 'Pattern not found.' }, { status: 404 })
+            await getDb().delete(patternLibraryLinks).where(and(eq(patternLibraryLinks.patternId, body.itemId), eq(patternLibraryLinks.userId, authUser.id)))
+            return Response.json({ message: 'Pattern removed from your library.' }, { status: 200 })
           }
 
           await deleteR2Objects([pattern.pdfR2Key, pattern.pdfPreviewR2Key, pattern.coverR2Key])
@@ -515,11 +575,47 @@ async function getPatterns(userId: string, query: string) {
     .where(whereClause)
     .orderBy(desc(patterns.updatedAt))
 
+  const linkedRows = await db
+    .select({
+      id: patterns.id,
+      title: patterns.title,
+      description: patterns.description,
+      sourceUrl: patterns.sourceUrl,
+      difficulty: patterns.difficulty,
+      isPublic: patterns.isPublic,
+      publicShareConfirmed: patterns.publicShareConfirmed,
+      hasPdf: sql<boolean>`case when ${patterns.pdfR2Key} is not null then 1 else 0 end`,
+      hasPdfPreview: sql<boolean>`case when ${patterns.pdfPreviewR2Key} is not null then 1 else 0 end`,
+      hasCover: sql<boolean>`case when ${patterns.coverR2Key} is not null then 1 else 0 end`,
+      pdfFileName: patterns.pdfFileName,
+      moderationStatus: patterns.moderationStatus,
+      moderationReason: patterns.moderationReason,
+      notes: patterns.notes,
+      updatedAt: patterns.updatedAt,
+      ownerDisplayName: users.displayName,
+    })
+    .from(patternLibraryLinks)
+    .innerJoin(patterns, eq(patternLibraryLinks.patternId, patterns.id))
+    .innerJoin(users, eq(patterns.userId, users.id))
+    .where(and(eq(patternLibraryLinks.userId, userId), query ? sql`(
+      lower(coalesce(${patterns.title}, '')) like ${`%${query}%`}
+      or lower(coalesce(${patterns.description}, '')) like ${`%${query}%`}
+      or lower(coalesce(${patterns.difficulty}, '')) like ${`%${query}%`}
+      or lower(coalesce(${users.displayName}, '')) like ${`%${query}%`}
+    )` : sql`1=1`))
+    .orderBy(desc(patterns.updatedAt))
+
+  const merged = [...rows.map((row) => ({ ...row, isLinked: false, ownerDisplayName: null })), ...linkedRows.map((row) => ({ ...row, isLinked: true }))]
+  const deduped = new Map<string, any>()
+  for (const row of merged) {
+    if (!deduped.has(row.id) || !row.isLinked) deduped.set(row.id, row)
+  }
+
   return Response.json(
     {
       kind: 'patterns',
-      summary: { entries: rows.length },
-      items: rows,
+      summary: { entries: deduped.size },
+      items: Array.from(deduped.values()),
     },
     { status: 200 },
   )
@@ -570,6 +666,16 @@ async function getCreations(userId: string, query: string) {
         .groupBy(creationYarn.creationId)
     : []
 
+  const yarnLinks = creationIds.length
+    ? await db
+        .select({
+          creationId: creationYarn.creationId,
+          inventoryYarnId: creationYarn.inventoryYarnId,
+        })
+        .from(creationYarn)
+        .where(inArray(creationYarn.creationId, creationIds))
+    : []
+
   const hookLinkCounts = creationIds.length
     ? await db
         .select({
@@ -579,6 +685,16 @@ async function getCreations(userId: string, query: string) {
         .from(creationHooks)
         .where(inArray(creationHooks.creationId, creationIds))
         .groupBy(creationHooks.creationId)
+    : []
+
+  const hookLinks = creationIds.length
+    ? await db
+        .select({
+          creationId: creationHooks.creationId,
+          hookId: creationHooks.hookId,
+        })
+        .from(creationHooks)
+        .where(inArray(creationHooks.creationId, creationIds))
     : []
 
   const imageCounts = creationIds.length
@@ -592,15 +708,50 @@ async function getCreations(userId: string, query: string) {
         .groupBy(creationImages.creationId)
     : []
 
+  const previewImages = creationIds.length
+    ? await db
+        .select({
+          creationId: creationImages.creationId,
+          imageId: creationImages.id,
+          createdAt: creationImages.createdAt,
+        })
+        .from(creationImages)
+        .where(inArray(creationImages.creationId, creationIds))
+        .orderBy(desc(creationImages.createdAt))
+    : []
+
   const yarnCountMap = new Map(yarnLinkCounts.map((row) => [row.creationId, Number(row.count) || 0]))
   const hookCountMap = new Map(hookLinkCounts.map((row) => [row.creationId, Number(row.count) || 0]))
   const imageCountMap = new Map(imageCounts.map((row) => [row.creationId, Number(row.count) || 0]))
+  const yarnIdsMap = new Map<string, string[]>()
+  for (const row of yarnLinks) {
+    const list = yarnIdsMap.get(row.creationId) ?? []
+    list.push(row.inventoryYarnId)
+    yarnIdsMap.set(row.creationId, list)
+  }
+  const hookIdsMap = new Map<string, string[]>()
+  for (const row of hookLinks) {
+    const list = hookIdsMap.get(row.creationId) ?? []
+    list.push(row.hookId)
+    hookIdsMap.set(row.creationId, list)
+  }
+  const previewMap = new Map<string, string[]>()
+  for (const image of previewImages) {
+    const list = previewMap.get(image.creationId) ?? []
+    if (list.length < 4) {
+      list.push(`/api/creations/${image.creationId}/images?imageId=${image.imageId}`)
+      previewMap.set(image.creationId, list)
+    }
+  }
 
   const rowsWithCounts = rows.map((row) => ({
     ...row,
     yarnCount: yarnCountMap.get(row.id) ?? 0,
     hookCount: hookCountMap.get(row.id) ?? 0,
     imageCount: imageCountMap.get(row.id) ?? 0,
+    imagePreviews: previewMap.get(row.id) ?? [],
+    yarnInventoryIds: yarnIdsMap.get(row.id) ?? [],
+    hookIds: hookIdsMap.get(row.id) ?? [],
   }))
 
   const finished = rowsWithCounts.filter((row) => row.status === 'finished').length
