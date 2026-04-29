@@ -1146,6 +1146,30 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   width: auto;
 }
 
+.searchable-single-select {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.searchable-single-selected {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.searchable-option-button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-primary);
+}
+
+.searchable-option-button:last-child {
+  border-bottom: 0;
+}
+
 .pattern-row {
   display: grid;
   gap: 0.65rem;

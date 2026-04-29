@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { BookOpenCheck, Download, Ellipsis, ImagePlus, Lock, Minus, Package, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
 
 import { FileDropInput } from '#/components/file-drop-input'
 
@@ -300,11 +299,12 @@ function InventoryPage() {
       .catch(() => setPublicPatterns([]))
   }, [activeTab])
 
-  const searchCatalog = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const cleaned = catalogQuery.trim()
+  const runCatalogSearch = async (value: string) => {
+    const cleaned = value.trim()
     if (cleaned.length < 2) {
-      setStatus('Type at least 2 characters to search catalog lines.')
+      setCatalogResults([])
+      setSelectedLineId('')
+      setSelectedColorwayId('')
       return
     }
 
@@ -316,6 +316,16 @@ function InventoryPage() {
     setSelectedColorwayId('')
     setCatalogLoading(false)
   }
+
+  useEffect(() => {
+    if (activeTab !== 'yarn') {
+      return
+    }
+    const timer = window.setTimeout(() => {
+      void runCatalogSearch(catalogQuery)
+    }, 220)
+    return () => window.clearTimeout(timer)
+  }, [activeTab, catalogQuery])
 
   const patchItem = async (itemId: string, values: Record<string, string | number | boolean | null>) => {
     const response = await fetch('/api/scan/inventory', {
@@ -655,42 +665,31 @@ function InventoryPage() {
       </div>
 
       <article className="soft-panel inventory-add-shell">
-        <div className="hero-actions">
-          <h2>Add {tabs.find((tab) => tab.key === activeTab)?.label}</h2>
-          <button className="button" onClick={() => setShowAddForm((current) => !current)} type="button">
-            <Plus size={14} /> {showAddForm ? 'Hide form' : 'Add'}
-          </button>
-        </div>
+        <button className="button button-primary inventory-add-toggle" onClick={() => setShowAddForm((current) => !current)} type="button">
+          <Plus size={14} /> {showAddForm ? 'Close add form' : `Add ${tabs.find((tab) => tab.key === activeTab)?.label}`}
+        </button>
         {showAddForm && activeTab === 'yarn' ? (
           <>
-            <form className="catalog-search" onSubmit={searchCatalog}>
-              <label>
-                Search catalog line
-                <input onChange={(event) => setCatalogQuery(event.target.value)} type="text" value={catalogQuery} />
-              </label>
-              <button className="button" type="submit">
-                <Search size={15} /> Find line
-              </button>
-            </form>
+            <div className="catalog-search">
+              <SearchableSingleSelect
+                label="Search catalog line"
+                onQueryChange={setCatalogQuery}
+                onSelect={(lineId) => {
+                  setSelectedLineId(lineId)
+                  setSelectedColorwayId('')
+                }}
+                options={catalogResults.map((line) => ({
+                  id: line.id,
+                  label: `${line.manufacturerName} · ${line.name}`,
+                }))}
+                placeholder="Type manufacturer or yarn line"
+                query={catalogQuery}
+                selectedId={selectedLineId}
+              />
+            </div>
             {catalogLoading ? <p>Searching catalog...</p> : null}
             {catalogResults.length ? (
               <div className="inventory-add-grid">
-                <label>
-                  Yarn line
-                  <select
-                    onChange={(event) => {
-                      setSelectedLineId(event.target.value)
-                      setSelectedColorwayId('')
-                    }}
-                    value={selectedLineId}
-                  >
-                    {catalogResults.map((line) => (
-                      <option key={line.id} value={line.id}>
-                        {line.manufacturerName} · {line.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
                 <label>
                   Colorway
                   <select onChange={(event) => setSelectedColorwayId(event.target.value)} value={selectedColorwayId}>
@@ -1404,6 +1403,67 @@ function SearchableMultiSelect({
           <p className="inventory-message">No matches.</p>
         )}
       </div>
+    </div>
+  )
+}
+
+function SearchableSingleSelect({
+  label,
+  options,
+  selectedId,
+  onSelect,
+  query,
+  onQueryChange,
+  placeholder,
+}: {
+  label: string
+  options: Array<{ id: string; label: string }>
+  selectedId: string
+  onSelect: (id: string) => void
+  query: string
+  onQueryChange: (value: string) => void
+  placeholder: string
+}) {
+  const [open, setOpen] = useState(false)
+
+  const selectedLabel = options.find((option) => option.id === selectedId)?.label ?? ''
+
+  return (
+    <div className="searchable-single-select">
+      <label>{label}</label>
+      <input
+        onChange={(event) => {
+          onQueryChange(event.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        type="text"
+        value={query}
+      />
+      {selectedLabel ? <span className="searchable-single-selected">Selected: {selectedLabel}</span> : null}
+      {open ? (
+        <div className="searchable-options-list" role="listbox" aria-label={label}>
+          {options.length ? (
+            options.slice(0, 25).map((option) => (
+              <button
+                className="searchable-option-button"
+                key={option.id}
+                onClick={() => {
+                  onSelect(option.id)
+                  onQueryChange(option.label)
+                  setOpen(false)
+                }}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))
+          ) : (
+            <p className="inventory-message">No matches.</p>
+          )}
+        </div>
+      ) : null}
     </div>
   )
 }
