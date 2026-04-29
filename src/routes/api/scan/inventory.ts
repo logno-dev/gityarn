@@ -1,8 +1,11 @@
+import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
+import { getServerEnv } from '#/lib/env'
+import { getR2Client } from '#/lib/r2/client'
 import {
   creationHooks,
   creationImages,
@@ -313,10 +316,31 @@ export const Route = createFileRoute('/api/scan/inventory')({
           return Response.json({ message: 'Hook removed.' }, { status: 200 })
         }
         if (kind === 'patterns') {
+          const pattern = await getDb().query.patterns.findFirst({
+            where: and(eq(patterns.id, body.itemId), eq(patterns.userId, authUser.id)),
+          })
+          if (!pattern) {
+            return Response.json({ message: 'Pattern not found.' }, { status: 404 })
+          }
+
+          await deleteR2Objects([pattern.pdfR2Key, pattern.coverR2Key])
           await getDb().delete(patterns).where(and(eq(patterns.id, body.itemId), eq(patterns.userId, authUser.id)))
           return Response.json({ message: 'Pattern removed.' }, { status: 200 })
         }
         if (kind === 'creations') {
+          const creation = await getDb().query.creations.findFirst({
+            where: and(eq(creations.id, body.itemId), eq(creations.userId, authUser.id)),
+          })
+          if (!creation) {
+            return Response.json({ message: 'Creation not found.' }, { status: 404 })
+          }
+
+          const imageRows = await getDb()
+            .select({ r2Key: creationImages.r2Key })
+            .from(creationImages)
+            .where(and(eq(creationImages.creationId, creation.id), eq(creationImages.userId, authUser.id)))
+
+          await deleteR2Objects(imageRows.map((row) => row.r2Key))
           await getDb().delete(creations).where(and(eq(creations.id, body.itemId), eq(creations.userId, authUser.id)))
           return Response.json({ message: 'Creation removed.' }, { status: 200 })
         }
@@ -391,6 +415,30 @@ async function getYarn(userId: string, query: string) {
     },
     { status: 200 },
   )
+}
+
+async function deleteR2Objects(keys: Array<string | null | undefined>) {
+  const validKeys = keys.filter((key): key is string => Boolean(key))
+  if (!validKeys.length) {
+    return
+  }
+
+  const bucket = getServerEnv().R2_BUCKET
+  const client = getR2Client()
+  const deletions = validKeys.map((key) =>
+    client.send(
+      new DeleteObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      }),
+    ),
+  )
+
+  const results = await Promise.allSettled(deletions)
+  const failed = results.find((result) => result.status === 'rejected')
+  if (failed && failed.status === 'rejected') {
+    throw failed.reason
+  }
 }
 
 async function getHooks(userId: string, query: string) {

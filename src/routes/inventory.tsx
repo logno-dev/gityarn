@@ -340,8 +340,9 @@ function InventoryPage() {
     })
     const presignPayload = await parseJsonOrText(presignResponse)
     if (!presignResponse.ok || !presignPayload.uploadUrl || !presignPayload.key || !presignPayload.contentType) {
-      setStatus(presignPayload.message ?? `Could not prepare ${kind} upload.`)
-      return false
+      const message = presignPayload.message ?? `Could not prepare ${kind} upload.`
+      setStatus(message)
+      return { ok: false, message }
     }
 
     const uploadResponse = await fetch(presignPayload.uploadUrl, {
@@ -350,8 +351,9 @@ function InventoryPage() {
       body: file,
     })
     if (!uploadResponse.ok) {
-      setStatus(`Could not upload ${kind}. File may be too large for network/runtime limits.`)
-      return false
+      const message = `Upload to storage failed for ${kind}. HTTP ${uploadResponse.status} ${uploadResponse.statusText || ''}`.trim()
+      setStatus(message)
+      return { ok: false, message }
     }
 
     const attachResponse = await fetch(`/api/patterns/${patternId}/attach-upload`, {
@@ -365,11 +367,12 @@ function InventoryPage() {
     })
     const attachPayload = await parseJsonOrText(attachResponse)
     if (!attachResponse.ok) {
-      setStatus(attachPayload.message ?? `Could not attach uploaded ${kind}.`)
-      return false
+      const message = attachPayload.message ?? `Could not attach uploaded ${kind}.`
+      setStatus(message)
+      return { ok: false, message }
     }
 
-    return true
+    return { ok: true, message: `${kind} uploaded.` }
   }
 
   const parseJsonOrText = async (response: Response): Promise<{ message?: string; [key: string]: any }> => {
@@ -496,18 +499,18 @@ function InventoryPage() {
 
       if (payload.patternId && newPatternPdfFile) {
         setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Uploading PDF...' }))
-        const ok = await uploadPatternAsset(payload.patternId, 'pdf', newPatternPdfFile)
-        if (!ok) {
-          setPatternUploadProgress((current) => ({ ...current, error: 'PDF upload failed.' }))
+        const result = await uploadPatternAsset(payload.patternId, 'pdf', newPatternPdfFile)
+        if (!result.ok) {
+          setPatternUploadProgress((current) => ({ ...current, error: result.message || 'PDF upload failed.' }))
           return
         }
         setPatternUploadProgress((current) => ({ ...current, completed: current.completed + 1 }))
       }
       if (payload.patternId && newPatternCoverFile) {
         setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Uploading cover image...' }))
-        const ok = await uploadPatternAsset(payload.patternId, 'cover', newPatternCoverFile)
-        if (!ok) {
-          setPatternUploadProgress((current) => ({ ...current, error: 'Cover image upload failed.' }))
+        const result = await uploadPatternAsset(payload.patternId, 'cover', newPatternCoverFile)
+        if (!result.ok) {
+          setPatternUploadProgress((current) => ({ ...current, error: result.message || 'Cover image upload failed.' }))
           return
         }
         setPatternUploadProgress((current) => ({ ...current, completed: current.completed + 1 }))
@@ -1138,8 +1141,8 @@ function InventoryPage() {
                           onSelect={async (files) => {
                             const file = files[0]
                             if (!file) return
-                            const ok = await uploadPatternAsset(item.id, 'pdf', file)
-                            if (ok) {
+                            const result = await uploadPatternAsset(item.id, 'pdf', file)
+                            if (result.ok) {
                               await loadInventory()
                               setStatus(item.hasPdf ? 'Pattern PDF replaced.' : 'Pattern PDF uploaded.')
                             }
@@ -1153,8 +1156,8 @@ function InventoryPage() {
                           onSelect={async (files) => {
                             const file = files[0]
                             if (!file) return
-                            const ok = await uploadPatternAsset(item.id, 'cover', file)
-                            if (ok) {
+                            const result = await uploadPatternAsset(item.id, 'cover', file)
+                            if (result.ok) {
                               await loadInventory()
                               setStatus(item.hasCover ? 'Pattern cover replaced.' : 'Pattern cover uploaded.')
                             }
