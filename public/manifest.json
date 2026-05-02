@@ -49,7 +49,7 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "/",
+  "start_url": "/dashboard",
   "share_target": {
     "action": "/share-intake",
     "method": "POST",
