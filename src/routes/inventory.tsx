@@ -194,6 +194,17 @@ function InventoryPage() {
   const [editingPatternId, setEditingPatternId] = useState<string | null>(null)
   const [patternVariantsById, setPatternVariantsById] = useState<Record<string, PatternVariant[]>>({})
   const replaceVariantInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+  const [publicShareModal, setPublicShareModal] = useState<{
+    open: boolean
+    mode: 'new' | 'existing'
+    patternId: string | null
+    acknowledged: boolean
+  }>({
+    open: false,
+    mode: 'new',
+    patternId: null,
+    acknowledged: false,
+  })
   const [editingCreationId, setEditingCreationId] = useState<string | null>(null)
 
   const selectedLine = useMemo(
@@ -427,6 +438,41 @@ function InventoryPage() {
       ...current,
       [patternId]: variants,
     }))
+  }
+
+  const requestEnablePublicPattern = (mode: 'new' | 'existing', patternId: string | null = null) => {
+    setPublicShareModal({
+      open: true,
+      mode,
+      patternId,
+      acknowledged: false,
+    })
+  }
+
+  const confirmEnablePublicPattern = () => {
+    if (!publicShareModal.acknowledged) {
+      return
+    }
+
+    if (publicShareModal.mode === 'new') {
+      setNewPattern((current) => ({
+        ...current,
+        isPublic: true,
+        publicShareConfirmed: true,
+      }))
+    } else if (publicShareModal.patternId) {
+      const patternId = publicShareModal.patternId
+      setDrafts((current) => ({
+        ...current,
+        [patternId]: {
+          ...current[patternId],
+          isPublic: true,
+          publicShareConfirmed: true,
+        },
+      }))
+    }
+
+    setPublicShareModal({ open: false, mode: 'new', patternId: null, acknowledged: false })
   }
 
   useEffect(() => {
@@ -840,26 +886,17 @@ function InventoryPage() {
             <label className="inventory-toggle-label">
               <input
                 checked={newPattern.isPublic}
-                onChange={(event) => setNewPattern((current) => ({ ...current, isPublic: event.target.checked }))}
+                onChange={(event) => {
+                  if (event.target.checked) {
+                    requestEnablePublicPattern('new')
+                    return
+                  }
+                  setNewPattern((current) => ({ ...current, isPublic: false, publicShareConfirmed: false }))
+                }}
                 type="checkbox"
               />
               Make pattern public (free download)
             </label>
-            {newPattern.isPublic ? (
-              <label className="inventory-toggle-label">
-                <input
-                  checked={newPattern.publicShareConfirmed}
-                  onChange={(event) =>
-                    setNewPattern((current) => ({
-                      ...current,
-                      publicShareConfirmed: event.target.checked,
-                    }))
-                  }
-                  type="checkbox"
-                />
-                I am the creator or I have express permission to share this pattern publicly.
-              </label>
-            ) : null}
           </div>
         ) : null}
 
@@ -1184,28 +1221,19 @@ function InventoryPage() {
                     <label className="inventory-toggle-label">
                       <input
                         checked={Boolean((drafts[item.id]?.isPublic as boolean | undefined) ?? item.isPublic)}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          if (event.target.checked) {
+                            requestEnablePublicPattern('existing', item.id)
+                            return
+                          }
                           setDrafts((current) => ({
                             ...current,
-                            [item.id]: { ...current[item.id], isPublic: event.target.checked },
+                            [item.id]: { ...current[item.id], isPublic: false, publicShareConfirmed: false },
                           }))
-                        }
+                        }}
                         type="checkbox"
                       />
                       Make public (free download)
-                    </label>
-                    <label className="inventory-toggle-label">
-                      <input
-                        checked={Boolean((drafts[item.id]?.publicShareConfirmed as boolean | undefined) ?? item.publicShareConfirmed)}
-                        onChange={(event) =>
-                          setDrafts((current) => ({
-                            ...current,
-                            [item.id]: { ...current[item.id], publicShareConfirmed: event.target.checked },
-                          }))
-                        }
-                        type="checkbox"
-                      />
-                      I am creator / have permission
                     </label>
                     <div className="pattern-assets-row">
                       <label>
@@ -1379,6 +1407,43 @@ function InventoryPage() {
               )}
             </div>
           </article>
+        ) : null}
+
+        {publicShareModal.open ? (
+          <div className="modal-backdrop" role="presentation">
+            <div aria-modal="true" className="community-modal" role="dialog">
+              <div className="community-modal-head">
+                <h3>Confirm public pattern rights</h3>
+              </div>
+              <div className="stack-form">
+                <p>
+                  Before publishing this pattern publicly, you must confirm that you are the creator or have express
+                  permission to share it as a free public download.
+                </p>
+                <label className="inventory-toggle-label">
+                  <input
+                    checked={publicShareModal.acknowledged}
+                    onChange={(event) =>
+                      setPublicShareModal((current) => ({
+                        ...current,
+                        acknowledged: event.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  I am the creator or I have permission to share this pattern publicly.
+                </label>
+                <div className="hero-actions">
+                  <button className="button" onClick={() => setPublicShareModal({ open: false, mode: 'new', patternId: null, acknowledged: false })} type="button">
+                    Cancel
+                  </button>
+                  <button className="button button-primary" disabled={!publicShareModal.acknowledged} onClick={confirmEnablePublicPattern} type="button">
+                    Continue and make public
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : null}
 
         {!loading && !error && data?.kind === 'creations'
