@@ -5,9 +5,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { getServerEnv } from '#/lib/env'
+import { normalizePatternLanguage } from '#/lib/patterns/languages'
 import { generatePatternPdfPreview } from '#/lib/patterns/pdf-preview'
 import { getR2Client } from '#/lib/r2/client'
-import { patterns } from '#/lib/db/schema'
+import { patternFileVariants, patterns } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/patterns/$patternId/attach-upload')({
   server: {
@@ -22,7 +23,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/attach-upload')({
         })
         if (!pattern) return Response.json({ message: 'Pattern not found.' }, { status: 404 })
 
-        const body = (await request.json()) as { kind?: 'pdf' | 'cover'; key?: string; fileName?: string }
+        const body = (await request.json()) as { kind?: 'pdf' | 'cover'; key?: string; fileName?: string; languageCode?: string }
         const kind = body.kind
         const key = body.key?.trim() ?? ''
         if ((kind !== 'pdf' && kind !== 'cover') || !key) {
@@ -38,6 +39,39 @@ export const Route = createFileRoute('/api/patterns/$patternId/attach-upload')({
 
         const now = Date.now()
         if (kind === 'pdf') {
+          const language = normalizePatternLanguage(body.languageCode)
+          const existingVariant = await db.query.patternFileVariants.findFirst({
+            where: and(eq(patternFileVariants.patternId, pattern.id), eq(patternFileVariants.languageCode, language.code)),
+          })
+          if (existingVariant?.r2Key) {
+            await getR2Client().send(new DeleteObjectCommand({ Bucket: getServerEnv().R2_BUCKET, Key: existingVariant.r2Key }))
+          }
+
+          if (existingVariant) {
+            await db
+              .update(patternFileVariants)
+              .set({
+                languageLabel: language.label,
+                r2Key: key,
+                mimeType: 'application/pdf',
+                fileName: body.fileName?.trim() || `${pattern.title}.pdf`,
+                updatedAt: now,
+              })
+              .where(eq(patternFileVariants.id, existingVariant.id))
+          } else {
+            await db.insert(patternFileVariants).values({
+              id: crypto.randomUUID(),
+              patternId: pattern.id,
+              languageCode: language.code,
+              languageLabel: language.label,
+              r2Key: key,
+              mimeType: 'application/pdf',
+              fileName: body.fileName?.trim() || `${pattern.title}.pdf`,
+              createdAt: now,
+              updatedAt: now,
+            })
+          }
+
           if (pattern.pdfR2Key) {
             await getR2Client().send(new DeleteObjectCommand({ Bucket: getServerEnv().R2_BUCKET, Key: pattern.pdfR2Key }))
           }
@@ -60,7 +94,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/attach-upload')({
               updatedAt: now,
             })
             .where(and(eq(patterns.id, pattern.id), eq(patterns.userId, authUser.id)))
-          return Response.json({ message: 'Pattern PDF uploaded.' }, { status: 200 })
+          return Response.json({ message: `Pattern PDF uploaded (${language.label}).` }, { status: 200 })
         }
 
         if (pattern.coverR2Key) {

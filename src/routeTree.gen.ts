@@ -70,6 +70,7 @@ import { Route as ApiShareFilesFileIdRouteImport } from './routes/api/share/file
 import { Route as ApiProfilesUserIdAvatarRouteImport } from './routes/api/profiles/$userId/avatar'
 import { Route as ApiPostsPostIdImagesRouteImport } from './routes/api/posts/$postId/images'
 import { Route as ApiPostsPostIdHeartsRouteImport } from './routes/api/posts/$postId/hearts'
+import { Route as ApiPatternsPatternIdVariantsRouteImport } from './routes/api/patterns/$patternId/variants'
 import { Route as ApiPatternsPatternIdUploadUrlRouteImport } from './routes/api/patterns/$patternId/upload-url'
 import { Route as ApiPatternsPatternIdUploadRouteImport } from './routes/api/patterns/$patternId/upload'
 import { Route as ApiPatternsPatternIdPreviewRouteImport } from './routes/api/patterns/$patternId/preview'
@@ -395,6 +396,12 @@ const ApiPostsPostIdHeartsRoute = ApiPostsPostIdHeartsRouteImport.update({
   path: '/hearts',
   getParentRoute: () => ApiPostsPostIdRoute,
 } as any)
+const ApiPatternsPatternIdVariantsRoute =
+  ApiPatternsPatternIdVariantsRouteImport.update({
+    id: '/variants',
+    path: '/variants',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
 const ApiPatternsPatternIdUploadUrlRoute =
   ApiPatternsPatternIdUploadUrlRouteImport.update({
     id: '/upload-url',
@@ -569,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
+  '/api/patterns/$patternId/variants': typeof ApiPatternsPatternIdVariantsRoute
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
@@ -649,6 +657,7 @@ export interface FileRoutesByTo {
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
+  '/api/patterns/$patternId/variants': typeof ApiPatternsPatternIdVariantsRoute
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
@@ -730,6 +739,7 @@ export interface FileRoutesById {
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
+  '/api/patterns/$patternId/variants': typeof ApiPatternsPatternIdVariantsRoute
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
@@ -812,6 +822,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
+    | '/api/patterns/$patternId/variants'
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/profiles/$userId/avatar'
@@ -892,6 +903,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
+    | '/api/patterns/$patternId/variants'
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/profiles/$userId/avatar'
@@ -972,6 +984,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
+    | '/api/patterns/$patternId/variants'
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/profiles/$userId/avatar'
@@ -1468,6 +1481,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPostsPostIdHeartsRouteImport
       parentRoute: typeof ApiPostsPostIdRoute
     }
+    '/api/patterns/$patternId/variants': {
+      id: '/api/patterns/$patternId/variants'
+      path: '/variants'
+      fullPath: '/api/patterns/$patternId/variants'
+      preLoaderRoute: typeof ApiPatternsPatternIdVariantsRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
     '/api/patterns/$patternId/upload-url': {
       id: '/api/patterns/$patternId/upload-url'
       path: '/upload-url'
@@ -1721,6 +1741,7 @@ interface ApiPatternsPatternIdRouteChildren {
   ApiPatternsPatternIdPreviewRoute: typeof ApiPatternsPatternIdPreviewRoute
   ApiPatternsPatternIdUploadRoute: typeof ApiPatternsPatternIdUploadRoute
   ApiPatternsPatternIdUploadUrlRoute: typeof ApiPatternsPatternIdUploadUrlRoute
+  ApiPatternsPatternIdVariantsRoute: typeof ApiPatternsPatternIdVariantsRoute
 }
 
 const ApiPatternsPatternIdRouteChildren: ApiPatternsPatternIdRouteChildren = {
@@ -1733,6 +1754,7 @@ const ApiPatternsPatternIdRouteChildren: ApiPatternsPatternIdRouteChildren = {
   ApiPatternsPatternIdPreviewRoute: ApiPatternsPatternIdPreviewRoute,
   ApiPatternsPatternIdUploadRoute: ApiPatternsPatternIdUploadRoute,
   ApiPatternsPatternIdUploadUrlRoute: ApiPatternsPatternIdUploadUrlRoute,
+  ApiPatternsPatternIdVariantsRoute: ApiPatternsPatternIdVariantsRoute,
 }
 
 const ApiPatternsPatternIdRouteWithChildren =

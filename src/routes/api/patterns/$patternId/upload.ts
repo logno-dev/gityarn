@@ -6,9 +6,10 @@ import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { getServerEnv } from '#/lib/env'
 import { processUploadedImage } from '#/lib/image/resize'
+import { normalizePatternLanguage } from '#/lib/patterns/languages'
 import { generatePatternPdfPreview } from '#/lib/patterns/pdf-preview'
 import { getR2Client } from '#/lib/r2/client'
-import { patterns } from '#/lib/db/schema'
+import { patternFileVariants, patterns } from '#/lib/db/schema'
 
 const MAX_PDF_BYTES = 40 * 1024 * 1024
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
@@ -31,6 +32,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
 
         const formData = await request.formData()
         const kind = (formData.get('kind') ?? '').toString().trim().toLowerCase()
+        const language = normalizePatternLanguage((formData.get('languageCode') ?? '').toString())
         const file = formData.get('file')
         if (!(file instanceof File)) {
           return Response.json({ message: 'File is required.' }, { status: 400 })
@@ -89,6 +91,37 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
         } = { updatedAt: now }
 
         if (isPdf) {
+          const existingVariant = await db.query.patternFileVariants.findFirst({
+            where: and(eq(patternFileVariants.patternId, pattern.id), eq(patternFileVariants.languageCode, language.code)),
+          })
+          if (existingVariant?.r2Key) {
+            await safeDeleteObject(existingVariant.r2Key)
+          }
+          if (existingVariant) {
+            await db
+              .update(patternFileVariants)
+              .set({
+                languageLabel: language.label,
+                r2Key,
+                mimeType: 'application/pdf',
+                fileName: file.name || `${pattern.title}.pdf`,
+                updatedAt: now,
+              })
+              .where(eq(patternFileVariants.id, existingVariant.id))
+          } else {
+            await db.insert(patternFileVariants).values({
+              id: crypto.randomUUID(),
+              patternId: pattern.id,
+              languageCode: language.code,
+              languageLabel: language.label,
+              r2Key,
+              mimeType: 'application/pdf',
+              fileName: file.name || `${pattern.title}.pdf`,
+              createdAt: now,
+              updatedAt: now,
+            })
+          }
+
           updatePayload.pdfR2Key = r2Key
           updatePayload.pdfMimeType = 'application/pdf'
           updatePayload.pdfFileName = file.name || `${pattern.title}.pdf`

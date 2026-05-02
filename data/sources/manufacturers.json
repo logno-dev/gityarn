@@ -336,5 +336,30 @@
     },
     "requestDelayMs": 200,
     "disabled": true
+  },
+  {
+    "manufacturer": "Hobby Lobby",
+    "websiteUrl": "https://www.hobbylobby.com",
+    "pages": [
+      "https://www.hobbylobby.com/yarn-needle-art/yarn-tools/yarn/c/5-126-1001"
+    ],
+    "pagination": {
+      "template": "https://www.hobbylobby.com/yarn-needle-art/yarn-tools/yarn/c/5-126-1001?p={page}",
+      "start": 1,
+      "end": 5,
+      "step": 1
+    },
+    "selectors": {
+      "card": "a[href*='/p/']",
+      "lineName": "h2[class*='card_title__']",
+      "productUrl": ":self|attr:href"
+    },
+    "splitColorsBy": [
+      ",",
+      "/",
+      "|"
+    ],
+    "requestDelayMs": 300,
+    "disabled": false
   }
 ]

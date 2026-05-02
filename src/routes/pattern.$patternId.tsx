@@ -23,11 +23,21 @@ type PatternPayload = {
   inLibrary: boolean
 }
 
+type PatternVariantsPayload = {
+  variants: Array<{
+    id: string
+    languageCode: string
+    languageLabel: string
+    fileName: string | null
+  }>
+}
+
 function PatternDetailPage() {
   const { patternId } = Route.useParams()
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('')
   const [data, setData] = useState<PatternPayload | null>(null)
+  const [variants, setVariants] = useState<PatternVariantsPayload['variants']>([])
 
   const load = async () => {
     setLoading(true)
@@ -39,6 +49,13 @@ function PatternDetailPage() {
       return
     }
     setData(payload)
+    const variantsResponse = await fetch(`/api/patterns/${patternId}/variants`)
+    if (variantsResponse.ok) {
+      const variantsPayload = (await variantsResponse.json()) as PatternVariantsPayload
+      setVariants(variantsPayload.variants)
+    } else {
+      setVariants([])
+    }
     setLoading(false)
   }
 
@@ -81,6 +98,15 @@ function PatternDetailPage() {
               {data.inLibrary ? 'Already in inventory' : 'Add to inventory'}
             </button>
           </div>
+          {variants.length ? (
+            <div className="hero-actions">
+              {variants.map((variant) => (
+                <a className="button" href={`/api/patterns/${data.id}/file?lang=${encodeURIComponent(variant.languageCode)}`} key={variant.id}>
+                  {languageFlag(variant.languageCode)} {variant.languageLabel}
+                </a>
+              ))}
+            </div>
+          ) : null}
           <div className="hero-actions">
             <button className="button" onClick={() => void toggleHeart()} type="button">
               <Heart fill={data.viewerHasHeart ? 'currentColor' : 'none'} size={14} /> {data.heartCount}
@@ -92,4 +118,13 @@ function PatternDetailPage() {
       ) : null}
     </section>
   )
+}
+
+function languageFlag(languageCode: string) {
+  if (languageCode === 'en-US') return '🇺🇸'
+  if (languageCode === 'en-GB') return '🇬🇧'
+  if (languageCode === 'es') return '🇪🇸'
+  if (languageCode === 'fr') return '🇫🇷'
+  if (languageCode === 'de') return '🇩🇪'
+  return '🌐'
 }

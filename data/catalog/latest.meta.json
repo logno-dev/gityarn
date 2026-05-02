@@ -1,19 +1,14 @@
 {
-  "generatedAt": "2026-04-26T19:01:55.258Z",
-  "sourceCount": 6,
-  "scrapedRecordCount": 14896,
+  "generatedAt": "2026-05-01T06:03:25.401Z",
+  "sourceCount": 1,
+  "scrapedRecordCount": 12,
   "options": {
     "seed": true,
-    "verbose": false,
-    "sourceFilter": null,
+    "verbose": true,
+    "sourceFilter": "hobby-lobby",
     "limitPagesPerSource": null
   },
   "sources": [
-    "Premier Yarns",
-    "Lion Brand",
-    "Hobbii",
-    "Yarnspirations",
-    "Darn Good Yarn",
-    "Gorgeous Alpacas"
+    "Hobby Lobby"
   ]
 }

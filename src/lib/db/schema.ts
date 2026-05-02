@@ -317,6 +317,17 @@ export const patternLibraryLinks = sqliteTable('pattern_library_links', {
   createdAt: integer('created_at').notNull(),
 }, (table) => [primaryKey({ columns: [table.patternId, table.userId] })])
 
+export const patternFileVariants = sqliteTable('pattern_file_variants', {
+  id: text('id').primaryKey(),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  languageCode: text('language_code').notNull(),
+  languageLabel: text('language_label').notNull(),
+  r2Key: text('r2_key').notNull(),
+  mimeType: text('mime_type').notNull().default('application/pdf'),
+  fileName: text('file_name'),
+  ...timestamps,
+})
+
 export const notifications = sqliteTable('notifications', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),

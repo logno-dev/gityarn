@@ -10,6 +10,7 @@ import {
   creationHooks,
   creationImages,
   creationYarn,
+  patternFileVariants,
   patternLibraryLinks,
   creations,
   hooks,
@@ -611,11 +612,29 @@ async function getPatterns(userId: string, query: string) {
     if (!deduped.has(row.id) || !row.isLinked) deduped.set(row.id, row)
   }
 
+  const patternIds = Array.from(deduped.keys())
+  const variantCounts = patternIds.length
+    ? await db
+        .select({
+          patternId: patternFileVariants.patternId,
+          count: sql<number>`count(*)`,
+        })
+        .from(patternFileVariants)
+        .where(inArray(patternFileVariants.patternId, patternIds))
+        .groupBy(patternFileVariants.patternId)
+    : []
+  const variantCountMap = new Map(variantCounts.map((row) => [row.patternId, Number(row.count) || 0]))
+
+  const items = Array.from(deduped.values()).map((row) => ({
+    ...row,
+    variantCount: variantCountMap.get(row.id) ?? 0,
+  }))
+
   return Response.json(
     {
       kind: 'patterns',
       summary: { entries: deduped.size },
-      items: Array.from(deduped.values()),
+      items,
     },
     { status: 200 },
   )

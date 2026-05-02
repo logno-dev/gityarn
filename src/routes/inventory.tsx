@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { BookOpenCheck, Download, Ellipsis, ImagePlus, Lock, Minus, Package, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { FileDropInput } from '#/components/file-drop-input'
+import { PATTERN_LANGUAGE_OPTIONS } from '#/lib/patterns/languages'
 
 export const Route = createFileRoute('/inventory')({
   validateSearch: (search: Record<string, unknown>): { tab?: InventoryKind } => {
@@ -60,6 +61,14 @@ type PatternItem = {
   updatedAt: number
   isLinked?: boolean
   ownerDisplayName?: string | null
+  variantCount?: number
+}
+
+type PatternVariant = {
+  id: string
+  languageCode: string
+  languageLabel: string
+  fileName: string | null
 }
 
 type CreationItem = {
@@ -156,6 +165,7 @@ function InventoryPage() {
     publicShareConfirmed: false,
   })
   const [newPatternPdfFile, setNewPatternPdfFile] = useState<File | null>(null)
+  const [newPatternPdfLanguage, setNewPatternPdfLanguage] = useState('en-US')
   const [newPatternCoverFile, setNewPatternCoverFile] = useState<File | null>(null)
   const [publicPatterns, setPublicPatterns] = useState<PublicPatternsResponse['patterns']>([])
   const [newCreation, setNewCreation] = useState({ name: '', status: 'active', patternId: '', notes: '', isPublic: false })
@@ -182,6 +192,8 @@ function InventoryPage() {
   })
   const [patternMenuOpenId, setPatternMenuOpenId] = useState<string | null>(null)
   const [editingPatternId, setEditingPatternId] = useState<string | null>(null)
+  const [patternVariantsById, setPatternVariantsById] = useState<Record<string, PatternVariant[]>>({})
+  const replaceVariantInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const [editingCreationId, setEditingCreationId] = useState<string | null>(null)
 
   const selectedLine = useMemo(
@@ -345,7 +357,7 @@ function InventoryPage() {
     return response.ok
   }
 
-  const uploadPatternAsset = async (patternId: string, kind: 'pdf' | 'cover', file: File) => {
+  const uploadPatternAsset = async (patternId: string, kind: 'pdf' | 'cover', file: File, languageCode?: string) => {
     try {
     const presignResponse = await fetch(`/api/patterns/${patternId}/upload-url`, {
       method: 'POST',
@@ -355,6 +367,7 @@ function InventoryPage() {
         fileName: file.name,
         mimeType: file.type,
         byteSize: file.size,
+        languageCode,
       }),
     })
     const presignPayload = await parseJsonOrText(presignResponse)
@@ -382,6 +395,7 @@ function InventoryPage() {
         kind,
         key: presignPayload.key,
         fileName: file.name,
+        languageCode: presignPayload.languageCode ?? languageCode,
       }),
     })
     const attachPayload = await parseJsonOrText(attachResponse)
@@ -401,6 +415,26 @@ function InventoryPage() {
       return { ok: false, message }
     }
   }
+
+  const loadPatternVariants = async (patternId: string) => {
+    const response = await fetch(`/api/patterns/${patternId}/variants`)
+    const payload = await parseJsonOrText(response)
+    if (!response.ok) {
+      return
+    }
+    const variants = (payload.variants ?? []) as PatternVariant[]
+    setPatternVariantsById((current) => ({
+      ...current,
+      [patternId]: variants,
+    }))
+  }
+
+  useEffect(() => {
+    if (!editingPatternId) {
+      return
+    }
+    void loadPatternVariants(editingPatternId)
+  }, [editingPatternId])
 
   const parseJsonOrText = async (response: Response): Promise<{ message?: string; [key: string]: any }> => {
     const contentType = response.headers.get('content-type') ?? ''
@@ -528,7 +562,7 @@ function InventoryPage() {
 
       if (payload.patternId && newPatternPdfFile) {
         setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Uploading PDF...' }))
-        const result = await uploadPatternAsset(payload.patternId, 'pdf', newPatternPdfFile)
+        const result = await uploadPatternAsset(payload.patternId, 'pdf', newPatternPdfFile, newPatternPdfLanguage)
         if (!result.ok) {
           setPatternUploadProgress((current) => ({ ...current, error: result.message || 'PDF upload failed.' }))
           return
@@ -555,6 +589,7 @@ function InventoryPage() {
         publicShareConfirmed: false,
       })
       setNewPatternPdfFile(null)
+      setNewPatternPdfLanguage('en-US')
       setNewPatternCoverFile(null)
       await loadInventory()
       const publicResponse = await fetch('/api/patterns/public')
@@ -788,6 +823,11 @@ function InventoryPage() {
             </label>
             <label>
               Pattern PDF (optional)
+              <select onChange={(event) => setNewPatternPdfLanguage(event.target.value)} value={newPatternPdfLanguage}>
+                {PATTERN_LANGUAGE_OPTIONS.map((option) => (
+                  <option key={option.code} value={option.code}>{option.flag} {option.label}</option>
+                ))}
+              </select>
               <FileDropInput accept="application/pdf" onSelect={(files) => setNewPatternPdfFile(files[0] ?? null)} />
             </label>
             <label>
@@ -1090,7 +1130,7 @@ function InventoryPage() {
                 {patternMenuOpenId === item.id ? (
                   <div className="pattern-menu-popover">
                     {!item.isLinked ? (
-                      <button className="button" onClick={() => { setEditingPatternId((curr) => (curr === item.id ? null : item.id)); setPatternMenuOpenId(null) }} type="button">
+                      <button className="button" onClick={() => { const next = editingPatternId === item.id ? null : item.id; setEditingPatternId(next); setPatternMenuOpenId(null); if (next) { void loadPatternVariants(item.id) } }} type="button">
                         <Save size={14} /> Edit
                       </button>
                     ) : null}
@@ -1114,6 +1154,7 @@ function InventoryPage() {
                     <strong>{item.title}</strong>
                     <span>{item.description || 'No description yet.'}</span>
                     <span>{item.difficulty || 'No difficulty'} · {item.isPublic ? 'Public' : 'Private'} · {item.hasPdf ? 'PDF ready' : 'No PDF'}</span>
+                    <span>{item.variantCount ? `${item.variantCount} language PDF${item.variantCount === 1 ? '' : 's'}` : 'No language variants yet'}</span>
                     {item.isLinked ? <span>Linked from {item.ownerDisplayName ?? 'another user'}</span> : null}
                   </div>
                 </a>
@@ -1168,21 +1209,6 @@ function InventoryPage() {
                     </label>
                     <div className="pattern-assets-row">
                       <label>
-                        {item.hasPdf ? 'Replace PDF' : 'Upload PDF'}
-                        <FileDropInput
-                          accept="application/pdf"
-                          onSelect={async (files) => {
-                            const file = files[0]
-                            if (!file) return
-                            const result = await uploadPatternAsset(item.id, 'pdf', file)
-                            if (result.ok) {
-                              await loadInventory()
-                              setStatus(item.hasPdf ? 'Pattern PDF replaced.' : 'Pattern PDF uploaded.')
-                            }
-                          }}
-                        />
-                      </label>
-                      <label>
                         {item.hasCover ? 'Replace cover' : 'Upload cover'}
                         <FileDropInput
                           accept="image/jpeg,image/png,image/webp,image/gif"
@@ -1198,6 +1224,93 @@ function InventoryPage() {
                         />
                       </label>
                     </div>
+                    <div className="pattern-variant-table">
+                        <div className="pattern-variant-row pattern-variant-head">
+                          <strong>PDF File</strong>
+                          <strong>Language</strong>
+                          <strong>Replace</strong>
+                        </div>
+                        {(patternVariantsById[item.id] ?? []).map((variant) => {
+                          const refKey = `${item.id}:${variant.id}`
+                          return (
+                            <div className="pattern-variant-row" key={variant.id}>
+                              <button
+                                className="inline-link"
+                                onClick={() => replaceVariantInputRefs.current[refKey]?.click()}
+                                type="button"
+                              >
+                                {variant.fileName ?? `${item.title}.pdf`}
+                              </button>
+                              <span>{languageFlag(variant.languageCode)} {variant.languageLabel}</span>
+                              <div>
+                                <input
+                                  accept="application/pdf"
+                                  onChange={async (event) => {
+                                    const file = event.target.files?.[0]
+                                    if (!file) return
+                                    const result = await uploadPatternAsset(item.id, 'pdf', file, variant.languageCode)
+                                    if (result.ok) {
+                                      await loadInventory()
+                                      await loadPatternVariants(item.id)
+                                      setStatus(`Updated ${variant.languageLabel} PDF variant.`)
+                                    }
+                                  }}
+                                  ref={(node) => {
+                                    replaceVariantInputRefs.current[refKey] = node
+                                  }}
+                                  style={{ display: 'none' }}
+                                  type="file"
+                                />
+                                <FileDropInput
+                                  accept="application/pdf"
+                                  hint="Drop PDF to replace"
+                                  onSelect={async (files) => {
+                                    const file = files[0]
+                                    if (!file) return
+                                    const result = await uploadPatternAsset(item.id, 'pdf', file, variant.languageCode)
+                                    if (result.ok) {
+                                      await loadInventory()
+                                      await loadPatternVariants(item.id)
+                                      setStatus(`Updated ${variant.languageLabel} PDF variant.`)
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )
+                        })}
+                        <div className="pattern-variant-row pattern-variant-new-row">
+                          <span>Add new variant</span>
+                          <select
+                            onChange={(event) =>
+                              setDrafts((current) => ({
+                                ...current,
+                                [item.id]: { ...current[item.id], pdfLanguageCode: event.target.value },
+                              }))
+                            }
+                            value={String((drafts[item.id]?.pdfLanguageCode as string | undefined) ?? 'en-US')}
+                          >
+                            {PATTERN_LANGUAGE_OPTIONS.map((option) => (
+                              <option key={option.code} value={option.code}>{option.flag} {option.label}</option>
+                            ))}
+                          </select>
+                          <FileDropInput
+                            accept="application/pdf"
+                            hint="Drop PDF to add"
+                            onSelect={async (files) => {
+                              const file = files[0]
+                              if (!file) return
+                              const languageCode = String((drafts[item.id]?.pdfLanguageCode as string | undefined) ?? 'en-US')
+                              const result = await uploadPatternAsset(item.id, 'pdf', file, languageCode)
+                              if (result.ok) {
+                                await loadInventory()
+                                await loadPatternVariants(item.id)
+                                setStatus('Added language PDF variant.')
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
                     <div className="hero-actions">
                       {item.hasPdf ? (
                         <a className="button" href={`/api/patterns/${item.id}/file`}>
@@ -1509,4 +1622,13 @@ function SearchableSingleSelect({
       ) : null}
     </div>
   )
+}
+
+function languageFlag(languageCode: string) {
+  if (languageCode === 'en-US') return '🇺🇸'
+  if (languageCode === 'en-GB') return '🇬🇧'
+  if (languageCode === 'es') return '🇪🇸'
+  if (languageCode === 'fr') return '🇫🇷'
+  if (languageCode === 'de') return '🇩🇪'
+  return '🌐'
 }

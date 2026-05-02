@@ -1307,6 +1307,35 @@ html[data-theme='dark'] .sidebar-edge-toggle {
   gap: 0.55rem;
 }
 
+.pattern-variant-table {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.pattern-variant-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 1.4fr);
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.pattern-variant-row:first-child {
+  border-top: 0;
+}
+
+.pattern-variant-head {
+  background: color-mix(in hsl, var(--bg-surface) 86%, #ece2fa 14%);
+}
+
+.pattern-variant-new-row {
+  background: color-mix(in hsl, var(--bg-surface) 93%, #f2eaff 7%);
+}
+
 .public-patterns-shell {
   margin-top: 0.8rem;
 }
@@ -2440,6 +2469,14 @@ textarea {
   .creation-card-cover {
     width: 100%;
     height: 220px;
+  }
+
+  .pattern-variant-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pattern-variant-head {
+    display: none;
   }
 
   .mobile-bottom-nav {

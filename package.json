@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "scrape:yarn": "tsx scripts/scrape-yarn-catalog.ts"
+    "scrape:yarn": "tsx scripts/scrape-yarn-catalog.ts",
+    "scrape:hobby-lobby": "tsx scripts/scrape-hobby-lobby.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1037.0",

@@ -6,6 +6,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
 import { getServerEnv } from '#/lib/env'
+import { normalizePatternLanguage } from '#/lib/patterns/languages'
 import { getR2Client } from '#/lib/r2/client'
 import { patterns } from '#/lib/db/schema'
 
@@ -29,9 +30,11 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload-url')({
           fileName?: string
           mimeType?: string
           byteSize?: number
+          languageCode?: string
         }
 
         const kind = body.kind
+        const language = normalizePatternLanguage(body.languageCode)
         if (kind !== 'pdf' && kind !== 'cover') {
           return Response.json({ message: 'kind must be pdf or cover.' }, { status: 400 })
         }
@@ -58,7 +61,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload-url')({
 
         const ext = extensionFor(kind, fileName, mimeType)
         const normalizedMimeType = kind === 'pdf' ? 'application/pdf' : normalizeImageMime(mimeType, fileName)
-        const key = `users/${authUser.id}/patterns/${pattern.id}/${kind}-${crypto.randomUUID()}.${ext}`
+        const key = `users/${authUser.id}/patterns/${pattern.id}/${kind}${kind === 'pdf' ? `-${language.code}` : ''}-${crypto.randomUUID()}.${ext}`
 
         const uploadUrl = await getSignedUrl(
           getR2Client(),
@@ -70,7 +73,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload-url')({
           { expiresIn: 60 * 10 },
         )
 
-        return Response.json({ uploadUrl, key, contentType: normalizedMimeType }, { status: 200 })
+        return Response.json({ uploadUrl, key, contentType: normalizedMimeType, languageCode: language.code, languageLabel: language.label }, { status: 200 })
       },
     },
   },
