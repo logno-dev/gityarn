@@ -132,11 +132,16 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
           })
           updatePayload.pdfPreviewR2Key = preview?.key ?? null
           updatePayload.pdfPreviewMimeType = preview?.mimeType ?? null
+          updatePayload.coverR2Key = preview?.key ?? pattern.coverR2Key ?? null
+          updatePayload.coverMimeType = preview?.mimeType ?? pattern.coverMimeType ?? null
           if (pattern.pdfR2Key) {
             await safeDeleteObject(pattern.pdfR2Key)
           }
           if (pattern.pdfPreviewR2Key) {
             await safeDeleteObject(pattern.pdfPreviewR2Key)
+          }
+          if (preview?.key && pattern.coverR2Key) {
+            await safeDeleteObject(pattern.coverR2Key)
           }
         } else {
           updatePayload.coverR2Key = r2Key

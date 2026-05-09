@@ -83,6 +83,9 @@ export const Route = createFileRoute('/api/patterns/$patternId/attach-upload')({
             patternId: pattern.id,
             pdfR2Key: key,
           })
+          if (preview?.key && pattern.coverR2Key) {
+            await getR2Client().send(new DeleteObjectCommand({ Bucket: getServerEnv().R2_BUCKET, Key: pattern.coverR2Key }))
+          }
           await db
             .update(patterns)
             .set({
@@ -91,6 +94,8 @@ export const Route = createFileRoute('/api/patterns/$patternId/attach-upload')({
               pdfFileName: body.fileName?.trim() || `${pattern.title}.pdf`,
               pdfPreviewR2Key: preview?.key ?? null,
               pdfPreviewMimeType: preview?.mimeType ?? null,
+              coverR2Key: preview?.key ?? pattern.coverR2Key ?? null,
+              coverMimeType: preview?.mimeType ?? pattern.coverMimeType ?? null,
               updatedAt: now,
             })
             .where(and(eq(patterns.id, pattern.id), eq(patterns.userId, authUser.id)))

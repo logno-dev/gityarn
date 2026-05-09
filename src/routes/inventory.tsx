@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { BookOpenCheck, Download, Ellipsis, ImagePlus, Lock, Minus, Package, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
+import { BookOpenCheck, Download, ImagePlus, Lock, Minus, Package, Pencil, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { FileDropInput } from '#/components/file-drop-input'
@@ -190,8 +190,16 @@ function InventoryPage() {
     currentLabel: '',
     error: null,
   })
-  const [patternMenuOpenId, setPatternMenuOpenId] = useState<string | null>(null)
   const [editingPatternId, setEditingPatternId] = useState<string | null>(null)
+  const [patternDeleteModal, setPatternDeleteModal] = useState<{
+    open: boolean
+    patternId: string | null
+    title: string
+  }>({
+    open: false,
+    patternId: null,
+    title: '',
+  })
   const [patternVariantsById, setPatternVariantsById] = useState<Record<string, PatternVariant[]>>({})
   const replaceVariantInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const [publicShareModal, setPublicShareModal] = useState<{
@@ -365,6 +373,9 @@ function InventoryPage() {
     })
     const payload = (await response.json()) as { message?: string }
     setStatus(payload.message ?? (response.ok ? 'Saved.' : 'Could not save.'))
+    if (response.ok) {
+      await loadInventory()
+    }
     return response.ok
   }
 
@@ -708,6 +719,9 @@ function InventoryPage() {
     })
     if (response.ok) {
       await loadInventory()
+      if (editingPatternId === itemId) {
+        setEditingPatternId(null)
+      }
       setStatus('Item removed.')
     }
   }
@@ -1161,20 +1175,20 @@ function InventoryPage() {
         {!loading && !error && data?.kind === 'patterns'
           ? (data.items as PatternItem[]).map((item) => (
               <article className="pattern-card" key={item.id}>
-                <button className="pattern-menu-trigger" onClick={() => setPatternMenuOpenId((curr) => (curr === item.id ? null : item.id))} type="button">
-                  <Ellipsis size={16} />
-                </button>
-                {patternMenuOpenId === item.id ? (
-                  <div className="pattern-menu-popover">
-                    {!item.isLinked ? (
-                      <button className="button" onClick={() => { const next = editingPatternId === item.id ? null : item.id; setEditingPatternId(next); setPatternMenuOpenId(null); if (next) { void loadPatternVariants(item.id) } }} type="button">
-                        <Save size={14} /> Edit
-                      </button>
-                    ) : null}
-                    <button className="button" onClick={() => void removeItem(item.id)} type="button">
-                      <Trash2 size={14} /> {item.isLinked ? 'Remove link' : 'Delete'}
-                    </button>
-                  </div>
+                {!item.isLinked ? (
+                  <button
+                    className="pattern-menu-trigger"
+                    onClick={() => {
+                      const next = editingPatternId === item.id ? null : item.id
+                      setEditingPatternId(next)
+                      if (next) {
+                        void loadPatternVariants(item.id)
+                      }
+                    }}
+                    type="button"
+                  >
+                    <Pencil size={16} />
+                  </button>
                 ) : null}
 
                 <a className="pattern-card-link" href={item.hasPdf ? `/api/patterns/${item.id}/file` : undefined}>
@@ -1352,7 +1366,31 @@ function InventoryPage() {
                       ) : null}
                     </div>
                     <div className="hero-actions">
-                      <button className="button" onClick={() => void patchItem(item.id, drafts[item.id] ?? {})} type="button"><Save size={14} /> Save</button>
+                      <button
+                        className="button"
+                        onClick={async () => {
+                          const ok = await patchItem(item.id, drafts[item.id] ?? {})
+                          if (ok) {
+                            setEditingPatternId(null)
+                          }
+                        }}
+                        type="button"
+                      >
+                        <Save size={14} /> Save
+                      </button>
+                      <button
+                        className="button"
+                        onClick={() =>
+                          setPatternDeleteModal({
+                            open: true,
+                            patternId: item.id,
+                            title: item.title,
+                          })
+                        }
+                        type="button"
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
                       <button className="button" onClick={() => setEditingPatternId(null)} type="button">Done</button>
                     </div>
                   </div>
@@ -1439,6 +1477,42 @@ function InventoryPage() {
                   </button>
                   <button className="button button-primary" disabled={!publicShareModal.acknowledged} onClick={confirmEnablePublicPattern} type="button">
                     Continue and make public
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {patternDeleteModal.open ? (
+          <div className="modal-backdrop" role="presentation">
+            <div aria-modal="true" className="community-modal" role="dialog">
+              <div className="community-modal-head">
+                <h3>Delete pattern?</h3>
+              </div>
+              <div className="stack-form">
+                <p>This removes `{patternDeleteModal.title}` from your library and deletes associated files.</p>
+                <div className="hero-actions">
+                  <button
+                    className="button"
+                    onClick={() => setPatternDeleteModal({ open: false, patternId: null, title: '' })}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="button"
+                    onClick={async () => {
+                      const target = patternDeleteModal.patternId
+                      if (!target) {
+                        return
+                      }
+                      await removeItem(target)
+                      setPatternDeleteModal({ open: false, patternId: null, title: '' })
+                    }}
+                    type="button"
+                  >
+                    <Trash2 size={14} /> Confirm delete
                   </button>
                 </div>
               </div>
