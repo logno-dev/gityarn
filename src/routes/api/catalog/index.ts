@@ -150,6 +150,156 @@ export const Route = createFileRoute('/api/catalog/')({
           { status: 200 },
         )
       },
+      POST: async ({ request }) => {
+        const authUser = await getAuthenticatedUser(request.headers.get('cookie'))
+        if (!authUser) {
+          return Response.json({ message: 'Unauthorized' }, { status: 401 })
+        }
+
+        const body = (await request.json()) as {
+          manufacturerName?: string
+          lineName?: string
+          colorwayName?: string
+          colorCode?: string | null
+          hexReference?: string | null
+          weightClass?: string | null
+          fiberContent?: string | null
+          yardageMeters?: number | null
+          productUrl?: string | null
+        }
+
+        const manufacturerName = body.manufacturerName?.trim() ?? ''
+        const lineName = body.lineName?.trim() ?? ''
+        const colorwayName = body.colorwayName?.trim() ?? ''
+
+        if (!manufacturerName) {
+          return Response.json({ message: 'Manufacturer name is required.' }, { status: 400 })
+        }
+
+        const db = getDb()
+
+        const manufacturerSlugBase = slugify(manufacturerName)
+        let manufacturer = await db.query.manufacturers.findFirst({ where: eq(manufacturers.slug, manufacturerSlugBase) })
+        let createdManufacturer = false
+        if (!manufacturer) {
+          const id = crypto.randomUUID()
+          const slug = await uniqueManufacturerSlug(manufacturerSlugBase)
+          await db.insert(manufacturers).values({
+            id,
+            name: manufacturerName,
+            slug,
+          })
+          manufacturer = { id, name: manufacturerName, slug } as typeof manufacturers.$inferSelect
+          createdManufacturer = true
+        }
+
+        let line: typeof yarnLines.$inferSelect | null = null
+        let createdLine = false
+        if (lineName) {
+          const lineSlugBase = slugify(`${manufacturer.name}-${lineName}`)
+          line = (await db.query.yarnLines.findFirst({ where: eq(yarnLines.slug, lineSlugBase) })) ?? null
+          if (!line) {
+            const id = crypto.randomUUID()
+            const slug = await uniqueLineSlug(lineSlugBase)
+            const yardageMeters = Number.isFinite(body.yardageMeters) ? Math.round(Number(body.yardageMeters)) : null
+            await db.insert(yarnLines).values({
+              id,
+              manufacturerId: manufacturer.id,
+              name: lineName,
+              slug,
+              weightClass: typeof body.weightClass === 'string' ? body.weightClass.trim() || null : null,
+              fiberContent: typeof body.fiberContent === 'string' ? body.fiberContent.trim() || null : null,
+              yardageMeters,
+              productUrl: normalizeOptionalUrl(typeof body.productUrl === 'string' ? body.productUrl : null),
+            })
+            line = { id, manufacturerId: manufacturer.id, name: lineName, slug } as typeof yarnLines.$inferSelect
+            createdLine = true
+          }
+        }
+
+        let colorway: typeof yarnColorways.$inferSelect | null = null
+        let createdColorway = false
+        if (line && colorwayName) {
+          colorway = (await db.query.yarnColorways.findFirst({
+            where: and(eq(yarnColorways.yarnLineId, line.id), eq(yarnColorways.name, colorwayName)),
+          })) ?? null
+          if (!colorway) {
+            const id = crypto.randomUUID()
+            await db.insert(yarnColorways).values({
+              id,
+              yarnLineId: line.id,
+              name: colorwayName,
+              colorCode: typeof body.colorCode === 'string' ? body.colorCode.trim() || null : null,
+              hexReference: typeof body.hexReference === 'string' ? body.hexReference.trim() || null : null,
+            })
+            colorway = { id, yarnLineId: line.id, name: colorwayName } as typeof yarnColorways.$inferSelect
+            createdColorway = true
+          }
+        }
+
+        return Response.json({
+          message: createdColorway
+            ? 'Colorway added to catalog.'
+            : createdLine
+              ? 'Yarn line added to catalog.'
+              : createdManufacturer
+                ? 'Manufacturer added to catalog.'
+                : 'Catalog entry already exists.',
+          manufacturerId: manufacturer.id,
+          lineId: line?.id ?? null,
+          colorwayId: colorway?.id ?? null,
+          created: {
+            manufacturer: createdManufacturer,
+            line: createdLine,
+            colorway: createdColorway,
+          },
+        }, { status: 200 })
+      },
     },
   },
 })
+
+function slugify(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+async function uniqueManufacturerSlug(base: string) {
+  const db = getDb()
+  let candidate = base
+  let index = 2
+  while (await db.query.manufacturers.findFirst({ where: eq(manufacturers.slug, candidate) })) {
+    candidate = `${base}-${index}`
+    index += 1
+  }
+  return candidate
+}
+
+async function uniqueLineSlug(base: string) {
+  const db = getDb()
+  let candidate = base
+  let index = 2
+  while (await db.query.yarnLines.findFirst({ where: eq(yarnLines.slug, candidate) })) {
+    candidate = `${base}-${index}`
+    index += 1
+  }
+  return candidate
+}
+
+function normalizeOptionalUrl(value: string | null) {
+  if (!value) return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  try {
+    const url = new URL(trimmed)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return null
+    }
+    return url.toString()
+  } catch {
+    return null
+  }
+}

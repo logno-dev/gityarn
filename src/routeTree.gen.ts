@@ -55,6 +55,7 @@ import { Route as ApiDiscoverFeedRouteImport } from './routes/api/discover/feed'
 import { Route as ApiCreationsCreationIdRouteImport } from './routes/api/creations/$creationId'
 import { Route as ApiCommunityFlagsRouteImport } from './routes/api/community/flags'
 import { Route as ApiCommunityClaimsRouteImport } from './routes/api/community/claims'
+import { Route as ApiCatalogManufacturersRouteImport } from './routes/api/catalog/manufacturers'
 import { Route as ApiCatalogLineIdRouteImport } from './routes/api/catalog/$lineId'
 import { Route as ApiAuthSignUpRouteImport } from './routes/api/auth/sign-up'
 import { Route as ApiAuthSignOutRouteImport } from './routes/api/auth/sign-out'
@@ -319,6 +320,11 @@ const ApiCommunityClaimsRoute = ApiCommunityClaimsRouteImport.update({
   path: '/api/community/claims',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCatalogManufacturersRoute = ApiCatalogManufacturersRouteImport.update({
+  id: '/api/catalog/manufacturers',
+  path: '/api/catalog/manufacturers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCatalogLineIdRoute = ApiCatalogLineIdRouteImport.update({
   id: '/api/catalog/$lineId',
   path: '/api/catalog/$lineId',
@@ -541,6 +547,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
   '/api/auth/sign-up': typeof ApiAuthSignUpRoute
   '/api/catalog/$lineId': typeof ApiCatalogLineIdRouteWithChildren
+  '/api/catalog/manufacturers': typeof ApiCatalogManufacturersRoute
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/creations/$creationId': typeof ApiCreationsCreationIdRouteWithChildren
@@ -622,6 +629,7 @@ export interface FileRoutesByTo {
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
   '/api/auth/sign-up': typeof ApiAuthSignUpRoute
   '/api/catalog/$lineId': typeof ApiCatalogLineIdRouteWithChildren
+  '/api/catalog/manufacturers': typeof ApiCatalogManufacturersRoute
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/creations/$creationId': typeof ApiCreationsCreationIdRouteWithChildren
@@ -704,6 +712,7 @@ export interface FileRoutesById {
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
   '/api/auth/sign-up': typeof ApiAuthSignUpRoute
   '/api/catalog/$lineId': typeof ApiCatalogLineIdRouteWithChildren
+  '/api/catalog/manufacturers': typeof ApiCatalogManufacturersRoute
   '/api/community/claims': typeof ApiCommunityClaimsRouteWithChildren
   '/api/community/flags': typeof ApiCommunityFlagsRoute
   '/api/creations/$creationId': typeof ApiCreationsCreationIdRouteWithChildren
@@ -787,6 +796,7 @@ export interface FileRouteTypes {
     | '/api/auth/sign-out'
     | '/api/auth/sign-up'
     | '/api/catalog/$lineId'
+    | '/api/catalog/manufacturers'
     | '/api/community/claims'
     | '/api/community/flags'
     | '/api/creations/$creationId'
@@ -868,6 +878,7 @@ export interface FileRouteTypes {
     | '/api/auth/sign-out'
     | '/api/auth/sign-up'
     | '/api/catalog/$lineId'
+    | '/api/catalog/manufacturers'
     | '/api/community/claims'
     | '/api/community/flags'
     | '/api/creations/$creationId'
@@ -949,6 +960,7 @@ export interface FileRouteTypes {
     | '/api/auth/sign-out'
     | '/api/auth/sign-up'
     | '/api/catalog/$lineId'
+    | '/api/catalog/manufacturers'
     | '/api/community/claims'
     | '/api/community/flags'
     | '/api/creations/$creationId'
@@ -1027,6 +1039,7 @@ export interface RootRouteChildren {
   ApiAuthSignOutRoute: typeof ApiAuthSignOutRoute
   ApiAuthSignUpRoute: typeof ApiAuthSignUpRoute
   ApiCatalogLineIdRoute: typeof ApiCatalogLineIdRouteWithChildren
+  ApiCatalogManufacturersRoute: typeof ApiCatalogManufacturersRoute
   ApiCommunityClaimsRoute: typeof ApiCommunityClaimsRouteWithChildren
   ApiCommunityFlagsRoute: typeof ApiCommunityFlagsRoute
   ApiCreationsCreationIdRoute: typeof ApiCreationsCreationIdRouteWithChildren
@@ -1374,6 +1387,13 @@ declare module '@tanstack/react-router' {
       path: '/api/community/claims'
       fullPath: '/api/community/claims'
       preLoaderRoute: typeof ApiCommunityClaimsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/catalog/manufacturers': {
+      id: '/api/catalog/manufacturers'
+      path: '/api/catalog/manufacturers'
+      fullPath: '/api/catalog/manufacturers'
+      preLoaderRoute: typeof ApiCatalogManufacturersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/catalog/$lineId': {
@@ -1804,6 +1824,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSignOutRoute: ApiAuthSignOutRoute,
   ApiAuthSignUpRoute: ApiAuthSignUpRoute,
   ApiCatalogLineIdRoute: ApiCatalogLineIdRouteWithChildren,
+  ApiCatalogManufacturersRoute: ApiCatalogManufacturersRoute,
   ApiCommunityClaimsRoute: ApiCommunityClaimsRouteWithChildren,
   ApiCommunityFlagsRoute: ApiCommunityFlagsRoute,
   ApiCreationsCreationIdRoute: ApiCreationsCreationIdRouteWithChildren,

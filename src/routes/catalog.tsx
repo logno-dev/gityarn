@@ -47,6 +47,22 @@ function CatalogPage() {
   const [weightClassFilter, setWeightClassFilter] = useState('all')
   const [hasBarcodeFilter, setHasBarcodeFilter] = useState<'any' | 'yes' | 'no'>('any')
   const [data, setData] = useState<CatalogResponse | null>(null)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addStatus, setAddStatus] = useState('')
+  const [adding, setAdding] = useState(false)
+  const [reloadToken, setReloadToken] = useState(0)
+  const [addDraft, setAddDraft] = useState({
+    manufacturerName: '',
+    lineName: '',
+    colorwayName: '',
+    colorCode: '',
+    hexReference: '',
+    weightClass: '',
+    fiberContent: '',
+    yardageMeters: '',
+    productUrl: '',
+  })
+  const [manufacturerSuggestions, setManufacturerSuggestions] = useState<Array<{ id: string; name: string; yarnLineCount: number }>>([])
 
   if (pathname !== '/catalog') {
     return <Outlet />
@@ -86,11 +102,35 @@ function CatalogPage() {
     return () => {
       cancelled = true
     }
-  }, [query, weightClassFilter, hasBarcodeFilter, page])
+  }, [query, weightClassFilter, hasBarcodeFilter, page, reloadToken])
 
   useEffect(() => {
     setPage(1)
   }, [query, weightClassFilter, hasBarcodeFilter])
+
+  useEffect(() => {
+    if (!showAddForm) {
+      return
+    }
+    const manufacturerQuery = addDraft.manufacturerName.trim()
+    if (!manufacturerQuery) {
+      setManufacturerSuggestions([])
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      fetch(`/api/catalog/manufacturers?query=${encodeURIComponent(manufacturerQuery)}&limit=8`)
+        .then((response) => response.json() as Promise<{ manufacturers?: Array<{ id: string; name: string; yarnLineCount: number }> }>)
+        .then((payload) => {
+          setManufacturerSuggestions(payload.manufacturers ?? [])
+        })
+        .catch(() => {
+          setManufacturerSuggestions([])
+        })
+    }, 180)
+
+    return () => window.clearTimeout(timer)
+  }, [addDraft.manufacturerName, showAddForm])
 
   const statCards = useMemo(
     () => [
@@ -122,6 +162,52 @@ function CatalogPage() {
     event.preventDefault()
     setQuery(queryInput.trim())
     setPage(1)
+  }
+
+  const onAddCatalogEntry = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (adding) {
+      return
+    }
+
+    setAdding(true)
+    setAddStatus('Saving catalog entry...')
+    const response = await fetch('/api/catalog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        manufacturerName: addDraft.manufacturerName,
+        lineName: addDraft.lineName || null,
+        colorwayName: addDraft.colorwayName || null,
+        colorCode: addDraft.colorCode || null,
+        hexReference: addDraft.hexReference || null,
+        weightClass: addDraft.weightClass || null,
+        fiberContent: addDraft.fiberContent || null,
+        yardageMeters: addDraft.yardageMeters ? Number(addDraft.yardageMeters) : null,
+        productUrl: addDraft.productUrl || null,
+      }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    if (!response.ok) {
+      setAddStatus(payload.message ?? 'Could not add catalog entry.')
+      setAdding(false)
+      return
+    }
+
+    setAddStatus(payload.message ?? 'Catalog entry saved.')
+    setAddDraft({
+      manufacturerName: '',
+      lineName: '',
+      colorwayName: '',
+      colorCode: '',
+      hexReference: '',
+      weightClass: '',
+      fiberContent: '',
+      yardageMeters: '',
+      productUrl: '',
+    })
+    setReloadToken((current) => current + 1)
+    setAdding(false)
   }
 
   const pageStart = data ? (data.pagination.page - 1) * data.pagination.pageSize + (data.lines.length ? 1 : 0) : 0
@@ -165,6 +251,129 @@ function CatalogPage() {
           </select>
         </label>
       </form>
+
+      <article className="soft-panel">
+        <div className="hero-actions" style={{ justifyContent: 'space-between' }}>
+          <div>
+            <strong>Can&apos;t find a brand or line?</strong>
+            <p>Add a manufacturer, then optionally add a line and colorway in one step.</p>
+          </div>
+          <button className="button" onClick={() => setShowAddForm((current) => !current)} type="button">
+            {showAddForm ? 'Close form' : 'Add to catalog'}
+          </button>
+        </div>
+        {showAddForm ? (
+          <form className="stack-form" onSubmit={onAddCatalogEntry}>
+            <label>
+              Manufacturer name *
+              <input
+                list="catalog-manufacturer-suggestions"
+                onChange={(event) => setAddDraft((current) => ({ ...current, manufacturerName: event.target.value }))}
+                placeholder="ex: Hobbii"
+                required
+                type="text"
+                value={addDraft.manufacturerName}
+              />
+            </label>
+            <datalist id="catalog-manufacturer-suggestions">
+              {manufacturerSuggestions.map((manufacturer) => (
+                <option key={manufacturer.id} value={manufacturer.name}>
+                  {manufacturer.name}
+                </option>
+              ))}
+            </datalist>
+            {manufacturerSuggestions.length ? (
+              <p>
+                Suggestions: {manufacturerSuggestions.map((manufacturer) => `${manufacturer.name} (${manufacturer.yarnLineCount} lines)`).join(', ')}
+              </p>
+            ) : null}
+            <label>
+              Yarn line name
+              <input
+                onChange={(event) => setAddDraft((current) => ({ ...current, lineName: event.target.value }))}
+                placeholder="ex: Rainbow Cotton 8/8"
+                type="text"
+                value={addDraft.lineName}
+              />
+            </label>
+            <label>
+              Colorway name
+              <input
+                onChange={(event) => setAddDraft((current) => ({ ...current, colorwayName: event.target.value }))}
+                placeholder="ex: Dusty Rose"
+                type="text"
+                value={addDraft.colorwayName}
+              />
+            </label>
+            <div className="inventory-row">
+              <label>
+                Color code
+                <input
+                  onChange={(event) => setAddDraft((current) => ({ ...current, colorCode: event.target.value }))}
+                  placeholder="ex: 047"
+                  type="text"
+                  value={addDraft.colorCode}
+                />
+              </label>
+              <label>
+                Hex reference
+                <input
+                  onChange={(event) => setAddDraft((current) => ({ ...current, hexReference: event.target.value }))}
+                  placeholder="ex: #b76d7f"
+                  type="text"
+                  value={addDraft.hexReference}
+                />
+              </label>
+            </div>
+            <div className="inventory-row">
+              <label>
+                Weight class
+                <input
+                  onChange={(event) => setAddDraft((current) => ({ ...current, weightClass: event.target.value }))}
+                  placeholder="ex: DK"
+                  type="text"
+                  value={addDraft.weightClass}
+                />
+              </label>
+              <label>
+                Fiber content
+                <input
+                  onChange={(event) => setAddDraft((current) => ({ ...current, fiberContent: event.target.value }))}
+                  placeholder="ex: 100% cotton"
+                  type="text"
+                  value={addDraft.fiberContent}
+                />
+              </label>
+            </div>
+            <div className="inventory-row">
+              <label>
+                Yardage (meters)
+                <input
+                  min={0}
+                  onChange={(event) => setAddDraft((current) => ({ ...current, yardageMeters: event.target.value }))}
+                  type="number"
+                  value={addDraft.yardageMeters}
+                />
+              </label>
+              <label>
+                Product URL
+                <input
+                  onChange={(event) => setAddDraft((current) => ({ ...current, productUrl: event.target.value }))}
+                  placeholder="https://..."
+                  type="url"
+                  value={addDraft.productUrl}
+                />
+              </label>
+            </div>
+            <div className="hero-actions">
+              <button className="button button-primary" disabled={adding} type="submit">
+                {adding ? 'Saving...' : 'Save catalog entry'}
+              </button>
+              {addStatus ? <span>{addStatus}</span> : null}
+            </div>
+          </form>
+        ) : null}
+      </article>
 
       <div className="catalog-stat-grid">
         {statCards.map((card) => (
