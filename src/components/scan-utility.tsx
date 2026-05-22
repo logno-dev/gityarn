@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { Camera, Plus, ScanLine, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -29,7 +29,6 @@ type SearchPayload = {
 }
 
 export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
-  const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
   const frameRef = useRef<number | null>(null)
   const zxingControlsRef = useRef<{ stop: () => void } | null>(null)
@@ -83,6 +82,14 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
 
     return options
   }, [searchData])
+
+  const createItemSearch = useMemo(
+    () => ({
+      barcode,
+      q: searchQuery.trim(),
+    }),
+    [barcode, searchQuery],
+  )
 
   useEffect(() => {
     if (!open) {
@@ -500,13 +507,9 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
       setOpen(false)
     }
 
-    await navigate({
-      to: '/scan/create-item',
-      search: {
-        barcode,
-        q: searchQuery.trim(),
-      },
-    })
+    const query = new URLSearchParams(createItemSearch)
+    const target = `/scan/create-item?${query.toString()}`
+    window.location.assign(target)
   }
 
   const panel = (
@@ -662,9 +665,16 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
           ) : null}
 
           {!searchLoading && searchQuery.trim().length >= 2 && searchData && searchData.lines.length === 0 ? (
-            <button className="button" onClick={() => void openCreatePage()} type="button">
+            <Link
+              className="button"
+              onClick={() => {
+                void openCreatePage()
+              }}
+              search={createItemSearch}
+              to="/scan/create-item"
+            >
               <Plus size={14} /> No matches. Create new item
-            </button>
+            </Link>
           ) : null}
 
           <button className="button button-primary" onClick={() => void associateAndAdd()} type="button">

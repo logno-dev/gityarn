@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
 export const Route = createFileRoute('/scan/create-item')({
@@ -16,6 +16,7 @@ function ScanCreateItemPage() {
 
   const [status, setStatus] = useState('')
   const [saving, setSaving] = useState(false)
+  const [manufacturerSuggestions, setManufacturerSuggestions] = useState<Array<{ id: string; name: string; yarnLineCount: number }>>([])
   const [form, setForm] = useState({
     manufacturerName: '',
     lineName: search.q,
@@ -28,6 +29,27 @@ function ScanCreateItemPage() {
   })
 
   const hasBarcode = useMemo(() => Boolean(search.barcode.trim()), [search.barcode])
+
+  useEffect(() => {
+    const manufacturerQuery = form.manufacturerName.trim()
+    if (!manufacturerQuery) {
+      setManufacturerSuggestions([])
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      fetch(`/api/catalog/manufacturers?query=${encodeURIComponent(manufacturerQuery)}&limit=8`)
+        .then((response) => response.json() as Promise<{ manufacturers?: Array<{ id: string; name: string; yarnLineCount: number }> }>)
+        .then((payload) => {
+          setManufacturerSuggestions(payload.manufacturers ?? [])
+        })
+        .catch(() => {
+          setManufacturerSuggestions([])
+        })
+    }, 180)
+
+    return () => window.clearTimeout(timer)
+  }, [form.manufacturerName])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -89,12 +111,26 @@ function ScanCreateItemPage() {
           <label>
             Manufacturer name
             <input
+              list="scan-create-item-manufacturer-suggestions"
               onChange={(event) => setForm((current) => ({ ...current, manufacturerName: event.target.value }))}
               required
               type="text"
               value={form.manufacturerName}
             />
           </label>
+          <datalist id="scan-create-item-manufacturer-suggestions">
+            {manufacturerSuggestions.map((manufacturer) => (
+              <option key={manufacturer.id} value={manufacturer.name}>
+                {manufacturer.name}
+              </option>
+            ))}
+          </datalist>
+          {manufacturerSuggestions.length ? (
+            <p>
+              Suggestions:{' '}
+              {manufacturerSuggestions.map((manufacturer) => `${manufacturer.name} (${manufacturer.yarnLineCount} lines)`).join(', ')}
+            </p>
+          ) : null}
           <label>
             Yarn line name
             <input

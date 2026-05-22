@@ -24,6 +24,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountSettingsRouteImport } from './routes/account-settings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ScanIndexRouteImport } from './routes/scan.index'
 import { Route as ScanCreateItemRouteImport } from './routes/scan.create-item'
 import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
@@ -164,6 +165,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ScanIndexRoute = ScanIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ScanRoute,
 } as any)
 const ScanCreateItemRoute = ScanCreateItemRouteImport.update({
   id: '/create-item',
@@ -536,6 +542,7 @@ export interface FileRoutesByFullPath {
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
+  '/scan/': typeof ScanIndexRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
   '/api/admin/carousel': typeof ApiAdminCarouselRoute
@@ -605,7 +612,6 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/scan': typeof ScanRouteWithChildren
   '/share-intake': typeof ShareIntakeRoute
   '/sign-in': typeof SignInRoute
   '/api/account-settings': typeof ApiAccountSettingsRouteWithChildren
@@ -618,6 +624,7 @@ export interface FileRoutesByTo {
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
+  '/scan': typeof ScanIndexRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
   '/api/admin/carousel': typeof ApiAdminCarouselRoute
@@ -701,6 +708,7 @@ export interface FileRoutesById {
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
+  '/scan/': typeof ScanIndexRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
   '/api/account-settings/password': typeof ApiAccountSettingsPasswordRoute
   '/api/admin/carousel': typeof ApiAdminCarouselRoute
@@ -785,6 +793,7 @@ export interface FileRouteTypes {
     | '/post/$postId'
     | '/profile/$userId'
     | '/scan/create-item'
+    | '/scan/'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
     | '/api/admin/carousel'
@@ -854,7 +863,6 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/register'
     | '/reset-password'
-    | '/scan'
     | '/share-intake'
     | '/sign-in'
     | '/api/account-settings'
@@ -867,6 +875,7 @@ export interface FileRouteTypes {
     | '/post/$postId'
     | '/profile/$userId'
     | '/scan/create-item'
+    | '/scan'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
     | '/api/admin/carousel'
@@ -949,6 +958,7 @@ export interface FileRouteTypes {
     | '/post/$postId'
     | '/profile/$userId'
     | '/scan/create-item'
+    | '/scan/'
     | '/api/account-settings/avatar'
     | '/api/account-settings/password'
     | '/api/admin/carousel'
@@ -1171,6 +1181,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/scan/': {
+      id: '/scan/'
+      path: '/'
+      fullPath: '/scan/'
+      preLoaderRoute: typeof ScanIndexRouteImport
+      parentRoute: typeof ScanRoute
     }
     '/scan/create-item': {
       id: '/scan/create-item'
@@ -1643,10 +1660,12 @@ const CatalogRouteWithChildren =
 
 interface ScanRouteChildren {
   ScanCreateItemRoute: typeof ScanCreateItemRoute
+  ScanIndexRoute: typeof ScanIndexRoute
 }
 
 const ScanRouteChildren: ScanRouteChildren = {
   ScanCreateItemRoute: ScanCreateItemRoute,
+  ScanIndexRoute: ScanIndexRoute,
 }
 
 const ScanRouteWithChildren = ScanRoute._addFileChildren(ScanRouteChildren)
