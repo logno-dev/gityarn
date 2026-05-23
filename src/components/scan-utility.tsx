@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { Camera, Plus, ScanLine, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -29,6 +29,7 @@ type SearchPayload = {
 }
 
 export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
+  const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
   const frameRef = useRef<number | null>(null)
   const zxingControlsRef = useRef<{ stop: () => void } | null>(null)
@@ -82,14 +83,6 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
 
     return options
   }, [searchData])
-
-  const createItemSearch = useMemo(
-    () => ({
-      barcode,
-      q: searchQuery.trim(),
-    }),
-    [barcode, searchQuery],
-  )
 
   useEffect(() => {
     if (!open) {
@@ -498,18 +491,37 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
   }
 
   const openCreatePage = async () => {
-    if (!barcode) {
+    const normalizedBarcode = barcode.trim().replace(/^"(.+)"$/, '$1')
+    if (!normalizedBarcode) {
       setStatus('Scan barcode first.')
       return
+    }
+
+    const trimmedQuery = searchQuery.trim()
+    const createItemSearch = {
+      barcode: normalizedBarcode,
+      q: trimmedQuery,
+    }
+
+    try {
+      window.sessionStorage.setItem('scan-create-item-draft', JSON.stringify(createItemSearch))
+    } catch {
+      // Ignore storage failures in private/restricted browser modes.
     }
 
     if (showFab) {
       setOpen(false)
     }
 
-    const query = new URLSearchParams(createItemSearch)
-    const target = `/scan/create-item?${query.toString()}`
-    window.location.assign(target)
+    try {
+      await navigate({
+        to: '/scan/create-item',
+        search: createItemSearch,
+      })
+    } catch {
+      const query = new URLSearchParams(createItemSearch)
+      window.location.assign(`/scan/create-item?${query.toString()}`)
+    }
   }
 
   const panel = (
@@ -665,16 +677,9 @@ export function ScanUtility({ showFab = true }: { showFab?: boolean }) {
           ) : null}
 
           {!searchLoading && searchQuery.trim().length >= 2 && searchData && searchData.lines.length === 0 ? (
-            <Link
-              className="button"
-              onClick={() => {
-                void openCreatePage()
-              }}
-              search={createItemSearch}
-              to="/scan/create-item"
-            >
+            <button className="button" onClick={() => void openCreatePage()} type="button">
               <Plus size={14} /> No matches. Create new item
-            </Link>
+            </button>
           ) : null}
 
           <button className="button button-primary" onClick={() => void associateAndAdd()} type="button">

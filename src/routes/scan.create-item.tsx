@@ -2,10 +2,20 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
+const normalizeSearchText = (value: unknown) => {
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  const trimmed = value.trim()
+  const unwrapped = trimmed.replace(/^"(.+)"$/, '$1')
+  return unwrapped.trim()
+}
+
 export const Route = createFileRoute('/scan/create-item')({
   validateSearch: (search: Record<string, unknown>) => ({
-    barcode: typeof search.barcode === 'string' ? search.barcode : '',
-    q: typeof search.q === 'string' ? search.q : '',
+    barcode: normalizeSearchText(search.barcode),
+    q: normalizeSearchText(search.q),
   }),
   component: ScanCreateItemPage,
 })
@@ -13,13 +23,14 @@ export const Route = createFileRoute('/scan/create-item')({
 function ScanCreateItemPage() {
   const navigate = useNavigate()
   const search = Route.useSearch()
+  const [fallbackSearch, setFallbackSearch] = useState({ barcode: '', q: '' })
 
   const [status, setStatus] = useState('')
   const [saving, setSaving] = useState(false)
   const [manufacturerSuggestions, setManufacturerSuggestions] = useState<Array<{ id: string; name: string; yarnLineCount: number }>>([])
   const [form, setForm] = useState({
     manufacturerName: '',
-    lineName: search.q,
+    lineName: search.q || fallbackSearch.q,
     colorwayName: '',
     colorCode: '',
     weightClass: '',
@@ -28,7 +39,31 @@ function ScanCreateItemPage() {
     productUrl: '',
   })
 
-  const hasBarcode = useMemo(() => Boolean(search.barcode.trim()), [search.barcode])
+  const barcodeValue = useMemo(() => search.barcode || fallbackSearch.barcode, [search.barcode, fallbackSearch.barcode])
+  const hasBarcode = useMemo(() => Boolean(barcodeValue.trim()), [barcodeValue])
+
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem('scan-create-item-draft')
+      if (!raw) {
+        return
+      }
+
+      const parsed = JSON.parse(raw) as { barcode?: unknown; q?: unknown }
+      setFallbackSearch({
+        barcode: normalizeSearchText(parsed.barcode),
+        q: normalizeSearchText(parsed.q),
+      })
+    } catch {
+      setFallbackSearch({ barcode: '', q: '' })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!search.q && fallbackSearch.q) {
+      setForm((current) => ({ ...current, lineName: current.lineName || fallbackSearch.q }))
+    }
+  }, [search.q, fallbackSearch.q])
 
   useEffect(() => {
     const manufacturerQuery = form.manufacturerName.trim()
@@ -64,7 +99,7 @@ function ScanCreateItemPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        barcodeValue: search.barcode,
+        barcodeValue,
         manufacturerName: form.manufacturerName,
         lineName: form.lineName,
         colorwayName: form.colorwayName || null,
@@ -105,9 +140,13 @@ function ScanCreateItemPage() {
     <section className="page-stack page-narrow">
       <article className="soft-panel">
         <p>
-          Barcode: <strong>{search.barcode || 'Not provided'}</strong>
+          Barcode: <strong>{barcodeValue || 'Not provided'}</strong>
         </p>
         <form className="stack-form" onSubmit={submit}>
+          <label>
+            Barcode
+            <input readOnly type="text" value={barcodeValue} />
+          </label>
           <label>
             Manufacturer name
             <input
