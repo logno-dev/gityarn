@@ -157,7 +157,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
           const previewGenerated = Boolean(updatePayload.pdfPreviewR2Key)
           const warning = previewGenerated
             ? null
-            : 'PDF uploaded, but automatic cover generation failed on this server. Upload a cover image manually (or configure PDF_PREVIEW_RENDER_URL for server-side conversion).'
+            : 'PDF uploaded, but automatic cover generation failed. Upload a cover image manually.'
           return Response.json(
             {
               message: warning ? 'Pattern PDF uploaded with warning.' : 'Pattern PDF uploaded.',

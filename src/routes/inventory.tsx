@@ -497,6 +497,11 @@ function InventoryPage() {
               'PDF uploaded, but generated cover upload failed. You can upload a cover image manually.',
           }
         }
+
+        return {
+          ...result,
+          warning: null,
+        }
       } else {
         return {
           ...result,
