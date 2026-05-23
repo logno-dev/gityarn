@@ -9,6 +9,7 @@ import { getServerEnv } from '#/lib/env'
 import { getR2Client } from '#/lib/r2/client'
 
 const execFileAsync = promisify(execFile)
+const PDF_FETCH_RETRY_DELAYS_MS = [0, 250, 600, 1200]
 
 type PdfImageResult = {
   key: string
@@ -31,8 +32,7 @@ async function generatePatternPdfImageAsset(params: {
   try {
     const client = getR2Client()
     const bucket = getServerEnv().R2_BUCKET
-    const object = await client.send(new GetObjectCommand({ Bucket: bucket, Key: params.pdfR2Key }))
-    const bytes = await object.Body?.transformToByteArray()
+    const bytes = await fetchPdfBytesWithRetry({ bucket, key: params.pdfR2Key })
     if (!bytes) {
       return null
     }
@@ -58,6 +58,37 @@ async function generatePatternPdfImageAsset(params: {
     console.error(`[patterns] PDF preview generation failed for pattern ${params.patternId}: ${message}`)
     return null
   }
+}
+
+async function fetchPdfBytesWithRetry(params: { bucket: string; key: string }) {
+  const client = getR2Client()
+
+  for (let index = 0; index < PDF_FETCH_RETRY_DELAYS_MS.length; index += 1) {
+    const delayMs = PDF_FETCH_RETRY_DELAYS_MS[index]
+    if (delayMs > 0) {
+      await wait(delayMs)
+    }
+
+    try {
+      const object = await client.send(new GetObjectCommand({ Bucket: params.bucket, Key: params.key }))
+      const bytes = await object.Body?.transformToByteArray()
+      if (bytes?.length) {
+        return bytes
+      }
+    } catch (error) {
+      if (index === PDF_FETCH_RETRY_DELAYS_MS.length - 1) {
+        throw error
+      }
+    }
+  }
+
+  return null
+}
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms)
+  })
 }
 
 async function renderPdfFirstPageToJpeg(pdfBuffer: Buffer): Promise<Buffer> {

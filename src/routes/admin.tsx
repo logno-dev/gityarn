@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { AlertTriangle, ExternalLink, ImagePlus, Save, ShieldCheck, Trash2, Users, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
@@ -34,9 +34,14 @@ type AdminPayload = {
   openFlags: Array<{
     id: string
     entityType: string
+    entityId: string
     reason: string
     details: string | null
     createdByName: string
+    lineId: string | null
+    lineName: string | null
+    manufacturerName: string | null
+    barcodeValue: string | null
   }>
   recentPublicContent: {
     patterns: Array<{
@@ -320,8 +325,18 @@ function AdminPage() {
                   <div className="catalog-subrow" key={flag.id}>
                     <div>
                       <strong>{flag.entityType} · {flag.reason}</strong>
-                      <span>{flag.createdByName}{flag.details ? ` · ${flag.details}` : ''}</span>
+                      <span>
+                        {flag.createdByName}
+                        {flag.details ? ` · ${flag.details}` : ''}
+                        {flag.barcodeValue ? ` · Barcode ${flag.barcodeValue}` : ''}
+                        {flag.manufacturerName && flag.lineName ? ` · ${flag.manufacturerName} / ${flag.lineName}` : ''}
+                      </span>
                     </div>
+                    {flag.lineId ? (
+                      <Link className="button" params={{ lineId: flag.lineId }} to="/catalog/$lineId">
+                        Edit catalog item
+                      </Link>
+                    ) : null}
                   </div>
                 ))}
               </div>

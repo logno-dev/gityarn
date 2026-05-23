@@ -1,9 +1,9 @@
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { getAuthenticatedUser } from '#/lib/auth/service'
 import { getDb } from '#/lib/db/client'
-import { carouselItems, communityClaimVotes, communityClaims, communityFlags, creations, inventoryYarn, patterns, posts, users } from '#/lib/db/schema'
+import { barcodes, carouselItems, communityClaimVotes, communityClaims, communityFlags, creations, inventoryYarn, manufacturers, patterns, posts, users, yarnLines } from '#/lib/db/schema'
 
 export const Route = createFileRoute('/api/admin/overview')({
   server: {
@@ -69,6 +69,7 @@ export const Route = createFileRoute('/api/admin/overview')({
           .select({
             id: communityFlags.id,
             entityType: communityFlags.entityType,
+            entityId: communityFlags.entityId,
             reason: communityFlags.reason,
             details: communityFlags.details,
             createdByName: users.displayName,
@@ -79,6 +80,26 @@ export const Route = createFileRoute('/api/admin/overview')({
           .where(eq(communityFlags.status, 'open'))
           .orderBy(desc(communityFlags.createdAt))
           .limit(20)
+
+        const flaggedBarcodeIds = flagRows.filter((flag) => flag.entityType === 'barcode_association').map((flag) => flag.entityId)
+        const barcodeFlagMap = flaggedBarcodeIds.length
+          ? new Map(
+              (
+                await db
+                  .select({
+                    barcodeId: barcodes.id,
+                    lineId: yarnLines.id,
+                    lineName: yarnLines.name,
+                    manufacturerName: manufacturers.name,
+                    barcodeValue: barcodes.barcodeValue,
+                  })
+                  .from(barcodes)
+                  .leftJoin(yarnLines, eq(barcodes.yarnLineId, yarnLines.id))
+                  .leftJoin(manufacturers, eq(yarnLines.manufacturerId, manufacturers.id))
+                  .where(inArray(barcodes.id, flaggedBarcodeIds))
+              ).map((item) => [item.barcodeId, item]),
+            )
+          : new Map<string, { lineId: string | null; lineName: string | null; manufacturerName: string | null; barcodeValue: string | null }>()
 
         const recentPatterns = await db
           .select({
@@ -152,7 +173,16 @@ export const Route = createFileRoute('/api/admin/overview')({
               role: user.role === 'admin' ? 'admin' : 'member',
             })),
             openClaims: claimRows,
-            openFlags: flagRows,
+            openFlags: flagRows.map((flag) => {
+              const barcodeContext = flag.entityType === 'barcode_association' ? barcodeFlagMap.get(flag.entityId) : null
+              return {
+                ...flag,
+                lineId: barcodeContext?.lineId ?? null,
+                lineName: barcodeContext?.lineName ?? null,
+                manufacturerName: barcodeContext?.manufacturerName ?? null,
+                barcodeValue: barcodeContext?.barcodeValue ?? null,
+              }
+            }),
             recentPublicContent: {
               patterns: recentPatterns,
               creations: recentCreations,

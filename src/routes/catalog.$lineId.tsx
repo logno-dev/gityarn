@@ -8,9 +8,11 @@ import { CommentThread } from '#/components/comment-thread'
 export const Route = createFileRoute('/catalog/$lineId')({ component: CatalogLinePage })
 
 type LineDetailResponse = {
+  canAdminEdit?: boolean
   line: {
     id: string
     name: string
+    manufacturerId: string
     manufacturerName: string
     weightClass: string | null
     fiberContent: string | null
@@ -82,6 +84,18 @@ function CatalogLinePage() {
   const [colorwayAddDraft, setColorwayAddDraft] = useState({ name: '', colorCode: '', hexReference: '' })
   const [modalClaims, setModalClaims] = useState<Claim[]>([])
   const [modalClaimsLoading, setModalClaimsLoading] = useState(false)
+  const [adminStatus, setAdminStatus] = useState<string | null>(null)
+  const [lineDraft, setLineDraft] = useState({
+    manufacturerName: '',
+    name: '',
+    weightClass: '',
+    fiberContent: '',
+    yardageMeters: '',
+    needleOrHookRange: '',
+    productUrl: '',
+  })
+  const [colorwayDrafts, setColorwayDrafts] = useState<Record<string, { name: string; colorCode: string; hexReference: string }>>({})
+  const [barcodeDrafts, setBarcodeDrafts] = useState<Record<string, { barcodeValue: string; colorwayId: string }>>({})
 
   useEffect(() => {
     void loadLineDetail(lineId, setData, setLoading, setError)
@@ -90,6 +104,31 @@ function CatalogLinePage() {
   useEffect(() => {
     void loadClaims(lineId, setClaimsData)
   }, [lineId])
+
+  useEffect(() => {
+    if (!data) {
+      return
+    }
+    setLineDraft({
+      manufacturerName: data.line.manufacturerName,
+      name: data.line.name,
+      weightClass: data.line.weightClass ?? '',
+      fiberContent: data.line.fiberContent ?? '',
+      yardageMeters: data.line.yardageMeters ? String(data.line.yardageMeters) : '',
+      needleOrHookRange: data.line.needleOrHookRange ?? '',
+      productUrl: data.line.productUrl ?? '',
+    })
+    setColorwayDrafts(
+      Object.fromEntries(
+        data.colorways.map((item) => [item.id, { name: item.name, colorCode: item.colorCode ?? '', hexReference: item.hexReference ?? '' }]),
+      ),
+    )
+    setBarcodeDrafts(
+      Object.fromEntries(
+        data.barcodes.map((item) => [item.id, { barcodeValue: item.barcodeValue, colorwayId: item.colorwayId ?? '' }]),
+      ),
+    )
+  }, [data])
 
   const claimsByField = useMemo(() => {
     const map = new Map<string, Claim[]>()
@@ -251,6 +290,119 @@ function CatalogLinePage() {
     setCommunityMessage(payload.message ?? (response.ok ? 'Flag submitted.' : 'Could not submit flag.'))
   }
 
+  const saveAdminLine = async () => {
+    const response = await fetch(`/api/catalog/${lineId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entityType: 'line',
+        manufacturerName: lineDraft.manufacturerName,
+        name: lineDraft.name,
+        weightClass: lineDraft.weightClass,
+        fiberContent: lineDraft.fiberContent,
+        yardageMeters: lineDraft.yardageMeters ? Number(lineDraft.yardageMeters) : null,
+        needleOrHookRange: lineDraft.needleOrHookRange,
+        productUrl: lineDraft.productUrl,
+      }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setAdminStatus(payload.message ?? (response.ok ? 'Saved.' : 'Could not save line.'))
+    if (response.ok) {
+      await loadLineDetail(lineId, setData, setLoading, setError)
+    }
+  }
+
+  const saveAdminColorway = async (colorwayId: string) => {
+    const draft = colorwayDrafts[colorwayId]
+    if (!draft) return
+    const response = await fetch(`/api/catalog/${lineId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entityType: 'colorway', entityId: colorwayId, ...draft }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setAdminStatus(payload.message ?? (response.ok ? 'Saved.' : 'Could not save colorway.'))
+    if (response.ok) {
+      await loadLineDetail(lineId, setData, setLoading, setError)
+    }
+  }
+
+  const deleteAdminColorway = async (colorwayId: string) => {
+    const response = await fetch(`/api/catalog/${lineId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entityType: 'colorway', entityId: colorwayId }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setAdminStatus(payload.message ?? (response.ok ? 'Deleted.' : 'Could not delete colorway.'))
+    if (response.ok) {
+      await loadLineDetail(lineId, setData, setLoading, setError)
+    }
+  }
+
+  const saveAdminBarcode = async (barcodeId: string) => {
+    const draft = barcodeDrafts[barcodeId]
+    if (!draft) return
+    const response = await fetch(`/api/catalog/${lineId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entityType: 'barcode',
+        entityId: barcodeId,
+        barcodeValue: draft.barcodeValue,
+        colorwayId: draft.colorwayId || null,
+      }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setAdminStatus(payload.message ?? (response.ok ? 'Saved.' : 'Could not save barcode.'))
+    if (response.ok) {
+      await loadLineDetail(lineId, setData, setLoading, setError)
+    }
+  }
+
+  const deleteAdminBarcode = async (barcodeId: string) => {
+    const response = await fetch(`/api/catalog/${lineId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entityType: 'barcode', entityId: barcodeId }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setAdminStatus(payload.message ?? (response.ok ? 'Deleted.' : 'Could not delete barcode.'))
+    if (response.ok) {
+      await loadLineDetail(lineId, setData, setLoading, setError)
+    }
+  }
+
+  const deleteAdminLine = async () => {
+    const ok = window.confirm('Delete this yarn line and all associated colorways/barcodes? This cannot be undone.')
+    if (!ok) return
+    const response = await fetch(`/api/catalog/${lineId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entityType: 'line' }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setAdminStatus(payload.message ?? (response.ok ? 'Line deleted.' : 'Could not delete line.'))
+    if (response.ok) {
+      window.location.assign('/catalog')
+    }
+  }
+
+  const deleteAdminManufacturer = async () => {
+    const typed = window.prompt(`Type the manufacturer name to confirm delete: ${data?.line.manufacturerName ?? ''}`) ?? ''
+    if (!typed.trim()) return
+    const response = await fetch(`/api/catalog/${lineId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entityType: 'manufacturer', confirmName: typed.trim() }),
+    })
+    const payload = (await response.json()) as { message?: string }
+    setAdminStatus(payload.message ?? (response.ok ? 'Manufacturer deleted.' : 'Could not delete manufacturer.'))
+    if (response.ok) {
+      window.location.assign('/catalog')
+    }
+  }
+
   const getDisplayValue = (field: EditableFieldKey, baseValue: string | number | null) => {
     const claims = claimsByField.get(field) ?? []
     const winner = [...claims]
@@ -386,6 +538,68 @@ function CatalogLinePage() {
               )}
             </div>
           </article>
+
+          {data.canAdminEdit ? (
+            <article className="soft-panel">
+              <h2>Admin catalog controls</h2>
+              {adminStatus ? <p>{adminStatus}</p> : null}
+              <div className="stack-form">
+                <label>Manufacturer<input onChange={(event) => setLineDraft((current) => ({ ...current, manufacturerName: event.target.value }))} type="text" value={lineDraft.manufacturerName} /></label>
+                <label>Line name<input onChange={(event) => setLineDraft((current) => ({ ...current, name: event.target.value }))} type="text" value={lineDraft.name} /></label>
+                <label>Weight class<input onChange={(event) => setLineDraft((current) => ({ ...current, weightClass: event.target.value }))} type="text" value={lineDraft.weightClass} /></label>
+                <label>Fiber content<input onChange={(event) => setLineDraft((current) => ({ ...current, fiberContent: event.target.value }))} type="text" value={lineDraft.fiberContent} /></label>
+                <label>Yardage meters<input onChange={(event) => setLineDraft((current) => ({ ...current, yardageMeters: event.target.value }))} type="number" value={lineDraft.yardageMeters} /></label>
+                <label>Needle / Hook range<input onChange={(event) => setLineDraft((current) => ({ ...current, needleOrHookRange: event.target.value }))} type="text" value={lineDraft.needleOrHookRange} /></label>
+                <label>Product URL<input onChange={(event) => setLineDraft((current) => ({ ...current, productUrl: event.target.value }))} type="text" value={lineDraft.productUrl} /></label>
+                <button className="button button-primary" onClick={() => void saveAdminLine()} type="button">Save line</button>
+              </div>
+              <h3>Colorways</h3>
+              <div className="catalog-sublist">
+                {data.colorways.map((item) => {
+                  const draft = colorwayDrafts[item.id] ?? { name: item.name, colorCode: item.colorCode ?? '', hexReference: item.hexReference ?? '' }
+                  return (
+                    <div className="catalog-subrow" key={item.id}>
+                      <div className="stack-form">
+                        <input onChange={(event) => setColorwayDrafts((current) => ({ ...current, [item.id]: { ...draft, name: event.target.value } }))} type="text" value={draft.name} />
+                        <input onChange={(event) => setColorwayDrafts((current) => ({ ...current, [item.id]: { ...draft, colorCode: event.target.value } }))} placeholder="Color code" type="text" value={draft.colorCode} />
+                        <input onChange={(event) => setColorwayDrafts((current) => ({ ...current, [item.id]: { ...draft, hexReference: event.target.value } }))} placeholder="Hex" type="text" value={draft.hexReference} />
+                      </div>
+                      <div className="hero-actions">
+                        <button className="button" onClick={() => void saveAdminColorway(item.id)} type="button">Save</button>
+                        <button className="button" onClick={() => void deleteAdminColorway(item.id)} type="button">Delete</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <h3>Barcodes</h3>
+              <div className="catalog-sublist">
+                {data.barcodes.map((item) => {
+                  const draft = barcodeDrafts[item.id] ?? { barcodeValue: item.barcodeValue, colorwayId: item.colorwayId ?? '' }
+                  return (
+                    <div className="catalog-subrow" key={item.id}>
+                      <div className="stack-form">
+                        <input onChange={(event) => setBarcodeDrafts((current) => ({ ...current, [item.id]: { ...draft, barcodeValue: event.target.value } }))} type="text" value={draft.barcodeValue} />
+                        <select onChange={(event) => setBarcodeDrafts((current) => ({ ...current, [item.id]: { ...draft, colorwayId: event.target.value } }))} value={draft.colorwayId}>
+                          <option value="">Line-level only</option>
+                          {data.colorways.map((colorway) => <option key={colorway.id} value={colorway.id}>{colorway.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="hero-actions">
+                        <button className="button" onClick={() => void saveAdminBarcode(item.id)} type="button">Save</button>
+                        <button className="button" onClick={() => void deleteAdminBarcode(item.id)} type="button">Delete</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <h3>Danger zone</h3>
+              <div className="hero-actions">
+                <button className="button" onClick={() => void deleteAdminLine()} type="button">Delete line</button>
+                <button className="button" onClick={() => void deleteAdminManufacturer()} type="button">Delete manufacturer</button>
+              </div>
+            </article>
+          ) : null}
 
           <CommentThread entityId={lineId} entityType="yarn_line" />
         </>
