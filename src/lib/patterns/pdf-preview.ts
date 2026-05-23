@@ -101,12 +101,12 @@ async function renderPdfFirstPageToJpeg(pdfBuffer: Buffer): Promise<Buffer> {
       return await renderPdfWithPdftoppm(pdfBuffer)
     } catch (pdfToPpmError) {
       try {
-        return await renderPdfWithPdfJsCanvas(pdfBuffer)
-      } catch (pdfJsError) {
+        return await renderPdfWithExternalService(pdfBuffer)
+      } catch (externalError) {
         const sharpMessage = sharpError instanceof Error ? sharpError.message : 'unknown sharp error'
         const pdfToPpmMessage = pdfToPpmError instanceof Error ? pdfToPpmError.message : 'unknown pdftoppm error'
-        const pdfJsMessage = pdfJsError instanceof Error ? pdfJsError.message : 'unknown pdfjs error'
-        throw new Error(`sharp failed: ${sharpMessage}; pdftoppm failed: ${pdfToPpmMessage}; pdfjs failed: ${pdfJsMessage}`)
+        const externalMessage = externalError instanceof Error ? externalError.message : 'unknown external renderer error'
+        throw new Error(`sharp failed: ${sharpMessage}; pdftoppm failed: ${pdfToPpmMessage}; external failed: ${externalMessage}`)
       }
     }
   }
@@ -127,28 +127,35 @@ async function renderPdfWithPdftoppm(pdfBuffer: Buffer): Promise<Buffer> {
   }
 }
 
-async function renderPdfWithPdfJsCanvas(pdfBuffer: Buffer): Promise<Buffer> {
-  const [{ GlobalWorkerOptions, getDocument }, { createCanvas }, workerAsset] = await Promise.all([
-    import('pdfjs-dist/legacy/build/pdf.mjs'),
-    import('@napi-rs/canvas'),
-    import('pdfjs-dist/legacy/build/pdf.worker.mjs?url'),
-  ])
+async function renderPdfWithExternalService(pdfBuffer: Buffer): Promise<Buffer> {
+  const renderUrl = getServerEnv().PDF_PREVIEW_RENDER_URL
+  if (!renderUrl) {
+    throw new Error('PDF_PREVIEW_RENDER_URL is not configured')
+  }
 
-  GlobalWorkerOptions.workerSrc = typeof workerAsset.default === 'string' ? workerAsset.default : 'pdfjs-dist/legacy/build/pdf.worker.mjs'
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15000)
+  try {
+    const response = await fetch(renderUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/pdf',
+        Accept: 'image/jpeg',
+      },
+      body: new Uint8Array(pdfBuffer),
+      signal: controller.signal,
+    })
 
-  const document = await getDocument({ data: new Uint8Array(pdfBuffer), disableWorker: true } as any).promise
-  const page = await document.getPage(1)
-  const baseViewport = page.getViewport({ scale: 1 })
-  const scale = Math.min(2, 680 / Math.max(1, baseViewport.width))
-  const viewport = page.getViewport({ scale })
+    if (!response.ok) {
+      throw new Error(`renderer HTTP ${response.status}`)
+    }
 
-  const canvas = createCanvas(Math.max(1, Math.floor(viewport.width)), Math.max(1, Math.floor(viewport.height)))
-  const context = canvas.getContext('2d')
-
-  await page.render({
-    canvas: canvas as unknown as HTMLCanvasElement,
-    canvasContext: context as unknown as CanvasRenderingContext2D,
-    viewport,
-  }).promise
-  return canvas.toBuffer('image/jpeg', 82)
+    const result = Buffer.from(await response.arrayBuffer())
+    if (!result.length) {
+      throw new Error('renderer returned empty response')
+    }
+    return result
+  } finally {
+    clearTimeout(timeout)
+  }
 }

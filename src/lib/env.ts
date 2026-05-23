@@ -20,6 +20,7 @@ const serverEnvSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().email().optional(),
   APP_BASE_URL: z.string().url().optional(),
+  PDF_PREVIEW_RENDER_URL: z.string().url().optional(),
 })
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>

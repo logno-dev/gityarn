@@ -118,6 +118,58 @@ type PublicPatternsResponse = {
   }>
 }
 
+type UploadPatternAssetResult = {
+  ok: boolean
+  message: string
+  warning: string | null
+}
+
+async function generatePdfCoverImage(pdfFile: File): Promise<File | null> {
+  try {
+    const [{ GlobalWorkerOptions, getDocument }, workerAsset] = await Promise.all([
+      import('pdfjs-dist/legacy/build/pdf.mjs'),
+      import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'),
+    ])
+
+    if (typeof workerAsset.default === 'string') {
+      GlobalWorkerOptions.workerSrc = workerAsset.default
+    }
+
+    const buffer = await pdfFile.arrayBuffer()
+    const pdfDoc = await getDocument({ data: new Uint8Array(buffer) } as any).promise
+    const page = await pdfDoc.getPage(1)
+    const initialViewport = page.getViewport({ scale: 1 })
+    const scale = Math.min(2, 900 / Math.max(1, initialViewport.width))
+    const viewport = page.getViewport({ scale })
+
+    const canvas = window.document.createElement('canvas')
+    canvas.width = Math.max(1, Math.floor(viewport.width))
+    canvas.height = Math.max(1, Math.floor(viewport.height))
+    const context = canvas.getContext('2d')
+    if (!context) {
+      return null
+    }
+
+    await page.render({
+      canvas: canvas as unknown as HTMLCanvasElement,
+      canvasContext: context,
+      viewport,
+    }).promise
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob((next) => resolve(next), 'image/jpeg', 0.84)
+    })
+    if (!blob) {
+      return null
+    }
+
+    const baseName = pdfFile.name.replace(/\.pdf$/i, '') || 'pattern'
+    return new File([blob], `${baseName}-cover.jpg`, { type: 'image/jpeg' })
+  } catch {
+    return null
+  }
+}
+
 const tabs: Array<{ key: InventoryKind; label: string; icon: typeof Package }> = [
   { key: 'yarn', label: 'Yarn', icon: Package },
   { key: 'hooks', label: 'Hooks', icon: Shapes },
@@ -379,7 +431,7 @@ function InventoryPage() {
     return response.ok
   }
 
-  const uploadPatternAsset = async (patternId: string, kind: 'pdf' | 'cover', file: File, languageCode?: string) => {
+  const uploadPatternAsset = async (patternId: string, kind: 'pdf' | 'cover', file: File, languageCode?: string): Promise<UploadPatternAssetResult> => {
     try {
     const presignResponse = await fetch(`/api/patterns/${patternId}/upload-url`, {
       method: 'POST',
@@ -396,7 +448,7 @@ function InventoryPage() {
     if (!presignResponse.ok || !presignPayload.uploadUrl || !presignPayload.key || !presignPayload.contentType) {
       const message = presignPayload.message ?? `Could not prepare ${kind} upload.`
       setStatus(message)
-      return { ok: false, message }
+      return { ok: false, message, warning: null }
     }
 
     const uploadResponse = await fetch(presignPayload.uploadUrl, {
@@ -407,7 +459,7 @@ function InventoryPage() {
     if (!uploadResponse.ok) {
       const message = `Upload to storage failed for ${kind}. HTTP ${uploadResponse.status} ${uploadResponse.statusText || ''}`.trim()
       setStatus(message)
-      return { ok: false, message }
+      return { ok: false, message, warning: null }
     }
 
     const attachResponse = await fetch(`/api/patterns/${patternId}/attach-upload`, {
@@ -424,14 +476,38 @@ function InventoryPage() {
     if (!attachResponse.ok) {
       const message = attachPayload.message ?? `Could not attach uploaded ${kind}.`
       setStatus(message)
-      return { ok: false, message }
+      return { ok: false, message, warning: null }
     }
 
-    return {
+    const result = {
       ok: true,
       message: attachPayload.message ?? `${kind} uploaded.`,
       warning: typeof attachPayload.warning === 'string' ? attachPayload.warning : null,
     }
+
+    if (kind === 'pdf') {
+      const generatedCover = await generatePdfCoverImage(file)
+      if (generatedCover) {
+        const coverResult = await uploadPatternAsset(patternId, 'cover', generatedCover)
+        if (!coverResult.ok) {
+          return {
+            ...result,
+            warning:
+              result.warning ??
+              'PDF uploaded, but generated cover upload failed. You can upload a cover image manually.',
+          }
+        }
+      } else {
+        return {
+          ...result,
+          warning:
+            result.warning ??
+            'PDF uploaded, but local cover generation failed on this device/browser. Upload a cover image manually.',
+        }
+      }
+    }
+
+    return result
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : `Unexpected ${kind} upload error.`
       const message = /Failed to fetch/i.test(rawMessage)

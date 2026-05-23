@@ -101,7 +101,7 @@ export const Route = createFileRoute('/api/patterns/$patternId/attach-upload')({
             .where(and(eq(patterns.id, pattern.id), eq(patterns.userId, authUser.id)))
           const warning = preview?.key
             ? null
-            : 'PDF uploaded, but automatic cover generation failed on this server. Upload a cover image manually.'
+            : 'PDF uploaded, but automatic cover generation failed on this server. Upload a cover image manually (or configure PDF_PREVIEW_RENDER_URL for server-side conversion).'
           return Response.json(
             {
               message: warning ? `Pattern PDF uploaded (${language.label}) with warning.` : `Pattern PDF uploaded (${language.label}).`,
