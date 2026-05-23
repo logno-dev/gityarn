@@ -128,12 +128,14 @@ async function renderPdfWithPdftoppm(pdfBuffer: Buffer): Promise<Buffer> {
 }
 
 async function renderPdfWithPdfJsCanvas(pdfBuffer: Buffer): Promise<Buffer> {
-  const [{ getDocument }, { createCanvas }] = await Promise.all([
+  const [{ GlobalWorkerOptions, getDocument }, { createCanvas }] = await Promise.all([
     import('pdfjs-dist/legacy/build/pdf.mjs'),
     import('@napi-rs/canvas'),
   ])
 
-  const document = await getDocument({ data: new Uint8Array(pdfBuffer) }).promise
+  GlobalWorkerOptions.workerSrc = ''
+
+  const document = await getDocument({ data: new Uint8Array(pdfBuffer), disableWorker: true } as any).promise
   const page = await document.getPage(1)
   const baseViewport = page.getViewport({ scale: 1 })
   const scale = Math.min(2, 680 / Math.max(1, baseViewport.width))

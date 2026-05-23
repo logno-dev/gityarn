@@ -600,6 +600,7 @@ function InventoryPage() {
 
     if (activeTab === 'patterns') {
       const totalUploads = Number(Boolean(newPatternPdfFile)) + Number(Boolean(newPatternCoverFile))
+      let pdfUploadWarning: string | null = null
       const response = await fetch('/api/scan/inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -629,7 +630,7 @@ function InventoryPage() {
           return
         }
         if (result.warning) {
-          setStatus(result.warning)
+          pdfUploadWarning = result.warning
         }
         setPatternUploadProgress((current) => ({ ...current, completed: current.completed + 1 }))
       }
@@ -662,7 +663,7 @@ function InventoryPage() {
         setPublicPatterns(publicPayload.patterns ?? [])
       }
       setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Finalizing...', error: null }))
-      setStatus('Pattern added.')
+      setStatus(pdfUploadWarning ? `Pattern added. ${pdfUploadWarning}` : 'Pattern added.')
       setShowAddForm(false)
       if (totalUploads > 0) {
         setTimeout(() => {
@@ -1301,7 +1302,7 @@ function InventoryPage() {
                                     if (result.ok) {
                                       await loadInventory()
                                       await loadPatternVariants(item.id)
-                                      setStatus(`Updated ${variant.languageLabel} PDF variant.`)
+                                      setStatus(result.warning ? `${result.warning}` : `Updated ${variant.languageLabel} PDF variant.`)
                                     }
                                   }}
                                   ref={(node) => {
@@ -1320,7 +1321,7 @@ function InventoryPage() {
                                     if (result.ok) {
                                       await loadInventory()
                                       await loadPatternVariants(item.id)
-                                      setStatus(`Updated ${variant.languageLabel} PDF variant.`)
+                                      setStatus(result.warning ? `${result.warning}` : `Updated ${variant.languageLabel} PDF variant.`)
                                     }
                                   }}
                                 />
@@ -1354,7 +1355,7 @@ function InventoryPage() {
                               if (result.ok) {
                                 await loadInventory()
                                 await loadPatternVariants(item.id)
-                                setStatus('Added language PDF variant.')
+                                setStatus(result.warning ? `${result.warning}` : 'Added language PDF variant.')
                               }
                             }}
                           />
