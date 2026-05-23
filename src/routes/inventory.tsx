@@ -427,14 +427,18 @@ function InventoryPage() {
       return { ok: false, message }
     }
 
-    return { ok: true, message: `${kind} uploaded.` }
+    return {
+      ok: true,
+      message: attachPayload.message ?? `${kind} uploaded.`,
+      warning: typeof attachPayload.warning === 'string' ? attachPayload.warning : null,
+    }
     } catch (error) {
       const rawMessage = error instanceof Error ? error.message : `Unexpected ${kind} upload error.`
       const message = /Failed to fetch/i.test(rawMessage)
         ? `Upload network/CORS error for ${kind}. Check R2 bucket CORS for PUT from this app origin.`
         : rawMessage
       setStatus(message)
-      return { ok: false, message }
+      return { ok: false, message, warning: null }
     }
   }
 
@@ -623,6 +627,9 @@ function InventoryPage() {
         if (!result.ok) {
           setPatternUploadProgress((current) => ({ ...current, error: result.message || 'PDF upload failed.' }))
           return
+        }
+        if (result.warning) {
+          setStatus(result.warning)
         }
         setPatternUploadProgress((current) => ({ ...current, completed: current.completed + 1 }))
       }

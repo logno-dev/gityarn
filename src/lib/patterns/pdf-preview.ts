@@ -100,9 +100,14 @@ async function renderPdfFirstPageToJpeg(pdfBuffer: Buffer): Promise<Buffer> {
     try {
       return await renderPdfWithPdftoppm(pdfBuffer)
     } catch (pdfToPpmError) {
-      const sharpMessage = sharpError instanceof Error ? sharpError.message : 'unknown sharp error'
-      const pdfToPpmMessage = pdfToPpmError instanceof Error ? pdfToPpmError.message : 'unknown pdftoppm error'
-      throw new Error(`sharp failed: ${sharpMessage}; pdftoppm failed: ${pdfToPpmMessage}`)
+      try {
+        return await renderPdfWithPdfJsCanvas(pdfBuffer)
+      } catch (pdfJsError) {
+        const sharpMessage = sharpError instanceof Error ? sharpError.message : 'unknown sharp error'
+        const pdfToPpmMessage = pdfToPpmError instanceof Error ? pdfToPpmError.message : 'unknown pdftoppm error'
+        const pdfJsMessage = pdfJsError instanceof Error ? pdfJsError.message : 'unknown pdfjs error'
+        throw new Error(`sharp failed: ${sharpMessage}; pdftoppm failed: ${pdfToPpmMessage}; pdfjs failed: ${pdfJsMessage}`)
+      }
     }
   }
 }
@@ -120,4 +125,27 @@ async function renderPdfWithPdftoppm(pdfBuffer: Buffer): Promise<Buffer> {
   } finally {
     await rm(tempDir, { recursive: true, force: true })
   }
+}
+
+async function renderPdfWithPdfJsCanvas(pdfBuffer: Buffer): Promise<Buffer> {
+  const [{ getDocument }, { createCanvas }] = await Promise.all([
+    import('pdfjs-dist/legacy/build/pdf.mjs'),
+    import('@napi-rs/canvas'),
+  ])
+
+  const document = await getDocument({ data: new Uint8Array(pdfBuffer) }).promise
+  const page = await document.getPage(1)
+  const baseViewport = page.getViewport({ scale: 1 })
+  const scale = Math.min(2, 680 / Math.max(1, baseViewport.width))
+  const viewport = page.getViewport({ scale })
+
+  const canvas = createCanvas(Math.max(1, Math.floor(viewport.width)), Math.max(1, Math.floor(viewport.height)))
+  const context = canvas.getContext('2d')
+
+  await page.render({
+    canvas: canvas as unknown as HTMLCanvasElement,
+    canvasContext: context as unknown as CanvasRenderingContext2D,
+    viewport,
+  }).promise
+  return canvas.toBuffer('image/jpeg', 82)
 }

@@ -153,7 +153,23 @@ export const Route = createFileRoute('/api/patterns/$patternId/upload')({
 
         await db.update(patterns).set(updatePayload).where(and(eq(patterns.id, pattern.id), eq(patterns.userId, authUser.id)))
 
-        return Response.json({ message: isPdf ? 'Pattern PDF uploaded.' : 'Pattern cover uploaded.', updatedAt: now }, { status: 200 })
+        if (isPdf) {
+          const previewGenerated = Boolean(updatePayload.pdfPreviewR2Key)
+          const warning = previewGenerated
+            ? null
+            : 'PDF uploaded, but automatic cover generation failed on this server. Upload a cover image manually.'
+          return Response.json(
+            {
+              message: warning ? 'Pattern PDF uploaded with warning.' : 'Pattern PDF uploaded.',
+              updatedAt: now,
+              previewGenerated,
+              warning,
+            },
+            { status: 200 },
+          )
+        }
+
+        return Response.json({ message: 'Pattern cover uploaded.', updatedAt: now }, { status: 200 })
       },
     },
   },
