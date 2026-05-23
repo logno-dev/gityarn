@@ -133,7 +133,12 @@ async function renderPdfWithPdfJsCanvas(pdfBuffer: Buffer): Promise<Buffer> {
     import('@napi-rs/canvas'),
   ])
 
-  GlobalWorkerOptions.workerSrc = ''
+  try {
+    const workerUrl = new URL('pdfjs-dist/legacy/build/pdf.worker.mjs', import.meta.url)
+    GlobalWorkerOptions.workerSrc = workerUrl.href
+  } catch {
+    GlobalWorkerOptions.workerSrc = 'pdfjs-dist/legacy/build/pdf.worker.mjs'
+  }
 
   const document = await getDocument({ data: new Uint8Array(pdfBuffer), disableWorker: true } as any).promise
   const page = await document.getPage(1)
