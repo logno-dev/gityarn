@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Heart, Palette, Pencil } from 'lucide-react'
+import { Link, createFileRoute, useSearch } from '@tanstack/react-router'
+import { ArrowLeft, Heart, Palette, Pencil } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { CommentThread } from '#/components/comment-thread'
@@ -36,6 +36,7 @@ type PatternVariantsPayload = {
 
 function PatternDetailPage() {
   const { patternId } = Route.useParams()
+  const { projectId } = useSearch({ strict: false }) as { projectId?: string }
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('')
   const [data, setData] = useState<PatternPayload | null>(null)
@@ -89,6 +90,7 @@ function PatternDetailPage() {
       {loading ? <p>Loading pattern...</p> : null}
       {data ? (
         <article className="soft-panel hero-card">
+          {projectId ? <Link className="button" params={{ projectId }} to="/project/$projectId"><ArrowLeft size={14} /> Back to project</Link> : null}
           <h1>{data.title}</h1>
           <p>{data.ownerDisplayName} · {data.difficulty ?? 'No difficulty'}</p>
           {data.coverSrc ? <img alt={data.title} className="discover-preview" src={data.coverSrc} /> : null}
@@ -97,8 +99,8 @@ function PatternDetailPage() {
           <div className="hero-actions">
             {data.patternType === 'native' && data.canEdit ? <a className="button" href={`/pattern/${data.id}/edit`}><Pencil size={14} /><span>Edit pattern details</span></a> : null}
             {data.patternType === 'native' && data.canEdit ? <a className="button" href={`/pattern/${data.id}/design`}><Palette size={14} /><span>Edit design</span></a> : null}
-            {data.patternType === 'native' ? <a className="button button-primary" href={`/pattern/${data.id}/preview`}><span>View pattern</span></a> : null}
-            {data.hasPdf ? <a className="button button-primary" href={`/pattern/${data.id}/reader`}><span>Read pattern</span></a> : null}
+            {data.patternType === 'native' ? <a className="button button-primary" href={`/pattern/${data.id}/preview${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`}><span>View pattern</span></a> : null}
+            {data.hasPdf ? <a className="button button-primary" href={`/pattern/${data.id}/reader${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`}><span>Read pattern</span></a> : null}
             <button className="button" disabled={data.inLibrary} onClick={() => void addToLibrary()} type="button">
               {data.inLibrary ? 'Already in inventory' : 'Add to inventory'}
             </button>
@@ -106,7 +108,7 @@ function PatternDetailPage() {
           {variants.length ? (
             <div className="hero-actions">
               {variants.map((variant) => (
-                <a className="button" href={`/pattern/${data.id}/reader?lang=${encodeURIComponent(variant.languageCode)}`} key={variant.id}>
+                <a className="button" href={`/pattern/${data.id}/reader?lang=${encodeURIComponent(variant.languageCode)}${projectId ? `&projectId=${encodeURIComponent(projectId)}` : ''}`} key={variant.id}>
                   {languageFlag(variant.languageCode)} {variant.languageLabel}
                 </a>
               ))}

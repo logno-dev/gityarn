@@ -13,10 +13,14 @@ type PreviewPayload = RenderedNativePattern & {
   }
 }
 
-export const Route = createFileRoute('/pattern/$patternId_/preview')({ component: NativePatternPreviewPage })
+export const Route = createFileRoute('/pattern/$patternId_/preview')({
+  validateSearch: (search: Record<string, unknown>) => ({ projectId: typeof search.projectId === 'string' && search.projectId.trim() ? search.projectId.trim() : undefined }),
+  component: NativePatternPreviewPage,
+})
 
 function NativePatternPreviewPage() {
   const { patternId } = Route.useParams()
+  const { projectId } = Route.useSearch()
   const [document, setDocument] = useState<PreviewPayload | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -107,7 +111,7 @@ function NativePatternPreviewPage() {
 
   return <section className="native-preview-page">
     <header className="native-preview-toolbar">
-      <Link className="button" params={{ patternId }} to="/pattern/$patternId"><ArrowLeft size={16} /> Pattern details</Link>
+      {projectId ? <Link className="button" params={{ projectId }} to="/project/$projectId"><ArrowLeft size={16} /> Back to project</Link> : <Link className="button" params={{ patternId }} to="/pattern/$patternId"><ArrowLeft size={16} /> Pattern details</Link>}
       <div><span className="kicker">{document.pattern.isFinalized ? 'Private interactive pattern' : 'Private preview'}</span><strong>{document.pattern.title}</strong></div>
       {document.pattern.canEdit ? <div className="native-preview-actions">
         <a className="button" href={`/pattern/${patternId}/edit`}><Pencil size={15} /> Edit</a>

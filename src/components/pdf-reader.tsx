@@ -71,7 +71,7 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
   const [metadataStatus, setMetadataStatus] = useState('')
   const [highlightMode, setHighlightMode] = useState(false)
   const [highlightColor, setHighlightColor] = useState('yellow')
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [fillsViewport, setFillsViewport] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -86,10 +86,16 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
   }, [])
 
   useEffect(() => {
-    const onFullscreenChange = () => setIsFullscreen(window.document.fullscreenElement === readerRef.current)
-    window.document.addEventListener('fullscreenchange', onFullscreenChange)
-    return () => window.document.removeEventListener('fullscreenchange', onFullscreenChange)
-  }, [])
+    if (!fillsViewport) return
+    const previousOverflow = window.document.body.style.overflow
+    window.document.body.style.overflow = 'hidden'
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setFillsViewport(false) }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      window.document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [fillsViewport])
 
   useEffect(() => {
     let cancelled = false
@@ -306,17 +312,8 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
     }
   }
 
-  const toggleFullscreen = async () => {
-    try {
-      if (window.document.fullscreenElement) await window.document.exitFullscreen()
-      else await readerRef.current?.requestFullscreen()
-    } catch {
-      setMetadataStatus('Fullscreen is not available in this browser')
-    }
-  }
-
   return (
-    <div className="pdf-reader" ref={readerRef}>
+    <div className={`pdf-reader ${fillsViewport ? 'viewport-fill' : ''}`} ref={readerRef}>
       <header className="pdf-reader-toolbar">
         <button
           aria-label={thumbnailsOpen ? 'Hide thumbnails' : 'Show thumbnails'}
@@ -389,8 +386,8 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
               ))}
             </div>
           ) : null}
-          <button aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} className="icon-button" onClick={() => void toggleFullscreen()} type="button">
-            {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          <button aria-label={fillsViewport ? 'Exit full-window view' : 'Fill viewport'} className="icon-button" onClick={() => setFillsViewport((current) => !current)} type="button">
+            {fillsViewport ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
           </button>
         </div>
         {metadataStatus ? <span aria-live="polite" className={`pdf-toolbar-status ${metadataStatus === 'Could not save' ? 'error' : ''}`}>{metadataStatus}</span> : null}

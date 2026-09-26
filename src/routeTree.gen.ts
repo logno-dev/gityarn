@@ -14,6 +14,7 @@ import { Route as ShareIntakeRouteImport } from './routes/share-intake'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -26,11 +27,13 @@ import { Route as AccountSettingsRouteImport } from './routes/account-settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ScanIndexRouteImport } from './routes/scan.index'
 import { Route as ScanCreateItemRouteImport } from './routes/scan.create-item'
+import { Route as ProjectProjectIdRouteImport } from './routes/project.$projectId'
 import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as PatternPatternIdRouteImport } from './routes/pattern.$patternId'
 import { Route as CreationCreationIdRouteImport } from './routes/creation.$creationId'
 import { Route as CatalogLineIdRouteImport } from './routes/catalog.$lineId'
+import { Route as ApiProjectsRouteImport } from './routes/api/projects'
 import { Route as ApiPostsRouteImport } from './routes/api/posts'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiCommentsRouteImport } from './routes/api/comments'
@@ -51,6 +54,7 @@ import { Route as ApiScanResolveRouteImport } from './routes/api/scan/resolve'
 import { Route as ApiScanInventoryRouteImport } from './routes/api/scan/inventory'
 import { Route as ApiScanCreateItemRouteImport } from './routes/api/scan/create-item'
 import { Route as ApiScanAssociateRouteImport } from './routes/api/scan/associate'
+import { Route as ApiProjectsProjectIdRouteImport } from './routes/api/projects/$projectId'
 import { Route as ApiProfilesUserIdRouteImport } from './routes/api/profiles/$userId'
 import { Route as ApiPostsPostIdRouteImport } from './routes/api/posts/$postId'
 import { Route as ApiPatternsPublicRouteImport } from './routes/api/patterns/public'
@@ -74,6 +78,8 @@ import { Route as ApiAdminCarouselRouteImport } from './routes/api/admin/carouse
 import { Route as ApiAccountSettingsPasswordRouteImport } from './routes/api/account-settings/password'
 import { Route as ApiAccountSettingsAvatarRouteImport } from './routes/api/account-settings/avatar'
 import { Route as ApiShareFilesFileIdRouteImport } from './routes/api/share/files/$fileId'
+import { Route as ApiProjectsProjectIdStepsRouteImport } from './routes/api/projects/$projectId/steps'
+import { Route as ApiProjectsProjectIdPublishRouteImport } from './routes/api/projects/$projectId/publish'
 import { Route as ApiProfilesUserIdAvatarRouteImport } from './routes/api/profiles/$userId/avatar'
 import { Route as ApiPostsPostIdImagesRouteImport } from './routes/api/posts/$postId/images'
 import { Route as ApiPostsPostIdHeartsRouteImport } from './routes/api/posts/$postId/hearts'
@@ -89,6 +95,7 @@ import { Route as ApiPatternsPatternIdNativeRouteImport } from './routes/api/pat
 import { Route as ApiPatternsPatternIdLibraryRouteImport } from './routes/api/patterns/$patternId/library'
 import { Route as ApiPatternsPatternIdHeartsRouteImport } from './routes/api/patterns/$patternId/hearts'
 import { Route as ApiPatternsPatternIdFileRouteImport } from './routes/api/patterns/$patternId/file'
+import { Route as ApiPatternsPatternIdDiscardUploadRouteImport } from './routes/api/patterns/$patternId/discard-upload'
 import { Route as ApiPatternsPatternIdCoverRouteImport } from './routes/api/patterns/$patternId/cover'
 import { Route as ApiPatternsPatternIdClaimRouteImport } from './routes/api/patterns/$patternId/claim'
 import { Route as ApiPatternsPatternIdAttachUploadRouteImport } from './routes/api/patterns/$patternId/attach-upload'
@@ -97,6 +104,7 @@ import { Route as ApiCreationsCreationIdHeartsRouteImport } from './routes/api/c
 import { Route as ApiCommentsCommentIdHeartsRouteImport } from './routes/api/comments/$commentId/hearts'
 import { Route as ApiCatalogLineIdBarcodesRouteImport } from './routes/api/catalog/$lineId/barcodes'
 import { Route as ApiAdminModerationRemoveRouteImport } from './routes/api/admin/moderation/remove'
+import { Route as ApiProjectsProjectIdStepsStepIdRouteImport } from './routes/api/projects/$projectId/steps/$stepId'
 import { Route as ApiLandingCarouselItemIdImageRouteImport } from './routes/api/landing/carousel/$itemId/image'
 import { Route as ApiCommunityClaimsClaimIdVoteRouteImport } from './routes/api/community/claims/$claimId/vote'
 import { Route as ApiAdminUsersUserIdRoleRouteImport } from './routes/api/admin/users/$userId/role'
@@ -124,6 +132,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -186,6 +199,11 @@ const ScanCreateItemRoute = ScanCreateItemRouteImport.update({
   path: '/create-item',
   getParentRoute: () => ScanRoute,
 } as any)
+const ProjectProjectIdRoute = ProjectProjectIdRouteImport.update({
+  id: '/project/$projectId',
+  path: '/project/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
   id: '/profile/$userId',
   path: '/profile/$userId',
@@ -210,6 +228,11 @@ const CatalogLineIdRoute = CatalogLineIdRouteImport.update({
   id: '/$lineId',
   path: '/$lineId',
   getParentRoute: () => CatalogRoute,
+} as any)
+const ApiProjectsRoute = ApiProjectsRouteImport.update({
+  id: '/api/projects',
+  path: '/api/projects',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPostsRoute = ApiPostsRouteImport.update({
   id: '/api/posts',
@@ -310,6 +333,11 @@ const ApiScanAssociateRoute = ApiScanAssociateRouteImport.update({
   id: '/api/scan/associate',
   path: '/api/scan/associate',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProjectsProjectIdRoute = ApiProjectsProjectIdRouteImport.update({
+  id: '/$projectId',
+  path: '/$projectId',
+  getParentRoute: () => ApiProjectsRoute,
 } as any)
 const ApiProfilesUserIdRoute = ApiProfilesUserIdRouteImport.update({
   id: '/api/profiles/$userId',
@@ -428,6 +456,18 @@ const ApiShareFilesFileIdRoute = ApiShareFilesFileIdRouteImport.update({
   path: '/api/share/files/$fileId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiProjectsProjectIdStepsRoute =
+  ApiProjectsProjectIdStepsRouteImport.update({
+    id: '/steps',
+    path: '/steps',
+    getParentRoute: () => ApiProjectsProjectIdRoute,
+  } as any)
+const ApiProjectsProjectIdPublishRoute =
+  ApiProjectsProjectIdPublishRouteImport.update({
+    id: '/publish',
+    path: '/publish',
+    getParentRoute: () => ApiProjectsProjectIdRoute,
+  } as any)
 const ApiProfilesUserIdAvatarRoute = ApiProfilesUserIdAvatarRouteImport.update({
   id: '/avatar',
   path: '/avatar',
@@ -515,6 +555,12 @@ const ApiPatternsPatternIdFileRoute =
     path: '/file',
     getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
+const ApiPatternsPatternIdDiscardUploadRoute =
+  ApiPatternsPatternIdDiscardUploadRouteImport.update({
+    id: '/discard-upload',
+    path: '/discard-upload',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
 const ApiPatternsPatternIdCoverRoute =
   ApiPatternsPatternIdCoverRouteImport.update({
     id: '/cover',
@@ -563,6 +609,12 @@ const ApiAdminModerationRemoveRoute =
     path: '/api/admin/moderation/remove',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiProjectsProjectIdStepsStepIdRoute =
+  ApiProjectsProjectIdStepsStepIdRouteImport.update({
+    id: '/$stepId',
+    path: '/$stepId',
+    getParentRoute: () => ApiProjectsProjectIdStepsRoute,
+  } as any)
 const ApiLandingCarouselItemIdImageRoute =
   ApiLandingCarouselItemIdImageRouteImport.update({
     id: '/$itemId/image',
@@ -592,6 +644,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
   '/notifications': typeof NotificationsRoute
+  '/projects': typeof ProjectsRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scan': typeof ScanRouteWithChildren
@@ -601,11 +654,13 @@ export interface FileRoutesByFullPath {
   '/api/comments': typeof ApiCommentsRouteWithChildren
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
+  '/api/projects': typeof ApiProjectsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/creation/$creationId': typeof CreationCreationIdRoute
   '/pattern/$patternId': typeof PatternPatternIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
+  '/project/$projectId': typeof ProjectProjectIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/scan/': typeof ScanIndexRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
@@ -630,6 +685,7 @@ export interface FileRoutesByFullPath {
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
+  '/api/projects/$projectId': typeof ApiProjectsProjectIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
@@ -654,6 +710,7 @@ export interface FileRoutesByFullPath {
   '/api/patterns/$patternId/attach-upload': typeof ApiPatternsPatternIdAttachUploadRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
+  '/api/patterns/$patternId/discard-upload': typeof ApiPatternsPatternIdDiscardUploadRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
@@ -669,10 +726,13 @@ export interface FileRoutesByFullPath {
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
+  '/api/projects/$projectId/publish': typeof ApiProjectsProjectIdPublishRoute
+  '/api/projects/$projectId/steps': typeof ApiProjectsProjectIdStepsRouteWithChildren
   '/api/share/files/$fileId': typeof ApiShareFilesFileIdRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
   '/api/landing/carousel/$itemId/image': typeof ApiLandingCarouselItemIdImageRoute
+  '/api/projects/$projectId/steps/$stepId': typeof ApiProjectsProjectIdStepsStepIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -685,6 +745,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
   '/notifications': typeof NotificationsRoute
+  '/projects': typeof ProjectsRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/share-intake': typeof ShareIntakeRoute
@@ -693,11 +754,13 @@ export interface FileRoutesByTo {
   '/api/comments': typeof ApiCommentsRouteWithChildren
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
+  '/api/projects': typeof ApiProjectsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/creation/$creationId': typeof CreationCreationIdRoute
   '/pattern/$patternId': typeof PatternPatternIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
+  '/project/$projectId': typeof ProjectProjectIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/scan': typeof ScanIndexRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
@@ -722,6 +785,7 @@ export interface FileRoutesByTo {
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
+  '/api/projects/$projectId': typeof ApiProjectsProjectIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
@@ -746,6 +810,7 @@ export interface FileRoutesByTo {
   '/api/patterns/$patternId/attach-upload': typeof ApiPatternsPatternIdAttachUploadRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
+  '/api/patterns/$patternId/discard-upload': typeof ApiPatternsPatternIdDiscardUploadRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
@@ -761,10 +826,13 @@ export interface FileRoutesByTo {
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
+  '/api/projects/$projectId/publish': typeof ApiProjectsProjectIdPublishRoute
+  '/api/projects/$projectId/steps': typeof ApiProjectsProjectIdStepsRouteWithChildren
   '/api/share/files/$fileId': typeof ApiShareFilesFileIdRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
   '/api/landing/carousel/$itemId/image': typeof ApiLandingCarouselItemIdImageRoute
+  '/api/projects/$projectId/steps/$stepId': typeof ApiProjectsProjectIdStepsStepIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -778,6 +846,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
   '/notifications': typeof NotificationsRoute
+  '/projects': typeof ProjectsRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scan': typeof ScanRouteWithChildren
@@ -787,11 +856,13 @@ export interface FileRoutesById {
   '/api/comments': typeof ApiCommentsRouteWithChildren
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/posts': typeof ApiPostsRouteWithChildren
+  '/api/projects': typeof ApiProjectsRouteWithChildren
   '/catalog/$lineId': typeof CatalogLineIdRoute
   '/creation/$creationId': typeof CreationCreationIdRoute
   '/pattern/$patternId': typeof PatternPatternIdRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
+  '/project/$projectId': typeof ProjectProjectIdRoute
   '/scan/create-item': typeof ScanCreateItemRoute
   '/scan/': typeof ScanIndexRoute
   '/api/account-settings/avatar': typeof ApiAccountSettingsAvatarRoute
@@ -816,6 +887,7 @@ export interface FileRoutesById {
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
+  '/api/projects/$projectId': typeof ApiProjectsProjectIdRouteWithChildren
   '/api/scan/associate': typeof ApiScanAssociateRoute
   '/api/scan/create-item': typeof ApiScanCreateItemRoute
   '/api/scan/inventory': typeof ApiScanInventoryRoute
@@ -840,6 +912,7 @@ export interface FileRoutesById {
   '/api/patterns/$patternId/attach-upload': typeof ApiPatternsPatternIdAttachUploadRoute
   '/api/patterns/$patternId/claim': typeof ApiPatternsPatternIdClaimRoute
   '/api/patterns/$patternId/cover': typeof ApiPatternsPatternIdCoverRoute
+  '/api/patterns/$patternId/discard-upload': typeof ApiPatternsPatternIdDiscardUploadRoute
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
@@ -855,10 +928,13 @@ export interface FileRoutesById {
   '/api/posts/$postId/hearts': typeof ApiPostsPostIdHeartsRoute
   '/api/posts/$postId/images': typeof ApiPostsPostIdImagesRoute
   '/api/profiles/$userId/avatar': typeof ApiProfilesUserIdAvatarRoute
+  '/api/projects/$projectId/publish': typeof ApiProjectsProjectIdPublishRoute
+  '/api/projects/$projectId/steps': typeof ApiProjectsProjectIdStepsRouteWithChildren
   '/api/share/files/$fileId': typeof ApiShareFilesFileIdRoute
   '/api/admin/users/$userId/role': typeof ApiAdminUsersUserIdRoleRoute
   '/api/community/claims/$claimId/vote': typeof ApiCommunityClaimsClaimIdVoteRoute
   '/api/landing/carousel/$itemId/image': typeof ApiLandingCarouselItemIdImageRoute
+  '/api/projects/$projectId/steps/$stepId': typeof ApiProjectsProjectIdStepsStepIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -873,6 +949,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/inventory'
     | '/notifications'
+    | '/projects'
     | '/register'
     | '/reset-password'
     | '/scan'
@@ -882,11 +959,13 @@ export interface FileRouteTypes {
     | '/api/comments'
     | '/api/notifications'
     | '/api/posts'
+    | '/api/projects'
     | '/catalog/$lineId'
     | '/creation/$creationId'
     | '/pattern/$patternId'
     | '/post/$postId'
     | '/profile/$userId'
+    | '/project/$projectId'
     | '/scan/create-item'
     | '/scan/'
     | '/api/account-settings/avatar'
@@ -911,6 +990,7 @@ export interface FileRouteTypes {
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
+    | '/api/projects/$projectId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
@@ -935,6 +1015,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/attach-upload'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
+    | '/api/patterns/$patternId/discard-upload'
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
@@ -950,10 +1031,13 @@ export interface FileRouteTypes {
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/profiles/$userId/avatar'
+    | '/api/projects/$projectId/publish'
+    | '/api/projects/$projectId/steps'
     | '/api/share/files/$fileId'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
     | '/api/landing/carousel/$itemId/image'
+    | '/api/projects/$projectId/steps/$stepId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -966,6 +1050,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/inventory'
     | '/notifications'
+    | '/projects'
     | '/register'
     | '/reset-password'
     | '/share-intake'
@@ -974,11 +1059,13 @@ export interface FileRouteTypes {
     | '/api/comments'
     | '/api/notifications'
     | '/api/posts'
+    | '/api/projects'
     | '/catalog/$lineId'
     | '/creation/$creationId'
     | '/pattern/$patternId'
     | '/post/$postId'
     | '/profile/$userId'
+    | '/project/$projectId'
     | '/scan/create-item'
     | '/scan'
     | '/api/account-settings/avatar'
@@ -1003,6 +1090,7 @@ export interface FileRouteTypes {
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
+    | '/api/projects/$projectId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
@@ -1027,6 +1115,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/attach-upload'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
+    | '/api/patterns/$patternId/discard-upload'
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
@@ -1042,10 +1131,13 @@ export interface FileRouteTypes {
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/profiles/$userId/avatar'
+    | '/api/projects/$projectId/publish'
+    | '/api/projects/$projectId/steps'
     | '/api/share/files/$fileId'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
     | '/api/landing/carousel/$itemId/image'
+    | '/api/projects/$projectId/steps/$stepId'
   id:
     | '__root__'
     | '/'
@@ -1058,6 +1150,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/inventory'
     | '/notifications'
+    | '/projects'
     | '/register'
     | '/reset-password'
     | '/scan'
@@ -1067,11 +1160,13 @@ export interface FileRouteTypes {
     | '/api/comments'
     | '/api/notifications'
     | '/api/posts'
+    | '/api/projects'
     | '/catalog/$lineId'
     | '/creation/$creationId'
     | '/pattern/$patternId'
     | '/post/$postId'
     | '/profile/$userId'
+    | '/project/$projectId'
     | '/scan/create-item'
     | '/scan/'
     | '/api/account-settings/avatar'
@@ -1096,6 +1191,7 @@ export interface FileRouteTypes {
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
+    | '/api/projects/$projectId'
     | '/api/scan/associate'
     | '/api/scan/create-item'
     | '/api/scan/inventory'
@@ -1120,6 +1216,7 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/attach-upload'
     | '/api/patterns/$patternId/claim'
     | '/api/patterns/$patternId/cover'
+    | '/api/patterns/$patternId/discard-upload'
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
@@ -1135,10 +1232,13 @@ export interface FileRouteTypes {
     | '/api/posts/$postId/hearts'
     | '/api/posts/$postId/images'
     | '/api/profiles/$userId/avatar'
+    | '/api/projects/$projectId/publish'
+    | '/api/projects/$projectId/steps'
     | '/api/share/files/$fileId'
     | '/api/admin/users/$userId/role'
     | '/api/community/claims/$claimId/vote'
     | '/api/landing/carousel/$itemId/image'
+    | '/api/projects/$projectId/steps/$stepId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1152,6 +1252,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InventoryRoute: typeof InventoryRoute
   NotificationsRoute: typeof NotificationsRoute
+  ProjectsRoute: typeof ProjectsRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ScanRoute: typeof ScanRouteWithChildren
@@ -1161,10 +1262,12 @@ export interface RootRouteChildren {
   ApiCommentsRoute: typeof ApiCommentsRouteWithChildren
   ApiNotificationsRoute: typeof ApiNotificationsRoute
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
+  ApiProjectsRoute: typeof ApiProjectsRouteWithChildren
   CreationCreationIdRoute: typeof CreationCreationIdRoute
   PatternPatternIdRoute: typeof PatternPatternIdRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
+  ProjectProjectIdRoute: typeof ProjectProjectIdRoute
   ApiAdminCarouselRoute: typeof ApiAdminCarouselRoute
   ApiAdminOverviewRoute: typeof ApiAdminOverviewRoute
   ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
@@ -1240,6 +1343,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -1326,6 +1436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScanCreateItemRouteImport
       parentRoute: typeof ScanRoute
     }
+    '/project/$projectId': {
+      id: '/project/$projectId'
+      path: '/project/$projectId'
+      fullPath: '/project/$projectId'
+      preLoaderRoute: typeof ProjectProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/$userId': {
       id: '/profile/$userId'
       path: '/profile/$userId'
@@ -1360,6 +1477,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/catalog/$lineId'
       preLoaderRoute: typeof CatalogLineIdRouteImport
       parentRoute: typeof CatalogRoute
+    }
+    '/api/projects': {
+      id: '/api/projects'
+      path: '/api/projects'
+      fullPath: '/api/projects'
+      preLoaderRoute: typeof ApiProjectsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/posts': {
       id: '/api/posts'
@@ -1500,6 +1624,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/scan/associate'
       preLoaderRoute: typeof ApiScanAssociateRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/projects/$projectId': {
+      id: '/api/projects/$projectId'
+      path: '/$projectId'
+      fullPath: '/api/projects/$projectId'
+      preLoaderRoute: typeof ApiProjectsProjectIdRouteImport
+      parentRoute: typeof ApiProjectsRoute
     }
     '/api/profiles/$userId': {
       id: '/api/profiles/$userId'
@@ -1662,6 +1793,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShareFilesFileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/projects/$projectId/steps': {
+      id: '/api/projects/$projectId/steps'
+      path: '/steps'
+      fullPath: '/api/projects/$projectId/steps'
+      preLoaderRoute: typeof ApiProjectsProjectIdStepsRouteImport
+      parentRoute: typeof ApiProjectsProjectIdRoute
+    }
+    '/api/projects/$projectId/publish': {
+      id: '/api/projects/$projectId/publish'
+      path: '/publish'
+      fullPath: '/api/projects/$projectId/publish'
+      preLoaderRoute: typeof ApiProjectsProjectIdPublishRouteImport
+      parentRoute: typeof ApiProjectsProjectIdRoute
+    }
     '/api/profiles/$userId/avatar': {
       id: '/api/profiles/$userId/avatar'
       path: '/avatar'
@@ -1767,6 +1912,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPatternsPatternIdFileRouteImport
       parentRoute: typeof ApiPatternsPatternIdRoute
     }
+    '/api/patterns/$patternId/discard-upload': {
+      id: '/api/patterns/$patternId/discard-upload'
+      path: '/discard-upload'
+      fullPath: '/api/patterns/$patternId/discard-upload'
+      preLoaderRoute: typeof ApiPatternsPatternIdDiscardUploadRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
     '/api/patterns/$patternId/cover': {
       id: '/api/patterns/$patternId/cover'
       path: '/cover'
@@ -1822,6 +1974,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/moderation/remove'
       preLoaderRoute: typeof ApiAdminModerationRemoveRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/projects/$projectId/steps/$stepId': {
+      id: '/api/projects/$projectId/steps/$stepId'
+      path: '/$stepId'
+      fullPath: '/api/projects/$projectId/steps/$stepId'
+      preLoaderRoute: typeof ApiProjectsProjectIdStepsStepIdRouteImport
+      parentRoute: typeof ApiProjectsProjectIdStepsRoute
     }
     '/api/landing/carousel/$itemId/image': {
       id: '/api/landing/carousel/$itemId/image'
@@ -1921,6 +2080,45 @@ const ApiPostsRouteWithChildren = ApiPostsRoute._addFileChildren(
   ApiPostsRouteChildren,
 )
 
+interface ApiProjectsProjectIdStepsRouteChildren {
+  ApiProjectsProjectIdStepsStepIdRoute: typeof ApiProjectsProjectIdStepsStepIdRoute
+}
+
+const ApiProjectsProjectIdStepsRouteChildren: ApiProjectsProjectIdStepsRouteChildren =
+  {
+    ApiProjectsProjectIdStepsStepIdRoute: ApiProjectsProjectIdStepsStepIdRoute,
+  }
+
+const ApiProjectsProjectIdStepsRouteWithChildren =
+  ApiProjectsProjectIdStepsRoute._addFileChildren(
+    ApiProjectsProjectIdStepsRouteChildren,
+  )
+
+interface ApiProjectsProjectIdRouteChildren {
+  ApiProjectsProjectIdPublishRoute: typeof ApiProjectsProjectIdPublishRoute
+  ApiProjectsProjectIdStepsRoute: typeof ApiProjectsProjectIdStepsRouteWithChildren
+}
+
+const ApiProjectsProjectIdRouteChildren: ApiProjectsProjectIdRouteChildren = {
+  ApiProjectsProjectIdPublishRoute: ApiProjectsProjectIdPublishRoute,
+  ApiProjectsProjectIdStepsRoute: ApiProjectsProjectIdStepsRouteWithChildren,
+}
+
+const ApiProjectsProjectIdRouteWithChildren =
+  ApiProjectsProjectIdRoute._addFileChildren(ApiProjectsProjectIdRouteChildren)
+
+interface ApiProjectsRouteChildren {
+  ApiProjectsProjectIdRoute: typeof ApiProjectsProjectIdRouteWithChildren
+}
+
+const ApiProjectsRouteChildren: ApiProjectsRouteChildren = {
+  ApiProjectsProjectIdRoute: ApiProjectsProjectIdRouteWithChildren,
+}
+
+const ApiProjectsRouteWithChildren = ApiProjectsRoute._addFileChildren(
+  ApiProjectsRouteChildren,
+)
+
 interface ApiCatalogLineIdRouteChildren {
   ApiCatalogLineIdBarcodesRoute: typeof ApiCatalogLineIdBarcodesRoute
 }
@@ -1974,6 +2172,7 @@ interface ApiPatternsPatternIdRouteChildren {
   ApiPatternsPatternIdAttachUploadRoute: typeof ApiPatternsPatternIdAttachUploadRoute
   ApiPatternsPatternIdClaimRoute: typeof ApiPatternsPatternIdClaimRoute
   ApiPatternsPatternIdCoverRoute: typeof ApiPatternsPatternIdCoverRoute
+  ApiPatternsPatternIdDiscardUploadRoute: typeof ApiPatternsPatternIdDiscardUploadRoute
   ApiPatternsPatternIdFileRoute: typeof ApiPatternsPatternIdFileRoute
   ApiPatternsPatternIdHeartsRoute: typeof ApiPatternsPatternIdHeartsRoute
   ApiPatternsPatternIdLibraryRoute: typeof ApiPatternsPatternIdLibraryRoute
@@ -1992,6 +2191,8 @@ const ApiPatternsPatternIdRouteChildren: ApiPatternsPatternIdRouteChildren = {
   ApiPatternsPatternIdAttachUploadRoute: ApiPatternsPatternIdAttachUploadRoute,
   ApiPatternsPatternIdClaimRoute: ApiPatternsPatternIdClaimRoute,
   ApiPatternsPatternIdCoverRoute: ApiPatternsPatternIdCoverRoute,
+  ApiPatternsPatternIdDiscardUploadRoute:
+    ApiPatternsPatternIdDiscardUploadRoute,
   ApiPatternsPatternIdFileRoute: ApiPatternsPatternIdFileRoute,
   ApiPatternsPatternIdHeartsRoute: ApiPatternsPatternIdHeartsRoute,
   ApiPatternsPatternIdLibraryRoute: ApiPatternsPatternIdLibraryRoute,
@@ -2034,6 +2235,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   InventoryRoute: InventoryRoute,
   NotificationsRoute: NotificationsRoute,
+  ProjectsRoute: ProjectsRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ScanRoute: ScanRouteWithChildren,
@@ -2043,10 +2245,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCommentsRoute: ApiCommentsRouteWithChildren,
   ApiNotificationsRoute: ApiNotificationsRoute,
   ApiPostsRoute: ApiPostsRouteWithChildren,
+  ApiProjectsRoute: ApiProjectsRouteWithChildren,
   CreationCreationIdRoute: CreationCreationIdRoute,
   PatternPatternIdRoute: PatternPatternIdRoute,
   PostPostIdRoute: PostPostIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
+  ProjectProjectIdRoute: ProjectProjectIdRoute,
   ApiAdminCarouselRoute: ApiAdminCarouselRoute,
   ApiAdminOverviewRoute: ApiAdminOverviewRoute,
   ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,

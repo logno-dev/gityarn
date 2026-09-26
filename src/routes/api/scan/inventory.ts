@@ -35,13 +35,15 @@ export const Route = createFileRoute('/api/scan/inventory')({
 
         const url = new URL(request.url)
         const query = (url.searchParams.get('query') ?? '').trim().toLowerCase()
+        const requestedLimit = Number(url.searchParams.get('limit'))
+        const limit = Number.isInteger(requestedLimit) && requestedLimit > 0 ? Math.min(requestedLimit, 200) : null
         const kind = parseKind(url.searchParams.get('kind'))
 
         if (kind === 'hooks') {
           return getHooks(authUser.id, query)
         }
         if (kind === 'patterns') {
-          return getPatterns(authUser.id, query)
+          return getPatterns(authUser.id, query, limit)
         }
         if (kind === 'creations') {
           return getCreations(authUser.id, query)
@@ -384,7 +386,8 @@ export const Route = createFileRoute('/api/scan/inventory')({
             return Response.json({ message: 'Pattern removed from your library.' }, { status: 200 })
           }
 
-          await deleteR2Objects([pattern.pdfR2Key, pattern.pdfPreviewR2Key, pattern.coverR2Key])
+          const variants = await getDb().select({ r2Key: patternFileVariants.r2Key }).from(patternFileVariants).where(eq(patternFileVariants.patternId, pattern.id))
+          await deleteR2Objects([pattern.pdfR2Key, pattern.pdfPreviewR2Key, pattern.coverR2Key, ...variants.map((variant) => variant.r2Key)])
           await getDb().delete(patterns).where(and(eq(patterns.id, body.itemId), eq(patterns.userId, authUser.id)))
           return Response.json({ message: 'Pattern removed.' }, { status: 200 })
         }
@@ -540,7 +543,7 @@ async function getHooks(userId: string, query: string) {
   )
 }
 
-async function getPatterns(userId: string, query: string) {
+async function getPatterns(userId: string, query: string, limit: number | null = null) {
   const db = getDb()
   const whereClause = query
     ? and(
@@ -554,7 +557,7 @@ async function getPatterns(userId: string, query: string) {
       )
     : eq(patterns.userId, userId)
 
-  const rows = await db
+  const ownedQuery = db
     .select({
       id: patterns.id,
       title: patterns.title,
@@ -576,8 +579,9 @@ async function getPatterns(userId: string, query: string) {
     .from(patterns)
     .where(whereClause)
     .orderBy(desc(patterns.updatedAt))
+  const rows = limit ? await ownedQuery.limit(limit) : await ownedQuery
 
-  const linkedRows = await db
+  const linkedQuery = db
     .select({
       id: patterns.id,
       title: patterns.title,
@@ -607,14 +611,16 @@ async function getPatterns(userId: string, query: string) {
       or lower(coalesce(${users.displayName}, '')) like ${`%${query}%`}
     )` : sql`1=1`))
     .orderBy(desc(patterns.updatedAt))
+  const linkedRows = limit ? await linkedQuery.limit(limit) : await linkedQuery
 
-  const merged = [...rows.map((row) => ({ ...row, isLinked: false, ownerDisplayName: null })), ...linkedRows.map((row) => ({ ...row, isLinked: true }))]
+  const merged = [...rows.map((row) => ({ ...row, isLinked: false, ownerDisplayName: null })), ...linkedRows.map((row) => ({ ...row, isLinked: true }))].sort((a, b) => b.updatedAt - a.updatedAt)
   const deduped = new Map<string, any>()
   for (const row of merged) {
     if (!deduped.has(row.id) || !row.isLinked) deduped.set(row.id, row)
   }
 
-  const patternIds = Array.from(deduped.keys())
+  const limitedRows = limit ? Array.from(deduped.values()).slice(0, limit) : Array.from(deduped.values())
+  const patternIds = limitedRows.map((row) => row.id)
   const variantCounts = patternIds.length
     ? await db
         .select({
@@ -627,7 +633,7 @@ async function getPatterns(userId: string, query: string) {
     : []
   const variantCountMap = new Map(variantCounts.map((row) => [row.patternId, Number(row.count) || 0]))
 
-  const items = Array.from(deduped.values()).map((row) => ({
+  const items = limitedRows.map((row) => ({
     ...row,
     variantCount: variantCountMap.get(row.id) ?? 0,
   }))
@@ -635,7 +641,7 @@ async function getPatterns(userId: string, query: string) {
   return Response.json(
     {
       kind: 'patterns',
-      summary: { entries: deduped.size },
+      summary: { entries: items.length },
       items,
     },
     { status: 200 },

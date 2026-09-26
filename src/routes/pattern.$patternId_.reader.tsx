@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { PdfReader } from '#/components/pdf-reader'
 import type { PdfHighlight, PdfPageMetadata } from '#/components/pdf-reader'
 
-type ReaderSearch = { lang?: string }
+type ReaderSearch = { lang?: string; projectId?: string }
 
 type PatternPayload = {
   id: string
@@ -30,13 +30,14 @@ type ReaderMetadataPayload = {
 export const Route = createFileRoute('/pattern/$patternId_/reader')({
   validateSearch: (search: Record<string, unknown>): ReaderSearch => ({
     lang: typeof search.lang === 'string' && search.lang.trim() ? search.lang.trim() : undefined,
+    projectId: typeof search.projectId === 'string' && search.projectId.trim() ? search.projectId.trim() : undefined,
   }),
   component: PatternReaderPage,
 })
 
 function PatternReaderPage() {
   const { patternId } = Route.useParams()
-  const { lang } = Route.useSearch()
+  const { lang, projectId } = Route.useSearch()
   const navigate = Route.useNavigate()
   const [pattern, setPattern] = useState<PatternPayload | null>(null)
   const [variants, setVariants] = useState<PatternVariant[]>([])
@@ -188,9 +189,7 @@ function PatternReaderPage() {
   return (
     <section className="pattern-reader-page">
       <div className="pattern-reader-heading">
-        <Link className="button" params={{ patternId }} to="/pattern/$patternId">
-          <ArrowLeft size={16} /> Pattern details
-        </Link>
+        {projectId ? <Link className="button" params={{ projectId }} to="/project/$projectId"><ArrowLeft size={16} /> Back to project</Link> : <Link className="button" params={{ patternId }} to="/pattern/$patternId"><ArrowLeft size={16} /> Pattern details</Link>}
         <div>
           <span className="kicker">Gityarn reader</span>
           <h1>{pattern?.title ?? 'Pattern'}</h1>
@@ -199,7 +198,7 @@ function PatternReaderPage() {
           <label className="pattern-reader-language">
             <span>Language</span>
             <select
-              onChange={(event) => void navigate({ search: { lang: event.target.value }, replace: true })}
+              onChange={(event) => void navigate({ search: { lang: event.target.value, projectId }, replace: true })}
               value={selectedLanguage}
             >
               {variants.map((variant) => <option key={variant.id} value={variant.languageCode}>{variant.languageLabel}</option>)}

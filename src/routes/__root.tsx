@@ -5,6 +5,7 @@ import {
   Backpack,
   Bell,
   BookOpen,
+  FolderKanban,
   Newspaper,
   LogOut,
   Settings,
@@ -301,6 +302,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <BookOpen aria-hidden="true" size={18} />
             <span className="nav-label">Yarn Catalog</span>
           </Link>
+          <Link activeProps={{ className: 'active' }} className="nav-item" to="/projects">
+            <FolderKanban aria-hidden="true" size={18} />
+            <span className="nav-label">Projects</span>
+          </Link>
           <Link
             activeProps={{ className: 'active' }}
             className="nav-item"
@@ -385,9 +390,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <Backpack size={17} />
             <span>Inventory</span>
           </Link>
-          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/catalog">
-            <BookOpen size={17} />
-            <span>Catalog</span>
+          <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/projects">
+            <FolderKanban size={17} />
+            <span>Projects</span>
           </Link>
           <Link activeProps={{ className: 'active' }} className="mobile-bottom-item" to="/scan">
             <ScanLine size={17} />

@@ -11,6 +11,8 @@ type CreationPayload = {
   userId: string
   ownerDisplayName: string
   name: string
+  projectId: string | null
+  postType: string
   status: string
   notes: string | null
   isPublic: boolean
@@ -39,6 +41,13 @@ type CreationPayload = {
     isPublic: boolean
     hasPdf: boolean
   } | null
+  patterns: Array<{
+    id: string
+    title: string
+    isPublic: boolean
+    hasPdf: boolean
+  }>
+  viewerOwns: boolean
   heartCount: number
   viewerHasHeart: boolean
   commentCount: number
@@ -95,20 +104,17 @@ function CreationDetailPage() {
         <article className="soft-panel hero-card">
           <h1>{data.name}</h1>
           <p>{data.ownerDisplayName} · {data.status} · {new Date(data.updatedAt).toLocaleString()}</p>
-          {data.pattern ? (
-            <p>
-              Pattern: {data.pattern.title}{' '}
-              {data.pattern.isPublic && data.pattern.hasPdf ? (
-                <a className="button" href={`/pattern/${data.pattern.id}/reader`}>
-                  Open pattern
-                </a>
-              ) : null}
-            </p>
+          {data.projectId && data.viewerOwns ? <p><Link params={{ projectId: data.projectId }} to="/project/$projectId">Open source project</Link></p> : null}
+          {data.patterns.length ? (
+            <div className="catalog-sublist">
+              <strong>{data.patterns.length === 1 ? 'Pattern used' : 'Patterns used'}</strong>
+              {data.patterns.map((pattern) => <span key={pattern.id}>{pattern.title}{pattern.isPublic && pattern.hasPdf ? <a className="button" href={`/pattern/${pattern.id}/reader`}>Open pattern</a> : null}</span>)}
+            </div>
           ) : null}
-          {data.notes ? <p>{data.notes}</p> : null}
+          {data.notes ? <p className="creation-structured-notes">{data.notes}</p> : null}
           {data.yarn.length ? (
             <div className="catalog-sublist">
-              <strong>Yarn used</strong>
+              <strong>{data.postType === 'standalone' ? 'Yarn used' : 'Project yarn reported'}</strong>
               {data.yarn.map((item) => (
                 <span key={item.inventoryId}>
                   {item.lineId ? (

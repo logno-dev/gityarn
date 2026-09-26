@@ -180,12 +180,54 @@ export const nativePatternRowProgress = sqliteTable('native_pattern_row_progress
   ...timestamps,
 }, (table) => [primaryKey({ columns: [table.userId, table.patternId, table.rowId] })])
 
+export const projects = sqliteTable('projects', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  status: text('status').notNull().default('planned'),
+  notes: text('notes'),
+  startDate: text('start_date'),
+  dueDate: text('due_date'),
+  completedAt: integer('completed_at'),
+  ...timestamps,
+})
+
+export const projectSteps = sqliteTable('project_steps', {
+  id: text('id').primaryKey(),
+  projectId: text('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  notes: text('notes'),
+  dueDate: text('due_date'),
+  completedAt: integer('completed_at'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...timestamps,
+})
+
+export const projectStepPatterns = sqliteTable('project_step_patterns', {
+  stepId: text('step_id').notNull().references(() => projectSteps.id, { onDelete: 'cascade' }),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  sortOrder: integer('sort_order').notNull().default(0),
+}, (table) => [primaryKey({ columns: [table.stepId, table.patternId] })])
+
+export const projectYarn = sqliteTable('project_yarn', {
+  projectId: text('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  inventoryYarnId: text('inventory_yarn_id').notNull().references(() => inventoryYarn.id, { onDelete: 'cascade' }),
+  skeinsPlanned: integer('skeins_planned').notNull().default(1),
+}, (table) => [primaryKey({ columns: [table.projectId, table.inventoryYarnId] })])
+
+export const projectHooks = sqliteTable('project_hooks', {
+  projectId: text('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  hookId: text('hook_id').notNull().references(() => hooks.id, { onDelete: 'cascade' }),
+}, (table) => [primaryKey({ columns: [table.projectId, table.hookId] })])
+
 export const creations = sqliteTable('creations', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  projectId: text('project_id').references(() => projects.id, { onDelete: 'set null' }),
   patternId: text('pattern_id').references(() => patterns.id, { onDelete: 'set null' }),
   name: text('name').notNull(),
   status: text('status').notNull().default('active'),
+  postType: text('post_type').notNull().default('standalone'),
   isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(false),
   moderationStatus: text('moderation_status').notNull().default('active'),
   moderationReason: text('moderation_reason'),
@@ -206,6 +248,12 @@ export const creationHooks = sqliteTable('creation_hooks', {
   creationId: text('creation_id').notNull().references(() => creations.id, { onDelete: 'cascade' }),
   hookId: text('hook_id').notNull().references(() => hooks.id, { onDelete: 'cascade' }),
 }, (table) => [primaryKey({ columns: [table.creationId, table.hookId] })])
+
+export const creationPatterns = sqliteTable('creation_patterns', {
+  creationId: text('creation_id').notNull().references(() => creations.id, { onDelete: 'cascade' }),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  sortOrder: integer('sort_order').notNull().default(0),
+}, (table) => [primaryKey({ columns: [table.creationId, table.patternId] })])
 
 export const creationImages = sqliteTable('creation_images', {
   id: text('id').primaryKey(),
@@ -434,6 +482,7 @@ export const userRelations = relations(users, ({ many }) => ({
   yarn: many(inventoryYarn),
   hooks: many(hooks),
   patterns: many(patterns),
+  projects: many(projects),
   creations: many(creations),
   posts: many(posts),
   comments: many(comments),

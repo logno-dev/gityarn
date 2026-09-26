@@ -8,6 +8,7 @@ import {
   creationHearts,
   creationHooks,
   creationImages,
+  creationPatterns,
   creationYarn,
   creations,
   hooks,
@@ -33,6 +34,8 @@ export const Route = createFileRoute('/api/creations/$creationId')({
             userId: creations.userId,
             ownerDisplayName: users.displayName,
             name: creations.name,
+            projectId: creations.projectId,
+            postType: creations.postType,
             status: creations.status,
             notes: creations.notes,
             isPublic: creations.isPublic,
@@ -102,6 +105,23 @@ export const Route = createFileRoute('/api/creations/$creationId')({
           .innerJoin(hooks, eq(creationHooks.hookId, hooks.id))
           .where(eq(creationHooks.creationId, creation.id))
 
+        const creationPatternRows = await db
+          .select({
+            id: patterns.id,
+            title: patterns.title,
+            isPublic: patterns.isPublic,
+            hasPdf: sql<boolean>`case when ${patterns.pdfR2Key} is not null then 1 else 0 end`,
+          })
+          .from(creationPatterns)
+          .innerJoin(patterns, eq(creationPatterns.patternId, patterns.id))
+          .where(eq(creationPatterns.creationId, creation.id))
+          .orderBy(asc(creationPatterns.sortOrder))
+
+        const pattern = creation.patternId && creation.patternTitle
+          ? { id: creation.patternId, title: creation.patternTitle, isPublic: Boolean(creation.patternIsPublic), hasPdf: Boolean(creation.patternHasPdf) }
+          : null
+        const linkedPatterns = creationPatternRows.length ? creationPatternRows.map((item) => ({ ...item, isPublic: Boolean(item.isPublic), hasPdf: Boolean(item.hasPdf) })) : pattern ? [pattern] : []
+
         return Response.json(
           {
             ...creation,
@@ -114,15 +134,9 @@ export const Route = createFileRoute('/api/creations/$creationId')({
             commentCount: Number(commentRow?.count) || 0,
             yarn: yarnRows,
             hooks: hookRows,
-            pattern:
-              creation.patternId && creation.patternTitle
-                ? {
-                    id: creation.patternId,
-                    title: creation.patternTitle,
-                    isPublic: Boolean(creation.patternIsPublic),
-                    hasPdf: Boolean(creation.patternHasPdf),
-                  }
-                : null,
+            pattern,
+            patterns: linkedPatterns,
+            viewerOwns: creation.userId === authUser.id,
           },
           { status: 200 },
         )
