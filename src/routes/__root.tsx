@@ -23,6 +23,7 @@ import heartFull from '../../assets/heart_full.svg'
 import { PwaRegistration } from '../components/pwa-registration'
 import { ThemeToggle } from '../components/theme-toggle'
 import '../styles.css'
+import 'react-grid-layout/css/styles.css'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -84,7 +85,7 @@ export const Route = createRootRoute({
       },
       {
         rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito+Sans:wght@400;600;700&display=swap',
+        href: 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Balsamiq+Sans:wght@400;700&family=Caveat:wght@400;600;700&family=Comfortaa:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Fredoka:wght@400;600;700&family=Lora:wght@400;600;700&family=Nunito:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&family=Pacifico&family=Patrick+Hand&family=Playfair+Display:wght@500;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap',
       },
     ],
   }),

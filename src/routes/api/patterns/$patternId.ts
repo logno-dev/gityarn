@@ -22,6 +22,7 @@ export const Route = createFileRoute('/api/patterns/$patternId')({
             description: patterns.description,
             sourceUrl: patterns.sourceUrl,
             difficulty: patterns.difficulty,
+            patternType: patterns.patternType,
             notes: patterns.notes,
             isPublic: patterns.isPublic,
             hasPdf: sql<boolean>`case when ${patterns.pdfR2Key} is not null then 1 else 0 end`,
@@ -53,6 +54,7 @@ export const Route = createFileRoute('/api/patterns/$patternId')({
           viewerHasHeart: Boolean(viewerHeart),
           commentCount: Number(commentRow?.count) || 0,
           inLibrary: pattern.userId === authUser.id || Boolean(inLibrary),
+          canEdit: pattern.userId === authUser.id,
         })
       },
     },

@@ -49,6 +49,7 @@ type PatternItem = {
   description: string | null
   sourceUrl: string | null
   difficulty: string | null
+  patternType: string
   isPublic: boolean
   publicShareConfirmed: boolean
   hasPdf: boolean
@@ -228,7 +229,7 @@ function InventoryPage() {
   const [newCreationHookIds, setNewCreationHookIds] = useState<string[]>([])
   const [patternChoices, setPatternChoices] = useState<Array<{ id: string; title: string }>>([])
   const [addingItem, setAddingItem] = useState(false)
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [addModal, setAddModal] = useState<InventoryKind | 'native-pattern' | null>(null)
   const [patternUploadProgress, setPatternUploadProgress] = useState<{
     open: boolean
     total: number
@@ -662,7 +663,7 @@ function InventoryPage() {
       setNewYarnReserved(false)
       await loadInventory()
       setStatus('Yarn item added.')
-      setShowAddForm(false)
+      setAddModal(null)
       return
     }
 
@@ -675,11 +676,15 @@ function InventoryPage() {
       setNewHook({ sizeLabel: '', metricSizeMm: '', material: '', quantity: 1 })
       await loadInventory()
       setStatus('Hook added.')
-      setShowAddForm(false)
+      setAddModal(null)
       return
     }
 
     if (activeTab === 'patterns') {
+      if (!newPatternPdfFile) {
+        setStatus('Choose a PDF file to upload.')
+        return
+      }
       const totalUploads = Number(Boolean(newPatternPdfFile)) + Number(Boolean(newPatternCoverFile))
       let pdfUploadWarning: string | null = null
       const response = await fetch('/api/scan/inventory', {
@@ -745,7 +750,7 @@ function InventoryPage() {
       }
       setPatternUploadProgress((current) => ({ ...current, currentLabel: 'Finalizing...', error: null }))
       setStatus(pdfUploadWarning ? `Pattern added. ${pdfUploadWarning}` : 'Pattern added.')
-      setShowAddForm(false)
+      setAddModal(null)
       if (totalUploads > 0) {
         setTimeout(() => {
           setPatternUploadProgress({ open: false, total: 0, completed: 0, currentLabel: '', error: null })
@@ -784,7 +789,7 @@ function InventoryPage() {
     setNewCreationImages([])
     await loadInventory()
     setStatus('Creation added.')
-    setShowAddForm(false)
+    setAddModal(null)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unexpected error while saving item.'
       setStatus(message)
@@ -795,6 +800,31 @@ function InventoryPage() {
           error: current.error ?? message,
         }))
       }
+    } finally {
+      setAddingItem(false)
+    }
+  }
+
+  const createNativePattern = async () => {
+    const title = newPattern.title.trim()
+    if (!title) {
+      setStatus('Enter a title before opening the native editor.')
+      return
+    }
+    setAddingItem(true)
+    setStatus('Creating native pattern...')
+    try {
+      const response = await fetch('/api/patterns/native', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      })
+      const payload = await response.json() as { message?: string; patternId?: string }
+      if (!response.ok || !payload.patternId) {
+        setStatus(payload.message ?? 'Could not create native pattern.')
+        return
+      }
+      await navigate({ to: '/pattern/$patternId/edit', params: { patternId: payload.patternId } })
     } finally {
       setAddingItem(false)
     }
@@ -827,6 +857,16 @@ function InventoryPage() {
     })
   }
 
+  const openAddModal = (modal: InventoryKind | 'native-pattern') => {
+    setStatus('')
+    setAddModal(modal)
+  }
+
+  const closeAddModal = () => {
+    setStatus('')
+    setAddModal(null)
+  }
+
   return (
     <section className="page-stack">
       <div className="inventory-tab-row">
@@ -837,7 +877,7 @@ function InventoryPage() {
             onClick={() => {
               setActiveTab(tab.key)
               setStatus('')
-              setShowAddForm(false)
+              setAddModal(null)
             }}
             type="button"
           >
@@ -855,11 +895,29 @@ function InventoryPage() {
         ))}
       </div>
 
-      <article className="soft-panel inventory-add-shell">
-        <button className="button button-primary inventory-add-toggle" onClick={() => setShowAddForm((current) => !current)} type="button">
-          <Plus size={14} /> {showAddForm ? 'Close add form' : `Add ${tabs.find((tab) => tab.key === activeTab)?.label}`}
-        </button>
-        {showAddForm && activeTab === 'yarn' ? (
+      <div className="inventory-add-actions">
+        {activeTab === 'patterns' ? (
+          <>
+            <button className="button" onClick={() => openAddModal('patterns')} type="button"><Plus size={14} /> Upload PDF pattern</button>
+            <button className="button button-primary" onClick={() => openAddModal('native-pattern')} type="button"><BookOpenCheck size={14} /> Create a Gityarn pattern</button>
+          </>
+        ) : (
+          <button className="button button-primary" onClick={() => openAddModal(activeTab)} type="button"><Plus size={14} /> Add {tabs.find((tab) => tab.key === activeTab)?.label.replace(/s$/, '')}</button>
+        )}
+      </div>
+
+      {addModal ? (
+        <div className="modal-backdrop" role="presentation">
+          <div aria-modal="true" className="community-modal inventory-add-modal" role="dialog">
+            <div className="community-modal-head">
+              <div>
+                <span className="kicker">Add to inventory</span>
+                <h2>{addModal === 'native-pattern' ? 'Create a Gityarn pattern' : addModal === 'patterns' ? 'Upload a PDF pattern' : `Add ${tabs.find((tab) => tab.key === addModal)?.label.replace(/s$/, '')}`}</h2>
+              </div>
+              <button aria-label="Close add dialog" className="icon-button" onClick={closeAddModal} type="button">×</button>
+            </div>
+
+        {addModal === 'yarn' ? (
           <>
             <div className="catalog-search">
               <SearchableSingleSelect
@@ -927,7 +985,7 @@ function InventoryPage() {
           </>
         ) : null}
 
-        {showAddForm && activeTab === 'hooks' ? (
+        {addModal === 'hooks' ? (
           <div className="inventory-add-grid">
             <label>
               Size label
@@ -948,7 +1006,7 @@ function InventoryPage() {
           </div>
         ) : null}
 
-        {showAddForm && activeTab === 'patterns' ? (
+        {addModal === 'patterns' ? (
           <div className="inventory-add-grid">
             <label>
               Title
@@ -971,7 +1029,7 @@ function InventoryPage() {
               <input onChange={(event) => setNewPattern((current) => ({ ...current, notes: event.target.value }))} type="text" value={newPattern.notes} />
             </label>
             <label>
-              Pattern PDF (optional)
+              Pattern PDF
               <select onChange={(event) => setNewPatternPdfLanguage(event.target.value)} value={newPatternPdfLanguage}>
                 {PATTERN_LANGUAGE_OPTIONS.map((option) => (
                   <option key={option.code} value={option.code}>{option.flag} {option.label}</option>
@@ -1003,7 +1061,17 @@ function InventoryPage() {
           </div>
         ) : null}
 
-        {showAddForm && activeTab === 'creations' ? (
+        {addModal === 'native-pattern' ? (
+          <div className="stack-form">
+            <p>Start with structured rows, automatic stitch counts, and yarn colors. You can add the rest in the editor.</p>
+            <label>
+              Pattern title
+              <input autoFocus maxLength={200} onChange={(event) => setNewPattern((current) => ({ ...current, title: event.target.value }))} placeholder="My crochet pattern" type="text" value={newPattern.title} />
+            </label>
+          </div>
+        ) : null}
+
+        {addModal === 'creations' ? (
           <div className="inventory-add-grid">
             <label>
               Name
@@ -1066,12 +1134,20 @@ function InventoryPage() {
           </div>
         ) : null}
 
-        {showAddForm ? (
-          <button className="button button-primary" disabled={addingItem} onClick={() => void addCurrentItem()} type="button">
-            <Plus size={15} /> {addingItem ? 'Saving...' : 'Add item'}
-          </button>
-        ) : null}
-      </article>
+        {status ? <p className="inventory-modal-status" role="status">{status}</p> : null}
+        <div className="inventory-modal-actions">
+          <button className="button" disabled={addingItem} onClick={closeAddModal} type="button">Cancel</button>
+          {addModal === 'native-pattern' ? (
+            <button className="button button-primary" disabled={addingItem} onClick={() => void createNativePattern()} type="button"><BookOpenCheck size={15} /> {addingItem ? 'Creating...' : 'Open pattern editor'}</button>
+          ) : (
+            <button className="button button-primary" disabled={addingItem} onClick={() => void addCurrentItem()} type="button">
+              <Plus size={15} /> {addingItem ? 'Saving...' : addModal === 'patterns' ? 'Upload pattern' : 'Add to inventory'}
+            </button>
+          )}
+        </div>
+          </div>
+        </div>
+      ) : null}
 
       <section className="catalog-list-shell" aria-label="Inventory list">
         <form
@@ -1265,22 +1341,16 @@ function InventoryPage() {
           ? (data.items as PatternItem[]).map((item) => (
               <article className="pattern-card" key={item.id}>
                 {!item.isLinked ? (
-                  <button
+                  <a
+                    aria-label={`Pattern details for ${item.title}`}
                     className="pattern-menu-trigger"
-                    onClick={() => {
-                      const next = editingPatternId === item.id ? null : item.id
-                      setEditingPatternId(next)
-                      if (next) {
-                        void loadPatternVariants(item.id)
-                      }
-                    }}
-                    type="button"
+                    href={`/pattern/${item.id}`}
                   >
                     <Pencil size={16} />
-                  </button>
+                  </a>
                 ) : null}
 
-                <a className="pattern-card-link" href={item.hasPdf ? `/pattern/${item.id}/reader` : undefined}>
+                <a className="pattern-card-link" href={item.patternType === 'native' ? `/pattern/${item.id}/preview` : item.hasPdf ? `/pattern/${item.id}/reader` : `/pattern/${item.id}`}>
                   {item.hasCover ? (
                     <img alt={item.title} className="pattern-card-cover" src={`/api/patterns/${item.id}/cover`} />
                   ) : item.hasPdfPreview ? (
@@ -1293,7 +1363,7 @@ function InventoryPage() {
                   <div className="pattern-card-body">
                     <strong>{item.title}</strong>
                     <span>{item.description || 'No description yet.'}</span>
-                    <span>{item.difficulty || 'No difficulty'} · {item.isPublic ? 'Public' : 'Private'} · {item.hasPdf ? 'PDF ready' : 'No PDF'}</span>
+                    <span>{item.difficulty || 'No difficulty'} · {item.isPublic ? 'Public' : 'Private'} · {item.patternType === 'native' ? 'Native pattern' : item.hasPdf ? 'PDF ready' : 'No PDF'}</span>
                     <span>{item.variantCount ? `${item.variantCount} language PDF${item.variantCount === 1 ? '' : 's'}` : 'No language variants yet'}</span>
                     {item.isLinked ? <span>Linked from {item.ownerDisplayName ?? 'another user'}</span> : null}
                   </div>
@@ -1321,7 +1391,7 @@ function InventoryPage() {
                       Notes
                       <textarea onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...current[item.id], notes: event.target.value } }))} rows={3} value={String((drafts[item.id]?.notes as string | undefined) ?? item.notes ?? '')} />
                     </label>
-                    <label className="inventory-toggle-label">
+                    {item.patternType !== 'native' ? <label className="inventory-toggle-label">
                       <input
                         checked={Boolean((drafts[item.id]?.isPublic as boolean | undefined) ?? item.isPublic)}
                         onChange={(event) => {
@@ -1337,7 +1407,7 @@ function InventoryPage() {
                         type="checkbox"
                       />
                       Make public (free download)
-                    </label>
+                    </label> : <p>Native patterns remain private until a separate sharing option is enabled.</p>}
                     <div className="pattern-assets-row">
                       <label>
                         {item.hasCover ? 'Replace cover' : 'Upload cover'}
@@ -1443,6 +1513,11 @@ function InventoryPage() {
                         </div>
                       </div>
                     <div className="hero-actions">
+                      {item.patternType === 'native' ? (
+                        <a className="button button-primary" href={`/pattern/${item.id}/edit`}>
+                          <Pencil size={14} /> Open pattern editor
+                        </a>
+                      ) : null}
                       {item.hasPdf ? (
                         <a className="button" href={`/pattern/${item.id}/reader`}>
                           <BookOpenCheck size={14} /> Open reader

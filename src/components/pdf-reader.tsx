@@ -5,6 +5,8 @@ import {
   Download,
   Highlighter,
   LoaderCircle,
+  Maximize2,
+  Minimize2,
   Minus,
   PanelLeftClose,
   PanelLeftOpen,
@@ -49,6 +51,7 @@ export type PdfHighlight = {
 }
 
 export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlightCreate, onHighlightDelete, onHighlightNoteChange, onPageMetadataChange, onProgressChange, pageMetadata = [], title }: PdfReaderProps) {
+  const readerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLElement>(null)
   const pageVisibilityRef = useRef(new Map<number, number>())
   const [document, setDocument] = useState<PDFDocumentProxy | null>(null)
@@ -68,6 +71,25 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
   const [metadataStatus, setMetadataStatus] = useState('')
   const [highlightMode, setHighlightMode] = useState(false)
   const [highlightColor, setHighlightColor] = useState('yellow')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 700px)')
+    const updateLayout = () => {
+      setIsMobile(media.matches)
+      if (media.matches) setThumbnailsOpen(false)
+    }
+    updateLayout()
+    media.addEventListener('change', updateLayout)
+    return () => media.removeEventListener('change', updateLayout)
+  }, [])
+
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFullscreen(window.document.fullscreenElement === readerRef.current)
+    window.document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () => window.document.removeEventListener('fullscreenchange', onFullscreenChange)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -138,6 +160,20 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
   useEffect(() => {
     if (document) onProgressChange?.(page, document.numPages)
   }, [document, onProgressChange, page])
+
+  useEffect(() => {
+    if (!document || !isMobile || !stageRef.current) return
+    let cancelled = false
+    void document.getPage(1).then((firstPage) => {
+      if (cancelled || !stageRef.current) return
+      const naturalWidth = firstPage.getViewport({ scale: 1 }).width
+      const availableWidth = Math.max(280, stageRef.current.clientWidth - 20)
+      setScale(Math.max(0.45, Math.min(1.25, availableWidth / naturalWidth)))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [document, isMobile])
 
   const currentMetadata = pageMetadata.find((item) => item.pageNumber === page)
 
@@ -270,8 +306,17 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
     }
   }
 
+  const toggleFullscreen = async () => {
+    try {
+      if (window.document.fullscreenElement) await window.document.exitFullscreen()
+      else await readerRef.current?.requestFullscreen()
+    } catch {
+      setMetadataStatus('Fullscreen is not available in this browser')
+    }
+  }
+
   return (
-    <div className="pdf-reader">
+    <div className="pdf-reader" ref={readerRef}>
       <header className="pdf-reader-toolbar">
         <button
           aria-label={thumbnailsOpen ? 'Hide thumbnails' : 'Show thumbnails'}
@@ -319,30 +364,35 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
           ) : searchInput && !searching ? <span className="pdf-search-empty">No matches</span> : null}
         </form>
 
-        <a aria-label="Download PDF" className="icon-button pdf-download" download href={fileUrl}>
-          <Download size={18} />
-        </a>
-        <button
-          aria-label={currentMetadata?.isBookmarked ? 'Remove page bookmark' : 'Bookmark this page'}
-          className={`icon-button ${currentMetadata?.isBookmarked ? 'active' : ''}`}
-          onClick={toggleBookmark}
-          type="button"
-        >
-          <Bookmark fill={currentMetadata?.isBookmarked ? 'currentColor' : 'none'} size={18} />
-        </button>
-        <button aria-label={notesOpen ? 'Hide notes' : 'Show notes'} className={`icon-button ${notesOpen ? 'active' : ''}`} onClick={() => setNotesOpen((current) => !current)} type="button">
-          <StickyNote size={18} />
-        </button>
-        <button aria-label={highlightMode ? 'Turn off highlighter' : 'Highlight an area'} className={`icon-button ${highlightMode ? 'active' : ''}`} onClick={() => setHighlightMode((current) => !current)} type="button">
-          <Highlighter size={18} />
-        </button>
-        {highlightMode ? (
-          <div aria-label="Highlight color" className="pdf-highlight-colors" role="group">
-            {['yellow', 'pink', 'mint'].map((color) => (
-              <button aria-label={`${color} highlight`} aria-pressed={highlightColor === color} className={`pdf-highlight-color ${color}`} key={color} onClick={() => setHighlightColor(color)} type="button" />
-            ))}
-          </div>
-        ) : null}
+        <div className="pdf-reader-actions">
+          <a aria-label="Download PDF" className="icon-button pdf-download" download href={fileUrl}>
+            <Download size={18} />
+          </a>
+          <button
+            aria-label={currentMetadata?.isBookmarked ? 'Remove page bookmark' : 'Bookmark this page'}
+            className={`icon-button ${currentMetadata?.isBookmarked ? 'active' : ''}`}
+            onClick={toggleBookmark}
+            type="button"
+          >
+            <Bookmark fill={currentMetadata?.isBookmarked ? 'currentColor' : 'none'} size={18} />
+          </button>
+          <button aria-label={notesOpen ? 'Hide notes' : 'Show notes'} className={`icon-button ${notesOpen ? 'active' : ''}`} onClick={() => setNotesOpen((current) => !current)} type="button">
+            <StickyNote size={18} />
+          </button>
+          <button aria-label={highlightMode ? 'Turn off highlighter' : 'Highlight an area'} className={`icon-button ${highlightMode ? 'active' : ''}`} onClick={() => setHighlightMode((current) => !current)} type="button">
+            <Highlighter size={18} />
+          </button>
+          {highlightMode ? (
+            <div aria-label="Highlight color" className="pdf-highlight-colors" role="group">
+              {['yellow', 'pink', 'mint'].map((color) => (
+                <button aria-label={`${color} highlight`} aria-pressed={highlightColor === color} className={`pdf-highlight-color ${color}`} key={color} onClick={() => setHighlightColor(color)} type="button" />
+              ))}
+            </div>
+          ) : null}
+          <button aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} className="icon-button" onClick={() => void toggleFullscreen()} type="button">
+            {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          </button>
+        </div>
         {metadataStatus ? <span aria-live="polite" className={`pdf-toolbar-status ${metadataStatus === 'Could not save' ? 'error' : ''}`}>{metadataStatus}</span> : null}
       </header>
 
@@ -351,7 +401,7 @@ export function PdfReader({ fileUrl, highlights = [], initialPage = 1, onHighlig
           <aside aria-label="Page thumbnails" className="pdf-thumbnails">
             {Array.from({ length: document.numPages }, (_, index) => {
               const pageNumber = index + 1
-              return <PdfThumbnail active={pageNumber === page} bookmarked={pageMetadata.some((item) => item.pageNumber === pageNumber && item.isBookmarked)} document={document} key={pageNumber} onSelect={navigateToPage} pageNumber={pageNumber} />
+               return <PdfThumbnail active={pageNumber === page} bookmarked={pageMetadata.some((item) => item.pageNumber === pageNumber && item.isBookmarked)} document={document} key={pageNumber} onSelect={(nextPage) => { navigateToPage(nextPage); if (isMobile) setThumbnailsOpen(false) }} pageNumber={pageNumber} />
             })}
           </aside>
         ) : null}

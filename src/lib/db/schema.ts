@@ -110,6 +110,8 @@ export const patterns = sqliteTable('patterns', {
   description: text('description'),
   sourceUrl: text('source_url'),
   difficulty: text('difficulty'),
+  patternType: text('pattern_type').notNull().default('pdf'),
+  nativeStyleJson: text('native_style_json'),
   isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(false),
   publicShareConfirmed: integer('public_share_confirmed', { mode: 'boolean' }).notNull().default(false),
   pdfR2Key: text('pdf_r2_key'),
@@ -126,6 +128,57 @@ export const patterns = sqliteTable('patterns', {
   notes: text('notes'),
   ...timestamps,
 })
+
+export const nativePatternSections = sqliteTable('native_pattern_sections', {
+  id: text('id').primaryKey(),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  sectionType: text('section_type').notNull().default('pattern'),
+  title: text('title').notNull(),
+  notes: text('notes'),
+  designStyleJson: text('design_style_json'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...timestamps,
+})
+
+export const nativePatternRows = sqliteTable('native_pattern_rows', {
+  id: text('id').primaryKey(),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  sectionId: text('section_id').notNull().references(() => nativePatternSections.id, { onDelete: 'cascade' }),
+  blockType: text('block_type').notNull().default('row'),
+  rowType: text('row_type').notNull().default('round'),
+  rowNumber: integer('row_number').notNull(),
+  instruction: text('instruction').notNull(),
+  structuredJson: text('structured_json'),
+  computedStitchCount: integer('computed_stitch_count'),
+  colorKey: text('color_key'),
+  imageR2Key: text('image_r2_key'),
+  imageMimeType: text('image_mime_type'),
+  imageByteSize: integer('image_byte_size'),
+  imageAltText: text('image_alt_text'),
+  imageCaption: text('image_caption'),
+  blockHeading: text('block_heading'),
+  designStyleJson: text('design_style_json'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...timestamps,
+})
+
+export const nativePatternColors = sqliteTable('native_pattern_colors', {
+  id: text('id').primaryKey(),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  key: text('key').notNull(),
+  label: text('label').notNull(),
+  hexColor: text('hex_color'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...timestamps,
+}, (table) => [uniqueIndex('native_pattern_colors_pattern_key_unique').on(table.patternId, table.key)])
+
+export const nativePatternRowProgress = sqliteTable('native_pattern_row_progress', {
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  rowId: text('row_id').notNull(),
+  completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
+  ...timestamps,
+}, (table) => [primaryKey({ columns: [table.userId, table.patternId, table.rowId] })])
 
 export const creations = sqliteTable('creations', {
   id: text('id').primaryKey(),

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Heart } from 'lucide-react'
+import { Heart, Palette, Pencil } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { CommentThread } from '#/components/comment-thread'
@@ -14,6 +14,7 @@ type PatternPayload = {
   description: string | null
   sourceUrl: string | null
   difficulty: string | null
+  patternType: string
   notes: string | null
   hasPdf: boolean
   coverSrc: string | null
@@ -21,6 +22,7 @@ type PatternPayload = {
   viewerHasHeart: boolean
   commentCount: number
   inLibrary: boolean
+  canEdit: boolean
 }
 
 type PatternVariantsPayload = {
@@ -93,6 +95,9 @@ function PatternDetailPage() {
           {data.description ? <p>{data.description}</p> : null}
           {data.notes ? <p>{data.notes}</p> : null}
           <div className="hero-actions">
+            {data.patternType === 'native' && data.canEdit ? <a className="button" href={`/pattern/${data.id}/edit`}><Pencil size={14} /><span>Edit pattern details</span></a> : null}
+            {data.patternType === 'native' && data.canEdit ? <a className="button" href={`/pattern/${data.id}/design`}><Palette size={14} /><span>Edit design</span></a> : null}
+            {data.patternType === 'native' ? <a className="button button-primary" href={`/pattern/${data.id}/preview`}><span>View pattern</span></a> : null}
             {data.hasPdf ? <a className="button button-primary" href={`/pattern/${data.id}/reader`}><span>Read pattern</span></a> : null}
             <button className="button" disabled={data.inLibrary} onClick={() => void addToLibrary()} type="button">
               {data.inLibrary ? 'Already in inventory' : 'Add to inventory'}

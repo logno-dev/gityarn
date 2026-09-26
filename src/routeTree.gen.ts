@@ -37,6 +37,9 @@ import { Route as ApiCommentsRouteImport } from './routes/api/comments'
 import { Route as ApiAccountSettingsRouteImport } from './routes/api/account-settings'
 import { Route as ApiCatalogIndexRouteImport } from './routes/api/catalog/index'
 import { Route as PatternPatternIdReaderRouteImport } from './routes/pattern.$patternId_.reader'
+import { Route as PatternPatternIdPreviewRouteImport } from './routes/pattern.$patternId_.preview'
+import { Route as PatternPatternIdEditRouteImport } from './routes/pattern.$patternId_.edit'
+import { Route as PatternPatternIdDesignRouteImport } from './routes/pattern.$patternId_.design'
 import { Route as ApiShareUploadUrlRouteImport } from './routes/api/share/upload-url'
 import { Route as ApiShareOptionsRouteImport } from './routes/api/share/options'
 import { Route as ApiShareIngestRouteImport } from './routes/api/share/ingest'
@@ -51,6 +54,7 @@ import { Route as ApiScanAssociateRouteImport } from './routes/api/scan/associat
 import { Route as ApiProfilesUserIdRouteImport } from './routes/api/profiles/$userId'
 import { Route as ApiPostsPostIdRouteImport } from './routes/api/posts/$postId'
 import { Route as ApiPatternsPublicRouteImport } from './routes/api/patterns/public'
+import { Route as ApiPatternsNativeRouteImport } from './routes/api/patterns/native'
 import { Route as ApiPatternsPatternIdRouteImport } from './routes/api/patterns/$patternId'
 import { Route as ApiLandingCarouselRouteImport } from './routes/api/landing/carousel'
 import { Route as ApiDiscoverFeedRouteImport } from './routes/api/discover/feed'
@@ -79,6 +83,9 @@ import { Route as ApiPatternsPatternIdUploadRouteImport } from './routes/api/pat
 import { Route as ApiPatternsPatternIdReaderMetadataRouteImport } from './routes/api/patterns/$patternId/reader-metadata'
 import { Route as ApiPatternsPatternIdReaderHighlightsRouteImport } from './routes/api/patterns/$patternId/reader-highlights'
 import { Route as ApiPatternsPatternIdPreviewRouteImport } from './routes/api/patterns/$patternId/preview'
+import { Route as ApiPatternsPatternIdNativeProgressRouteImport } from './routes/api/patterns/$patternId/native-progress'
+import { Route as ApiPatternsPatternIdNativeImagesRouteImport } from './routes/api/patterns/$patternId/native-images'
+import { Route as ApiPatternsPatternIdNativeRouteImport } from './routes/api/patterns/$patternId/native'
 import { Route as ApiPatternsPatternIdLibraryRouteImport } from './routes/api/patterns/$patternId/library'
 import { Route as ApiPatternsPatternIdHeartsRouteImport } from './routes/api/patterns/$patternId/hearts'
 import { Route as ApiPatternsPatternIdFileRouteImport } from './routes/api/patterns/$patternId/file'
@@ -234,6 +241,21 @@ const PatternPatternIdReaderRoute = PatternPatternIdReaderRouteImport.update({
   path: '/pattern/$patternId/reader',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PatternPatternIdPreviewRoute = PatternPatternIdPreviewRouteImport.update({
+  id: '/pattern/$patternId_/preview',
+  path: '/pattern/$patternId/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatternPatternIdEditRoute = PatternPatternIdEditRouteImport.update({
+  id: '/pattern/$patternId_/edit',
+  path: '/pattern/$patternId/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatternPatternIdDesignRoute = PatternPatternIdDesignRouteImport.update({
+  id: '/pattern/$patternId_/design',
+  path: '/pattern/$patternId/design',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiShareUploadUrlRoute = ApiShareUploadUrlRouteImport.update({
   id: '/api/share/upload-url',
   path: '/api/share/upload-url',
@@ -302,6 +324,11 @@ const ApiPostsPostIdRoute = ApiPostsPostIdRouteImport.update({
 const ApiPatternsPublicRoute = ApiPatternsPublicRouteImport.update({
   id: '/api/patterns/public',
   path: '/api/patterns/public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPatternsNativeRoute = ApiPatternsNativeRouteImport.update({
+  id: '/api/patterns/native',
+  path: '/api/patterns/native',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPatternsPatternIdRoute = ApiPatternsPatternIdRouteImport.update({
@@ -452,6 +479,24 @@ const ApiPatternsPatternIdPreviewRoute =
     path: '/preview',
     getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
+const ApiPatternsPatternIdNativeProgressRoute =
+  ApiPatternsPatternIdNativeProgressRouteImport.update({
+    id: '/native-progress',
+    path: '/native-progress',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
+const ApiPatternsPatternIdNativeImagesRoute =
+  ApiPatternsPatternIdNativeImagesRouteImport.update({
+    id: '/native-images',
+    path: '/native-images',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
+const ApiPatternsPatternIdNativeRoute =
+  ApiPatternsPatternIdNativeRouteImport.update({
+    id: '/native',
+    path: '/native',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
 const ApiPatternsPatternIdLibraryRoute =
   ApiPatternsPatternIdLibraryRouteImport.update({
     id: '/library',
@@ -581,6 +626,7 @@ export interface FileRoutesByFullPath {
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
   '/api/patterns/$patternId': typeof ApiPatternsPatternIdRouteWithChildren
+  '/api/patterns/native': typeof ApiPatternsNativeRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -595,6 +641,9 @@ export interface FileRoutesByFullPath {
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
   '/api/share/upload-url': typeof ApiShareUploadUrlRoute
+  '/pattern/$patternId/design': typeof PatternPatternIdDesignRoute
+  '/pattern/$patternId/edit': typeof PatternPatternIdEditRoute
+  '/pattern/$patternId/preview': typeof PatternPatternIdPreviewRoute
   '/pattern/$patternId/reader': typeof PatternPatternIdReaderRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
@@ -608,6 +657,9 @@ export interface FileRoutesByFullPath {
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
+  '/api/patterns/$patternId/native': typeof ApiPatternsPatternIdNativeRoute
+  '/api/patterns/$patternId/native-images': typeof ApiPatternsPatternIdNativeImagesRoute
+  '/api/patterns/$patternId/native-progress': typeof ApiPatternsPatternIdNativeProgressRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/reader-highlights': typeof ApiPatternsPatternIdReaderHighlightsRoute
   '/api/patterns/$patternId/reader-metadata': typeof ApiPatternsPatternIdReaderMetadataRoute
@@ -666,6 +718,7 @@ export interface FileRoutesByTo {
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
   '/api/patterns/$patternId': typeof ApiPatternsPatternIdRouteWithChildren
+  '/api/patterns/native': typeof ApiPatternsNativeRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -680,6 +733,9 @@ export interface FileRoutesByTo {
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
   '/api/share/upload-url': typeof ApiShareUploadUrlRoute
+  '/pattern/$patternId/design': typeof PatternPatternIdDesignRoute
+  '/pattern/$patternId/edit': typeof PatternPatternIdEditRoute
+  '/pattern/$patternId/preview': typeof PatternPatternIdPreviewRoute
   '/pattern/$patternId/reader': typeof PatternPatternIdReaderRoute
   '/api/catalog': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
@@ -693,6 +749,9 @@ export interface FileRoutesByTo {
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
+  '/api/patterns/$patternId/native': typeof ApiPatternsPatternIdNativeRoute
+  '/api/patterns/$patternId/native-images': typeof ApiPatternsPatternIdNativeImagesRoute
+  '/api/patterns/$patternId/native-progress': typeof ApiPatternsPatternIdNativeProgressRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/reader-highlights': typeof ApiPatternsPatternIdReaderHighlightsRoute
   '/api/patterns/$patternId/reader-metadata': typeof ApiPatternsPatternIdReaderMetadataRoute
@@ -753,6 +812,7 @@ export interface FileRoutesById {
   '/api/discover/feed': typeof ApiDiscoverFeedRoute
   '/api/landing/carousel': typeof ApiLandingCarouselRouteWithChildren
   '/api/patterns/$patternId': typeof ApiPatternsPatternIdRouteWithChildren
+  '/api/patterns/native': typeof ApiPatternsNativeRoute
   '/api/patterns/public': typeof ApiPatternsPublicRoute
   '/api/posts/$postId': typeof ApiPostsPostIdRouteWithChildren
   '/api/profiles/$userId': typeof ApiProfilesUserIdRouteWithChildren
@@ -767,6 +827,9 @@ export interface FileRoutesById {
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
   '/api/share/upload-url': typeof ApiShareUploadUrlRoute
+  '/pattern/$patternId_/design': typeof PatternPatternIdDesignRoute
+  '/pattern/$patternId_/edit': typeof PatternPatternIdEditRoute
+  '/pattern/$patternId_/preview': typeof PatternPatternIdPreviewRoute
   '/pattern/$patternId_/reader': typeof PatternPatternIdReaderRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
@@ -780,6 +843,9 @@ export interface FileRoutesById {
   '/api/patterns/$patternId/file': typeof ApiPatternsPatternIdFileRoute
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
+  '/api/patterns/$patternId/native': typeof ApiPatternsPatternIdNativeRoute
+  '/api/patterns/$patternId/native-images': typeof ApiPatternsPatternIdNativeImagesRoute
+  '/api/patterns/$patternId/native-progress': typeof ApiPatternsPatternIdNativeProgressRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
   '/api/patterns/$patternId/reader-highlights': typeof ApiPatternsPatternIdReaderHighlightsRoute
   '/api/patterns/$patternId/reader-metadata': typeof ApiPatternsPatternIdReaderMetadataRoute
@@ -841,6 +907,7 @@ export interface FileRouteTypes {
     | '/api/discover/feed'
     | '/api/landing/carousel'
     | '/api/patterns/$patternId'
+    | '/api/patterns/native'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -855,6 +922,9 @@ export interface FileRouteTypes {
     | '/api/share/ingest'
     | '/api/share/options'
     | '/api/share/upload-url'
+    | '/pattern/$patternId/design'
+    | '/pattern/$patternId/edit'
+    | '/pattern/$patternId/preview'
     | '/pattern/$patternId/reader'
     | '/api/catalog/'
     | '/api/admin/moderation/remove'
@@ -868,6 +938,9 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
+    | '/api/patterns/$patternId/native'
+    | '/api/patterns/$patternId/native-images'
+    | '/api/patterns/$patternId/native-progress'
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/reader-highlights'
     | '/api/patterns/$patternId/reader-metadata'
@@ -926,6 +999,7 @@ export interface FileRouteTypes {
     | '/api/discover/feed'
     | '/api/landing/carousel'
     | '/api/patterns/$patternId'
+    | '/api/patterns/native'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -940,6 +1014,9 @@ export interface FileRouteTypes {
     | '/api/share/ingest'
     | '/api/share/options'
     | '/api/share/upload-url'
+    | '/pattern/$patternId/design'
+    | '/pattern/$patternId/edit'
+    | '/pattern/$patternId/preview'
     | '/pattern/$patternId/reader'
     | '/api/catalog'
     | '/api/admin/moderation/remove'
@@ -953,6 +1030,9 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
+    | '/api/patterns/$patternId/native'
+    | '/api/patterns/$patternId/native-images'
+    | '/api/patterns/$patternId/native-progress'
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/reader-highlights'
     | '/api/patterns/$patternId/reader-metadata'
@@ -1012,6 +1092,7 @@ export interface FileRouteTypes {
     | '/api/discover/feed'
     | '/api/landing/carousel'
     | '/api/patterns/$patternId'
+    | '/api/patterns/native'
     | '/api/patterns/public'
     | '/api/posts/$postId'
     | '/api/profiles/$userId'
@@ -1026,6 +1107,9 @@ export interface FileRouteTypes {
     | '/api/share/ingest'
     | '/api/share/options'
     | '/api/share/upload-url'
+    | '/pattern/$patternId_/design'
+    | '/pattern/$patternId_/edit'
+    | '/pattern/$patternId_/preview'
     | '/pattern/$patternId_/reader'
     | '/api/catalog/'
     | '/api/admin/moderation/remove'
@@ -1039,6 +1123,9 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/file'
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
+    | '/api/patterns/$patternId/native'
+    | '/api/patterns/$patternId/native-images'
+    | '/api/patterns/$patternId/native-progress'
     | '/api/patterns/$patternId/preview'
     | '/api/patterns/$patternId/reader-highlights'
     | '/api/patterns/$patternId/reader-metadata'
@@ -1094,6 +1181,7 @@ export interface RootRouteChildren {
   ApiDiscoverFeedRoute: typeof ApiDiscoverFeedRoute
   ApiLandingCarouselRoute: typeof ApiLandingCarouselRouteWithChildren
   ApiPatternsPatternIdRoute: typeof ApiPatternsPatternIdRouteWithChildren
+  ApiPatternsNativeRoute: typeof ApiPatternsNativeRoute
   ApiPatternsPublicRoute: typeof ApiPatternsPublicRoute
   ApiProfilesUserIdRoute: typeof ApiProfilesUserIdRouteWithChildren
   ApiScanAssociateRoute: typeof ApiScanAssociateRoute
@@ -1107,6 +1195,9 @@ export interface RootRouteChildren {
   ApiShareIngestRoute: typeof ApiShareIngestRoute
   ApiShareOptionsRoute: typeof ApiShareOptionsRoute
   ApiShareUploadUrlRoute: typeof ApiShareUploadUrlRoute
+  PatternPatternIdDesignRoute: typeof PatternPatternIdDesignRoute
+  PatternPatternIdEditRoute: typeof PatternPatternIdEditRoute
+  PatternPatternIdPreviewRoute: typeof PatternPatternIdPreviewRoute
   PatternPatternIdReaderRoute: typeof PatternPatternIdReaderRoute
   ApiCatalogIndexRoute: typeof ApiCatalogIndexRoute
   ApiAdminModerationRemoveRoute: typeof ApiAdminModerationRemoveRoute
@@ -1312,6 +1403,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatternPatternIdReaderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pattern/$patternId_/preview': {
+      id: '/pattern/$patternId_/preview'
+      path: '/pattern/$patternId/preview'
+      fullPath: '/pattern/$patternId/preview'
+      preLoaderRoute: typeof PatternPatternIdPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pattern/$patternId_/edit': {
+      id: '/pattern/$patternId_/edit'
+      path: '/pattern/$patternId/edit'
+      fullPath: '/pattern/$patternId/edit'
+      preLoaderRoute: typeof PatternPatternIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pattern/$patternId_/design': {
+      id: '/pattern/$patternId_/design'
+      path: '/pattern/$patternId/design'
+      fullPath: '/pattern/$patternId/design'
+      preLoaderRoute: typeof PatternPatternIdDesignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/share/upload-url': {
       id: '/api/share/upload-url'
       path: '/api/share/upload-url'
@@ -1408,6 +1520,13 @@ declare module '@tanstack/react-router' {
       path: '/api/patterns/public'
       fullPath: '/api/patterns/public'
       preLoaderRoute: typeof ApiPatternsPublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/patterns/native': {
+      id: '/api/patterns/native'
+      path: '/api/patterns/native'
+      fullPath: '/api/patterns/native'
+      preLoaderRoute: typeof ApiPatternsNativeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/patterns/$patternId': {
@@ -1604,6 +1723,27 @@ declare module '@tanstack/react-router' {
       path: '/preview'
       fullPath: '/api/patterns/$patternId/preview'
       preLoaderRoute: typeof ApiPatternsPatternIdPreviewRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
+    '/api/patterns/$patternId/native-progress': {
+      id: '/api/patterns/$patternId/native-progress'
+      path: '/native-progress'
+      fullPath: '/api/patterns/$patternId/native-progress'
+      preLoaderRoute: typeof ApiPatternsPatternIdNativeProgressRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
+    '/api/patterns/$patternId/native-images': {
+      id: '/api/patterns/$patternId/native-images'
+      path: '/native-images'
+      fullPath: '/api/patterns/$patternId/native-images'
+      preLoaderRoute: typeof ApiPatternsPatternIdNativeImagesRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
+    '/api/patterns/$patternId/native': {
+      id: '/api/patterns/$patternId/native'
+      path: '/native'
+      fullPath: '/api/patterns/$patternId/native'
+      preLoaderRoute: typeof ApiPatternsPatternIdNativeRouteImport
       parentRoute: typeof ApiPatternsPatternIdRoute
     }
     '/api/patterns/$patternId/library': {
@@ -1837,6 +1977,9 @@ interface ApiPatternsPatternIdRouteChildren {
   ApiPatternsPatternIdFileRoute: typeof ApiPatternsPatternIdFileRoute
   ApiPatternsPatternIdHeartsRoute: typeof ApiPatternsPatternIdHeartsRoute
   ApiPatternsPatternIdLibraryRoute: typeof ApiPatternsPatternIdLibraryRoute
+  ApiPatternsPatternIdNativeRoute: typeof ApiPatternsPatternIdNativeRoute
+  ApiPatternsPatternIdNativeImagesRoute: typeof ApiPatternsPatternIdNativeImagesRoute
+  ApiPatternsPatternIdNativeProgressRoute: typeof ApiPatternsPatternIdNativeProgressRoute
   ApiPatternsPatternIdPreviewRoute: typeof ApiPatternsPatternIdPreviewRoute
   ApiPatternsPatternIdReaderHighlightsRoute: typeof ApiPatternsPatternIdReaderHighlightsRoute
   ApiPatternsPatternIdReaderMetadataRoute: typeof ApiPatternsPatternIdReaderMetadataRoute
@@ -1852,6 +1995,10 @@ const ApiPatternsPatternIdRouteChildren: ApiPatternsPatternIdRouteChildren = {
   ApiPatternsPatternIdFileRoute: ApiPatternsPatternIdFileRoute,
   ApiPatternsPatternIdHeartsRoute: ApiPatternsPatternIdHeartsRoute,
   ApiPatternsPatternIdLibraryRoute: ApiPatternsPatternIdLibraryRoute,
+  ApiPatternsPatternIdNativeRoute: ApiPatternsPatternIdNativeRoute,
+  ApiPatternsPatternIdNativeImagesRoute: ApiPatternsPatternIdNativeImagesRoute,
+  ApiPatternsPatternIdNativeProgressRoute:
+    ApiPatternsPatternIdNativeProgressRoute,
   ApiPatternsPatternIdPreviewRoute: ApiPatternsPatternIdPreviewRoute,
   ApiPatternsPatternIdReaderHighlightsRoute:
     ApiPatternsPatternIdReaderHighlightsRoute,
@@ -1916,6 +2063,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDiscoverFeedRoute: ApiDiscoverFeedRoute,
   ApiLandingCarouselRoute: ApiLandingCarouselRouteWithChildren,
   ApiPatternsPatternIdRoute: ApiPatternsPatternIdRouteWithChildren,
+  ApiPatternsNativeRoute: ApiPatternsNativeRoute,
   ApiPatternsPublicRoute: ApiPatternsPublicRoute,
   ApiProfilesUserIdRoute: ApiProfilesUserIdRouteWithChildren,
   ApiScanAssociateRoute: ApiScanAssociateRoute,
@@ -1929,6 +2077,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShareIngestRoute: ApiShareIngestRoute,
   ApiShareOptionsRoute: ApiShareOptionsRoute,
   ApiShareUploadUrlRoute: ApiShareUploadUrlRoute,
+  PatternPatternIdDesignRoute: PatternPatternIdDesignRoute,
+  PatternPatternIdEditRoute: PatternPatternIdEditRoute,
+  PatternPatternIdPreviewRoute: PatternPatternIdPreviewRoute,
   PatternPatternIdReaderRoute: PatternPatternIdReaderRoute,
   ApiCatalogIndexRoute: ApiCatalogIndexRoute,
   ApiAdminModerationRemoveRoute: ApiAdminModerationRemoveRoute,
