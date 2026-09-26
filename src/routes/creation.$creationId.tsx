@@ -99,7 +99,7 @@ function CreationDetailPage() {
             <p>
               Pattern: {data.pattern.title}{' '}
               {data.pattern.isPublic && data.pattern.hasPdf ? (
-                <a className="button" href={`/api/patterns/${data.pattern.id}/file`}>
+                <a className="button" href={`/pattern/${data.pattern.id}/reader`}>
                   Open pattern
                 </a>
               ) : null}

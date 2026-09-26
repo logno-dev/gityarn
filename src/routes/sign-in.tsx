@@ -32,8 +32,13 @@ function SignInPage() {
   }
 
   return (
-    <section className="page-stack page-narrow">
-      <article className="soft-panel">
+    <section className="auth-page">
+      <article className="soft-panel auth-card">
+        <header className="auth-heading">
+          <span className="kicker">Welcome back</span>
+          <h1>Sign in to Gityarn</h1>
+          <p>Pick up your projects, patterns, and stash where you left off.</p>
+        </header>
         <form className="stack-form" onSubmit={submit}>
           <label>
             Email
@@ -57,18 +62,20 @@ function SignInPage() {
             <LogIn size={16} /> Sign In
           </button>
         </form>
-        <p>{status}</p>
-        <p>
+        {status ? <p className="auth-status" role="status">{status}</p> : null}
+        <div className="auth-links">
+          <p>
           <Link className="inline-link" to="/forgot-password">
             Forgot your password?
           </Link>
-        </p>
-        <p>
-          Need an account?{' '}
-          <Link className="inline-link" to="/register">
-            <UserPlus size={14} /> Register here
-          </Link>
-        </p>
+          </p>
+          <p>
+            Need an account?{' '}
+            <Link className="inline-link" to="/register">
+              <UserPlus size={14} /> Register here
+            </Link>
+          </p>
+        </div>
       </article>
     </section>
   )

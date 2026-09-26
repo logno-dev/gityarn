@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { BookOpenCheck, Download, ImagePlus, Lock, Minus, Package, Pencil, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
+import { BookOpenCheck, ImagePlus, Lock, Minus, Package, Pencil, Plus, Save, Scissors, Search, Shapes, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { FileDropInput } from '#/components/file-drop-input'
@@ -1280,7 +1280,7 @@ function InventoryPage() {
                   </button>
                 ) : null}
 
-                <a className="pattern-card-link" href={item.hasPdf ? `/api/patterns/${item.id}/file` : undefined}>
+                <a className="pattern-card-link" href={item.hasPdf ? `/pattern/${item.id}/reader` : undefined}>
                   {item.hasCover ? (
                     <img alt={item.title} className="pattern-card-cover" src={`/api/patterns/${item.id}/cover`} />
                   ) : item.hasPdfPreview ? (
@@ -1444,8 +1444,8 @@ function InventoryPage() {
                       </div>
                     <div className="hero-actions">
                       {item.hasPdf ? (
-                        <a className="button" href={`/api/patterns/${item.id}/file`}>
-                          <Download size={14} /> View PDF
+                        <a className="button" href={`/pattern/${item.id}/reader`}>
+                          <BookOpenCheck size={14} /> Open reader
                         </a>
                       ) : null}
                       {item.hasCover ? (
@@ -1506,8 +1506,8 @@ function InventoryPage() {
                     </div>
                     <div className="hero-actions">
                       {pattern.hasPdf ? (
-                        <a className="button" href={`/api/patterns/${pattern.id}/file`}>
-                          <Download size={14} /> Free download
+                        <a className="button" href={`/pattern/${pattern.id}/reader`}>
+                          <BookOpenCheck size={14} /> Read pattern
                         </a>
                       ) : null}
                       <button

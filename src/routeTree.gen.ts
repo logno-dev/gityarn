@@ -36,6 +36,7 @@ import { Route as ApiNotificationsRouteImport } from './routes/api/notifications
 import { Route as ApiCommentsRouteImport } from './routes/api/comments'
 import { Route as ApiAccountSettingsRouteImport } from './routes/api/account-settings'
 import { Route as ApiCatalogIndexRouteImport } from './routes/api/catalog/index'
+import { Route as PatternPatternIdReaderRouteImport } from './routes/pattern.$patternId_.reader'
 import { Route as ApiShareUploadUrlRouteImport } from './routes/api/share/upload-url'
 import { Route as ApiShareOptionsRouteImport } from './routes/api/share/options'
 import { Route as ApiShareIngestRouteImport } from './routes/api/share/ingest'
@@ -75,6 +76,8 @@ import { Route as ApiPostsPostIdHeartsRouteImport } from './routes/api/posts/$po
 import { Route as ApiPatternsPatternIdVariantsRouteImport } from './routes/api/patterns/$patternId/variants'
 import { Route as ApiPatternsPatternIdUploadUrlRouteImport } from './routes/api/patterns/$patternId/upload-url'
 import { Route as ApiPatternsPatternIdUploadRouteImport } from './routes/api/patterns/$patternId/upload'
+import { Route as ApiPatternsPatternIdReaderMetadataRouteImport } from './routes/api/patterns/$patternId/reader-metadata'
+import { Route as ApiPatternsPatternIdReaderHighlightsRouteImport } from './routes/api/patterns/$patternId/reader-highlights'
 import { Route as ApiPatternsPatternIdPreviewRouteImport } from './routes/api/patterns/$patternId/preview'
 import { Route as ApiPatternsPatternIdLibraryRouteImport } from './routes/api/patterns/$patternId/library'
 import { Route as ApiPatternsPatternIdHeartsRouteImport } from './routes/api/patterns/$patternId/hearts'
@@ -224,6 +227,11 @@ const ApiAccountSettingsRoute = ApiAccountSettingsRouteImport.update({
 const ApiCatalogIndexRoute = ApiCatalogIndexRouteImport.update({
   id: '/api/catalog/',
   path: '/api/catalog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatternPatternIdReaderRoute = PatternPatternIdReaderRouteImport.update({
+  id: '/pattern/$patternId_/reader',
+  path: '/pattern/$patternId/reader',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShareUploadUrlRoute = ApiShareUploadUrlRouteImport.update({
@@ -426,6 +434,18 @@ const ApiPatternsPatternIdUploadRoute =
     path: '/upload',
     getParentRoute: () => ApiPatternsPatternIdRoute,
   } as any)
+const ApiPatternsPatternIdReaderMetadataRoute =
+  ApiPatternsPatternIdReaderMetadataRouteImport.update({
+    id: '/reader-metadata',
+    path: '/reader-metadata',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
+const ApiPatternsPatternIdReaderHighlightsRoute =
+  ApiPatternsPatternIdReaderHighlightsRouteImport.update({
+    id: '/reader-highlights',
+    path: '/reader-highlights',
+    getParentRoute: () => ApiPatternsPatternIdRoute,
+  } as any)
 const ApiPatternsPatternIdPreviewRoute =
   ApiPatternsPatternIdPreviewRouteImport.update({
     id: '/preview',
@@ -575,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
   '/api/share/upload-url': typeof ApiShareUploadUrlRoute
+  '/pattern/$patternId/reader': typeof PatternPatternIdReaderRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
@@ -588,6 +609,8 @@ export interface FileRoutesByFullPath {
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
+  '/api/patterns/$patternId/reader-highlights': typeof ApiPatternsPatternIdReaderHighlightsRoute
+  '/api/patterns/$patternId/reader-metadata': typeof ApiPatternsPatternIdReaderMetadataRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
   '/api/patterns/$patternId/variants': typeof ApiPatternsPatternIdVariantsRoute
@@ -657,6 +680,7 @@ export interface FileRoutesByTo {
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
   '/api/share/upload-url': typeof ApiShareUploadUrlRoute
+  '/pattern/$patternId/reader': typeof PatternPatternIdReaderRoute
   '/api/catalog': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
@@ -670,6 +694,8 @@ export interface FileRoutesByTo {
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
+  '/api/patterns/$patternId/reader-highlights': typeof ApiPatternsPatternIdReaderHighlightsRoute
+  '/api/patterns/$patternId/reader-metadata': typeof ApiPatternsPatternIdReaderMetadataRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
   '/api/patterns/$patternId/variants': typeof ApiPatternsPatternIdVariantsRoute
@@ -741,6 +767,7 @@ export interface FileRoutesById {
   '/api/share/ingest': typeof ApiShareIngestRoute
   '/api/share/options': typeof ApiShareOptionsRoute
   '/api/share/upload-url': typeof ApiShareUploadUrlRoute
+  '/pattern/$patternId_/reader': typeof PatternPatternIdReaderRoute
   '/api/catalog/': typeof ApiCatalogIndexRoute
   '/api/admin/moderation/remove': typeof ApiAdminModerationRemoveRoute
   '/api/catalog/$lineId/barcodes': typeof ApiCatalogLineIdBarcodesRoute
@@ -754,6 +781,8 @@ export interface FileRoutesById {
   '/api/patterns/$patternId/hearts': typeof ApiPatternsPatternIdHeartsRoute
   '/api/patterns/$patternId/library': typeof ApiPatternsPatternIdLibraryRoute
   '/api/patterns/$patternId/preview': typeof ApiPatternsPatternIdPreviewRoute
+  '/api/patterns/$patternId/reader-highlights': typeof ApiPatternsPatternIdReaderHighlightsRoute
+  '/api/patterns/$patternId/reader-metadata': typeof ApiPatternsPatternIdReaderMetadataRoute
   '/api/patterns/$patternId/upload': typeof ApiPatternsPatternIdUploadRoute
   '/api/patterns/$patternId/upload-url': typeof ApiPatternsPatternIdUploadUrlRoute
   '/api/patterns/$patternId/variants': typeof ApiPatternsPatternIdVariantsRoute
@@ -826,6 +855,7 @@ export interface FileRouteTypes {
     | '/api/share/ingest'
     | '/api/share/options'
     | '/api/share/upload-url'
+    | '/pattern/$patternId/reader'
     | '/api/catalog/'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
@@ -839,6 +869,8 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
     | '/api/patterns/$patternId/preview'
+    | '/api/patterns/$patternId/reader-highlights'
+    | '/api/patterns/$patternId/reader-metadata'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
     | '/api/patterns/$patternId/variants'
@@ -908,6 +940,7 @@ export interface FileRouteTypes {
     | '/api/share/ingest'
     | '/api/share/options'
     | '/api/share/upload-url'
+    | '/pattern/$patternId/reader'
     | '/api/catalog'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
@@ -921,6 +954,8 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
     | '/api/patterns/$patternId/preview'
+    | '/api/patterns/$patternId/reader-highlights'
+    | '/api/patterns/$patternId/reader-metadata'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
     | '/api/patterns/$patternId/variants'
@@ -991,6 +1026,7 @@ export interface FileRouteTypes {
     | '/api/share/ingest'
     | '/api/share/options'
     | '/api/share/upload-url'
+    | '/pattern/$patternId_/reader'
     | '/api/catalog/'
     | '/api/admin/moderation/remove'
     | '/api/catalog/$lineId/barcodes'
@@ -1004,6 +1040,8 @@ export interface FileRouteTypes {
     | '/api/patterns/$patternId/hearts'
     | '/api/patterns/$patternId/library'
     | '/api/patterns/$patternId/preview'
+    | '/api/patterns/$patternId/reader-highlights'
+    | '/api/patterns/$patternId/reader-metadata'
     | '/api/patterns/$patternId/upload'
     | '/api/patterns/$patternId/upload-url'
     | '/api/patterns/$patternId/variants'
@@ -1069,6 +1107,7 @@ export interface RootRouteChildren {
   ApiShareIngestRoute: typeof ApiShareIngestRoute
   ApiShareOptionsRoute: typeof ApiShareOptionsRoute
   ApiShareUploadUrlRoute: typeof ApiShareUploadUrlRoute
+  PatternPatternIdReaderRoute: typeof PatternPatternIdReaderRoute
   ApiCatalogIndexRoute: typeof ApiCatalogIndexRoute
   ApiAdminModerationRemoveRoute: typeof ApiAdminModerationRemoveRoute
   ApiShareFilesFileIdRoute: typeof ApiShareFilesFileIdRoute
@@ -1264,6 +1303,13 @@ declare module '@tanstack/react-router' {
       path: '/api/catalog'
       fullPath: '/api/catalog/'
       preLoaderRoute: typeof ApiCatalogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pattern/$patternId_/reader': {
+      id: '/pattern/$patternId_/reader'
+      path: '/pattern/$patternId/reader'
+      fullPath: '/pattern/$patternId/reader'
+      preLoaderRoute: typeof PatternPatternIdReaderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/share/upload-url': {
@@ -1539,6 +1585,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPatternsPatternIdUploadRouteImport
       parentRoute: typeof ApiPatternsPatternIdRoute
     }
+    '/api/patterns/$patternId/reader-metadata': {
+      id: '/api/patterns/$patternId/reader-metadata'
+      path: '/reader-metadata'
+      fullPath: '/api/patterns/$patternId/reader-metadata'
+      preLoaderRoute: typeof ApiPatternsPatternIdReaderMetadataRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
+    '/api/patterns/$patternId/reader-highlights': {
+      id: '/api/patterns/$patternId/reader-highlights'
+      path: '/reader-highlights'
+      fullPath: '/api/patterns/$patternId/reader-highlights'
+      preLoaderRoute: typeof ApiPatternsPatternIdReaderHighlightsRouteImport
+      parentRoute: typeof ApiPatternsPatternIdRoute
+    }
     '/api/patterns/$patternId/preview': {
       id: '/api/patterns/$patternId/preview'
       path: '/preview'
@@ -1778,6 +1838,8 @@ interface ApiPatternsPatternIdRouteChildren {
   ApiPatternsPatternIdHeartsRoute: typeof ApiPatternsPatternIdHeartsRoute
   ApiPatternsPatternIdLibraryRoute: typeof ApiPatternsPatternIdLibraryRoute
   ApiPatternsPatternIdPreviewRoute: typeof ApiPatternsPatternIdPreviewRoute
+  ApiPatternsPatternIdReaderHighlightsRoute: typeof ApiPatternsPatternIdReaderHighlightsRoute
+  ApiPatternsPatternIdReaderMetadataRoute: typeof ApiPatternsPatternIdReaderMetadataRoute
   ApiPatternsPatternIdUploadRoute: typeof ApiPatternsPatternIdUploadRoute
   ApiPatternsPatternIdUploadUrlRoute: typeof ApiPatternsPatternIdUploadUrlRoute
   ApiPatternsPatternIdVariantsRoute: typeof ApiPatternsPatternIdVariantsRoute
@@ -1791,6 +1853,10 @@ const ApiPatternsPatternIdRouteChildren: ApiPatternsPatternIdRouteChildren = {
   ApiPatternsPatternIdHeartsRoute: ApiPatternsPatternIdHeartsRoute,
   ApiPatternsPatternIdLibraryRoute: ApiPatternsPatternIdLibraryRoute,
   ApiPatternsPatternIdPreviewRoute: ApiPatternsPatternIdPreviewRoute,
+  ApiPatternsPatternIdReaderHighlightsRoute:
+    ApiPatternsPatternIdReaderHighlightsRoute,
+  ApiPatternsPatternIdReaderMetadataRoute:
+    ApiPatternsPatternIdReaderMetadataRoute,
   ApiPatternsPatternIdUploadRoute: ApiPatternsPatternIdUploadRoute,
   ApiPatternsPatternIdUploadUrlRoute: ApiPatternsPatternIdUploadUrlRoute,
   ApiPatternsPatternIdVariantsRoute: ApiPatternsPatternIdVariantsRoute,
@@ -1863,6 +1929,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShareIngestRoute: ApiShareIngestRoute,
   ApiShareOptionsRoute: ApiShareOptionsRoute,
   ApiShareUploadUrlRoute: ApiShareUploadUrlRoute,
+  PatternPatternIdReaderRoute: PatternPatternIdReaderRoute,
   ApiCatalogIndexRoute: ApiCatalogIndexRoute,
   ApiAdminModerationRemoveRoute: ApiAdminModerationRemoveRoute,
   ApiShareFilesFileIdRoute: ApiShareFilesFileIdRoute,

@@ -328,6 +328,41 @@ export const patternFileVariants = sqliteTable('pattern_file_variants', {
   ...timestamps,
 })
 
+export const patternReaderStates = sqliteTable('pattern_reader_states', {
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  languageCode: text('language_code').notNull().default('en-US'),
+  lastReadPage: integer('last_read_page').notNull().default(1),
+  pageCount: integer('page_count'),
+  ...timestamps,
+}, (table) => [primaryKey({ columns: [table.userId, table.patternId, table.languageCode] })])
+
+export const patternPageMetadata = sqliteTable('pattern_page_metadata', {
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  languageCode: text('language_code').notNull().default('en-US'),
+  pageNumber: integer('page_number').notNull(),
+  isBookmarked: integer('is_bookmarked', { mode: 'boolean' }).notNull().default(false),
+  bookmarkLabel: text('bookmark_label'),
+  note: text('note'),
+  ...timestamps,
+}, (table) => [primaryKey({ columns: [table.userId, table.patternId, table.languageCode, table.pageNumber] })])
+
+export const patternPdfHighlights = sqliteTable('pattern_pdf_highlights', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  patternId: text('pattern_id').notNull().references(() => patterns.id, { onDelete: 'cascade' }),
+  languageCode: text('language_code').notNull().default('en-US'),
+  pageNumber: integer('page_number').notNull(),
+  x: integer('x').notNull(),
+  y: integer('y').notNull(),
+  width: integer('width').notNull(),
+  height: integer('height').notNull(),
+  color: text('color').notNull().default('yellow'),
+  note: text('note'),
+  ...timestamps,
+})
+
 export const notifications = sqliteTable('notifications', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),

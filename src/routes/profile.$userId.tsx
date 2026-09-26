@@ -183,8 +183,8 @@ function ProfilePage() {
                           </span>
                         </div>
                         {pattern.hasPdf ? (
-                          <a className="button" href={`/api/patterns/${pattern.id}/file`}>
-                            <Download size={14} /> Download
+                          <a className="button" href={`/pattern/${pattern.id}/reader`}>
+                            <Download size={14} /> Read pattern
                           </a>
                         ) : null}
                       </div>

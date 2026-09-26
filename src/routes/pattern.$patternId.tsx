@@ -93,7 +93,7 @@ function PatternDetailPage() {
           {data.description ? <p>{data.description}</p> : null}
           {data.notes ? <p>{data.notes}</p> : null}
           <div className="hero-actions">
-            {data.hasPdf ? <a className="button" href={`/api/patterns/${data.id}/file`}><span>Open pattern PDF</span></a> : null}
+            {data.hasPdf ? <a className="button button-primary" href={`/pattern/${data.id}/reader`}><span>Read pattern</span></a> : null}
             <button className="button" disabled={data.inLibrary} onClick={() => void addToLibrary()} type="button">
               {data.inLibrary ? 'Already in inventory' : 'Add to inventory'}
             </button>
@@ -101,7 +101,7 @@ function PatternDetailPage() {
           {variants.length ? (
             <div className="hero-actions">
               {variants.map((variant) => (
-                <a className="button" href={`/api/patterns/${data.id}/file?lang=${encodeURIComponent(variant.languageCode)}`} key={variant.id}>
+                <a className="button" href={`/pattern/${data.id}/reader?lang=${encodeURIComponent(variant.languageCode)}`} key={variant.id}>
                   {languageFlag(variant.languageCode)} {variant.languageLabel}
                 </a>
               ))}
